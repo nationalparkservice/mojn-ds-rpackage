@@ -2,7 +2,7 @@ Package: desertsprings
 Type: Package
 Title: Desert Springs Protocol R Package
 Version: 0.1.0
-Authors@R: c(person("Jennifer", "Bailard", email = "jennifer_bailard@nps.gov", role=c("aut","cre")),
+Authors@R: c(person("Jennifer", "Bailard", email = "jennifer_bailard@nps.gov", role=c("aut")),
     person("Sarah", "Wright", email = "sarah_wright@nps.gov", role=c("aut","cre")))
 Description: This R package is intended to provide automated QA/QC, visualization, and
     basic analysis and statistical summaries of data collected for the Desert Springs
@@ -16,13 +16,13 @@ Imports:
     ggplot2,
     knitr,
     lubridate,
-    magrittr,
     odbc,
     plyr,
     pool,
     rmarkdown,
-    roxygen,
+    roxygen2,
     stringr,
     testthat,
     tidyr,
     tidyverse
+RoxygenNote: 7.0.2
