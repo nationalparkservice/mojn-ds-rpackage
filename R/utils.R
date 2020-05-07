@@ -50,7 +50,6 @@ CloseDatabaseConnection <- function(conn) {
 #'
 #' # Get the names of all data tables:
 #' data.names <- names(GetColSpec())
-#'
 GetColSpec <- function() {
   col.spec <- list(
     CalibrationDO = readr::cols(
@@ -238,13 +237,13 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     SaveDataToCsv(conn, "C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
-#'     CloseDatabaseConnection(conn)
+#' conn <- OpenDatabaseConnection()
+#' SaveDataToCsv(conn, "C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
+#' CloseDatabaseConnection(conn)
 #' }
 SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite = FALSE) {
   analysis.views <- c("CalibrationDO", "CalibrationpH", "CalibrationSpCond", "DischargeEstimated", "DischargeFlowCondition", "DischargeVolumetric", "Disturbance", "DisturbanceFlowModification", "Invasives", "Riparian", "Site", "Visit", "VisitActivity", "WaterQualityDO", "WaterQualitypH", "WaterQualitySpCond", "WaterQualityTemperature", "Wildlife")
-  dest.folder <- file.path(dirname(dest.folder), basename(dest.folder))  # Get destination directory in a consistent format. Seems like there should be a better way to do this.
+  dest.folder <- file.path(dirname(dest.folder), basename(dest.folder)) # Get destination directory in a consistent format. Seems like there should be a better way to do this.
   file.paths <- file.path(dest.folder, paste0(analysis.views, ".csv"))
 
   # Validate inputs
@@ -281,7 +280,6 @@ SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite =
 #' @export
 #'
 GetRawData <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-
   data.dump <- list()
   data.names <- names(GetColSpec())
 
@@ -303,7 +301,6 @@ GetRawData <- function(conn, path.to.data, park, site, field.season, data.source
 #' @export
 #'
 GetSiteName <- function(conn, path.to.data, site.code, data.source = "database") {
-
   site <- ReadAndFilterData(conn, path.to.data, site = site.code, data.source = data.source, data.name = "Site")
   site %<>% dplyr::select("SiteCode", "SiteName") %>%
     unique() %>%

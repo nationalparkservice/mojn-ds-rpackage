@@ -8,7 +8,7 @@ CloseDatabaseConnection(conn)
 
 data.names <- names(GetColSpec())
 
-for(d.name in data.names) {
+for (d.name in data.names) {
   test_that(paste0(d.name, ".csv matches data read from database"), {
     c <- OpenDatabaseConnection()
     db <- ReadAndFilterData(c, data.name = d.name)
