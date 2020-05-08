@@ -115,6 +115,17 @@ GetColSpec <- function() {
       Rank = readr::col_integer(),
       .default = readr::col_character()
     ),
+    SensorRetrievalAttempts = readr::cols(
+      SensorNumber = readr::col_integer(),
+      DeploymentDate = readr::col_date(),
+      RetrievalDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
+    SensorsCurrentlyDeployed = readr::cols(
+      SensorNumber = readr::col_integer(),
+      VisitDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
     Site = readr::cols(
       GRTSOrder = readr::col_integer(),
       Lat_WGS84 = readr::col_double(),
@@ -176,7 +187,7 @@ GetColSpec <- function() {
 #'
 #' @return A tibble of filtered data.
 #'
-#' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
+#' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, SensorRetrievalAttempts, SensorsCurrentlyDeployed, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
 #'
 ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data.source = "database", data.name) {
   col.spec <- GetColSpec()
@@ -220,6 +231,15 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
 
   if ("FieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(FieldSeason = as.character(FieldSeason))
+  }
+
+  # Accomodate sensor data
+  if ("DeploymentFieldSeason" %in% names(filtered.data)) {
+    filtered.data %<>% dplyr::mutate(DeploymentFieldSeason = as.character(DeploymentFieldSeason))
+  }
+
+  if ("RetrievalFieldSeason" %in% names(filtered.data)) {
+    filtered.data %<>% dplyr::mutate(RetrievalFieldSeason = as.character(RetrievalFieldSeason))
   }
 
   return(filtered.data)
