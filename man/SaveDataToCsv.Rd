@@ -23,8 +23,8 @@ Save desert springs analysis views as a set of .csv files
 }
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    SaveDataToCsv(conn, "C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
-    CloseDatabaseConnection(conn)
+conn <- OpenDatabaseConnection()
+SaveDataToCsv(conn, "C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
+CloseDatabaseConnection(conn)
 }
 }
