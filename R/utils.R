@@ -262,7 +262,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
 #' CloseDatabaseConnection(conn)
 #' }
 SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite = FALSE) {
-  analysis.views <- c("CalibrationDO", "CalibrationpH", "CalibrationSpCond", "DischargeEstimated", "DischargeFlowCondition", "DischargeVolumetric", "Disturbance", "DisturbanceFlowModification", "Invasives", "Riparian", "Site", "Visit", "VisitActivity", "WaterQualityDO", "WaterQualitypH", "WaterQualitySpCond", "WaterQualityTemperature", "Wildlife")
+  analysis.views <- names(GetColSpec())
   dest.folder <- file.path(dirname(dest.folder), basename(dest.folder)) # Get destination directory in a consistent format. Seems like there should be a better way to do this.
   file.paths <- file.path(dest.folder, paste0(analysis.views, ".csv"))
 
