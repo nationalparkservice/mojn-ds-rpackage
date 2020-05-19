@@ -17,5 +17,4 @@ col.spec <- GetColSpec()
 
 # Get the names of all data tables:
 data.names <- names(GetColSpec())
-
 }
