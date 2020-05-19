@@ -115,6 +115,17 @@ GetColSpec <- function() {
       Rank = readr::col_integer(),
       .default = readr::col_character()
     ),
+    SensorRetrievalAttempts = readr::cols(
+      SensorNumber = readr::col_integer(),
+      DeploymentDate = readr::col_date(),
+      RetrievalDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
+    SensorsCurrentlyDeployed = readr::cols(
+      SensorNumber = readr::col_integer(),
+      VisitDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
     Site = readr::cols(
       GRTSOrder = readr::col_integer(),
       Lat_WGS84 = readr::col_double(),
@@ -176,7 +187,7 @@ GetColSpec <- function() {
 #'
 #' @return A tibble of filtered data.
 #'
-#' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
+#' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, SensorRetrievalAttempts, SensorsCurrentlyDeployed, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
 #'
 ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data.source = "database", data.name) {
   col.spec <- GetColSpec()
@@ -184,42 +195,57 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
   if (!(data.source %in% c("database", "local"))) {
     stop("Please choose either 'database' or 'local' for data.source")
   } else if (data.source == "database") {
-    filtered.data <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data.name))
+    filtered.data <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data.name)) %>%
+      dplyr::collect() %>%
+      dplyr::mutate_if(is.character, trimws)
   } else if (data.source == "local") {
     filtered.data <- readr::read_csv(file.path(path.to.data, paste0(data.name, ".csv")), na = "", col_types = col.spec[[data.name]])
   }
 
   if (!missing(park)) {
-    if (!(park %in% (dplyr::select(filtered.data, Park) %>% dplyr::collect())$Park)) {
-      stop("Data are not available for the park specified")
-    }
     filtered.data %<>%
       dplyr::filter(Park == park)
+    if (nrow(filtered.data) == 0) {
+      warning(paste0(data.name, ": Data are not available for the park specified"))
+    }
   }
 
-  if (!missing(site)) {
-    if (!(site %in% (dplyr::select(filtered.data, SiteCode) %>% dplyr::collect())$SiteCode)) {
-      stop("Data are not available for the site specified")
-    }
+  if (!missing(site) & nrow(filtered.data) > 0) {
     filtered.data %<>%
       dplyr::filter(SiteCode == site)
-  }
-
-  if (!missing(field.season) & ("FieldSeason" %in% colnames(filtered.data))) {
-    if (any(!(field.season %in% (dplyr::select(filtered.data, FieldSeason) %>% dplyr::collect())$FieldSeason))) {
-      stop("Data are not available for one or more of the field seasons specified")
-    } else {
-      filtered.data %<>%
-        dplyr::filter(FieldSeason %in% field.season)
+    
+    if (nrow(filtered.data) == 0) {
+      warning(paste0(data.name, ": Data are not available for the site specified"))
     }
   }
-
-  filtered.data %<>%
-    dplyr::collect() %>%
-    dplyr::mutate_if(is.character, trimws)
 
   if ("FieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(FieldSeason = as.character(FieldSeason))
+  }
+
+  # Accomodate sensor data
+  if ("DeploymentFieldSeason" %in% names(filtered.data)) {
+    filtered.data %<>% dplyr::mutate(DeploymentFieldSeason = as.character(DeploymentFieldSeason))
+  }
+
+  if ("RetrievalFieldSeason" %in% names(filtered.data)) {
+    filtered.data %<>% dplyr::mutate(RetrievalFieldSeason = as.character(RetrievalFieldSeason))
+  }
+  
+  if (!missing(field.season) & ("FieldSeason" %in% colnames(filtered.data)) & nrow(filtered.data) > 0) {
+    filtered.data %<>%
+      dplyr::filter(FieldSeason %in% field.season)
+    if (nrow(filtered.data) == 0) {
+      warning(paste0(data.name, ": Data are not available for one or more of the field seasons specified"))
+    }
+  }
+  
+  if (!missing(field.season) & ("DeploymentFieldSeason" %in% colnames(filtered.data)) & nrow(filtered.data) > 0) {
+    filtered.data %<>%
+      dplyr::filter(DeploymentFieldSeason %in% field.season)
+    if (nrow(filtered.data) == 0) {
+      warning(paste0(data.name, ": Data are not available for one or more of the deployment field seasons specified"))
+    }
   }
 
   return(filtered.data)
@@ -242,7 +268,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
 #' CloseDatabaseConnection(conn)
 #' }
 SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite = FALSE) {
-  analysis.views <- c("CalibrationDO", "CalibrationpH", "CalibrationSpCond", "DischargeEstimated", "DischargeFlowCondition", "DischargeVolumetric", "Disturbance", "DisturbanceFlowModification", "Invasives", "Riparian", "Site", "Visit", "VisitActivity", "WaterQualityDO", "WaterQualitypH", "WaterQualitySpCond", "WaterQualityTemperature", "Wildlife")
+  analysis.views <- names(GetColSpec())
   dest.folder <- file.path(dirname(dest.folder), basename(dest.folder)) # Get destination directory in a consistent format. Seems like there should be a better way to do this.
   file.paths <- file.path(dest.folder, paste0(analysis.views, ".csv"))
 
