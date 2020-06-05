@@ -81,12 +81,14 @@ SensorQcHeatmap <- function(conn, path.to.data, park, data.source = "database") 
   attempts %<>%
     filter(DeploymentVisitType == "Primary") %>%
     mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
-                                  if_else(SensorRetrieved == "Y", "Retrieved, download failed", "Lost"))) %>%
-    arrange(SiteCode)
+                                  if_else(SensorRetrieved == "Y", "Retrieved, download failed", "Lost")),
+           SensorResultOrder = if_else(DownloadResult == "Y", 1,
+                                       if_else(SensorRetrieved == "Y", 2, 3)))
   
-  plt <- ggplot(attempts, aes(DeploymentFieldSeason, SiteCode)) + 
-    geom_tile(aes(fill = SensorResult), color = "white") + 
-    scale_fill_manual(values = c("green", "red", "yellow"))
+  plt <- ggplot(attempts, aes(x = DeploymentFieldSeason, 
+                              y = reorder(SiteCode, desc(SiteCode)))) + 
+    geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
+    scale_fill_manual(values = c("green", "yellow", "red"), name = "Outcome")
   
   return(plt)
 }
