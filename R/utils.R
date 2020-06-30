@@ -364,3 +364,91 @@ GetSampleSizes <- function(data) {
   }
   
   return(sample.size)
+}
+
+#' Apply some standard formatting to a ggplot object.
+#'
+#' @param p A ggplot object.
+#' @param site The spring code.
+#' @param site.name The spring name.
+#' @param field.seasons Either a single field season name, or a vector of field season names.
+#' @param sample.sizes Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.
+#' @param plot.title The title of the plot.
+#' @param sub.title Optional custom plot subtitle.
+#' @param x.lab X axis label.
+#' @param y.lab Y axis label.
+#' @param rotate.x.labs Boolean indicating whether to rotate x axis labels 90 degrees.
+#' @param ymax Optional maximum y limit.
+#' @param ymin Optional minimum y limit.
+#' @param xmax Optional maximum x limit.
+#' @param xmin Optional minimum x limit.
+#'
+#' @return A ggplot object.
+#'
+FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.title, sub.title, x.lab, y.lab, rotate.x.labs, ymax, ymin, xmax, xmin) {
+  
+  # Generate a subtitle from park and event group if subtitle not provided by user
+  if (missing(sub.title)) {
+    # For multiple seasons of data, just use the spring name since season and sample size will go in the facet titles
+    if (missing(field.seasons) || (length(field.seasons) > 1)) {
+      sub.title <- site.name
+      # Otherwise, include spring name, season and sample size
+    } else if (!missing(sample.sizes)) {
+      n <- sample.sizes[(sample.sizes$Site == site & sample.sizes$FieldSeason == field.seasons), ]$SampleSize
+      sub.title <- paste0(site.name, " (", field.seasons, ")", "\n", "n = ", n)
+    } else {
+      sub.title <- paste0(site.name, " (", field.seasons, ")")
+    }
+  }
+  
+  # Create facets if >1 event group
+  if (!missing(field.seasons) && (length(field.seasons) > 1)) {
+    p <- p + ggplot2::facet_wrap(ggplot2::vars(FieldSeason), ncol = 2, labeller = ggplot2::as_labeller(function(field.seasons){FacetTitle(field.seasons, sample.sizes)}))
+  }
+  
+  # Add title and subtitle if not blank
+  if (plot.title != "") {
+    p <- p + ggplot2::labs(title = plot.title)
+  }
+  if (sub.title != "") {
+    p <- p + ggplot2::labs(subtitle = sub.title)
+  }
+  
+  # Add x and y axis titles if not blank
+  if (x.lab != "") {
+    p <- p + ggplot2::xlab(x.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+  }
+  
+  if (y.lab != "") {
+    p <- p + ggplot2::ylab(y.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+  }
+  
+  # Rotate x labels 90 degrees if rotate.x.labs is TRUE
+  if (!missing(rotate.x.labs)) {
+    p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1))
+  }
+  
+  # Set ymin and ymax if provided
+  if (!missing(ymin) && !missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
+  } else if (!missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = ymax)
+  } else if (!missing(ymin)) {
+    p <- p + ggplot2::expand_limits(y = ymin)
+  }
+  
+  # Set xmin and xmax if provided
+  if (!missing(xmin) && !missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
+  } else if (!missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = xmax)
+  } else if (!missing(xmin)) {
+    p <- p + ggplot2::expand_limits(x = xmin)
+  }
+  
+  return(p)
+}
