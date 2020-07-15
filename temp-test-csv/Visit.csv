@@ -1,0 +1,9 @@
+Park,Subunit,SiteCode,SiteName,VisitDate,FieldSeason,SampleFrame,VisitType,MonitoringStatus,SpringType
+DEVA,DEVA Unknown,DEVA_P_SPR001,DEVA 1,2018-12-03,2019,Annual,Primary,Sampled,Rheocrene
+DEVA,DEVA Unknown,DEVA_P_SPR002,DEVA 2,2019-01-21,2019,Over,Primary,Sampled,Limnocrene
+DEVA,DEVA Unknown,DEVA_P_SPR003,DEVA 3,2018-12-04,2019,3Yr,Primary,Sampled,Rheocrene
+DEVA,DEVA Unknown,DEVA_P_SPR003,DEVA 3,2019-01-21,2019,3Yr,Replicate,Sampled,Rheocrene
+LAKE,LAKE Unknown,LAKE_P_SPR001,LAKE 1,2019-11-20,2020,Rejected,Primary,Not sampled - No spring found,NA
+LAKE,LAKE Unknown,LAKE_P_SPR002,LAKE 2,2019-11-20,2020,Annual,Primary,Sampled,Rheocrene
+LAKE,LAKE Unknown,LAKE_P_SPR003,LAKE 3,2019-12-05,2020,Annual,Primary,Sampled,Rheocrene
+PARA,PARA Unknown,PARA_P_SPR001,PARA 1,2019-04-17,2019,3Yr,Primary,Sampled,Hillslope
