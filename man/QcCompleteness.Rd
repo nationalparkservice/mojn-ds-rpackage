@@ -2,7 +2,7 @@
 % Please edit documentation in R/general-qc.R
 \name{QcCompleteness}
 \alias{QcCompleteness}
-\title{Calculate completeness and print table (\% of planned sites visited)}
+\title{Calculate completeness (\% of planned sites visited).}
 \usage{
 QcCompleteness(
   conn,
@@ -29,8 +29,8 @@ QcCompleteness(
 \item{data.name}{The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.}
 }
 \value{
-A tibble.
+A tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 }
 \description{
-Calculate completeness and print table (\% of planned sites visited)
+Calculate completeness (\% of planned sites visited).
 }

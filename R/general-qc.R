@@ -1,4 +1,4 @@
-#' Calculate completeness and print table (\% of planned sites visited)
+#' Calculate completeness (\% of planned sites visited).
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -8,12 +8,12 @@
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param data.name The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.
 #'
-#' @return A tibble.
+#' @return A tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 #' @export
 #' 
 QcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completeness <- ReadAndFilterData(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  completeness <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
   df <- completeness %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, VisitType, MonitoringStatus) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
@@ -34,7 +34,7 @@ QcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 
 }
 
-#' Plot completeness (\% of planned sites visited)
+#' Generate stacked bar plot for completeness (\% of planned sites visited).
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -43,7 +43,7 @@ QcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble.
+#' @return A stacked bar graph showing the count of annual and 3Yr springs monitored for each park and field season.
 #' @export
 #' 
 QcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
