@@ -69,7 +69,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
 #'
 QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.sanity.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source = "database")
+  wq.sanity.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
   
   temp.sanity <- wq.sanity.predata %>%
     dplyr::filter(TempMedian > 30) %>%
@@ -125,7 +125,7 @@ QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #'
 QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.flags.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source = "database")
+  wq.flags.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
     
   temp.flags <- wq.flags.predata %>%
     dplyr::filter(TempFlag %in% c("I", "W", "C")) %>%
@@ -182,8 +182,8 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @examples
 QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.cleaned.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source = "database")
-  wq.visits <- ReadAndFilterData(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  wq.cleaned.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
+  wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
   
   wq.cleaned.data <- wq.cleaned.predata %>%
     left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"))
@@ -253,7 +253,7 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' 
 QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.stats.predata <- desertsprings:::QcWqCleaned(conn, path.to.data, park, site, field.season, data.source = "database")
+  wq.stats.predata <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
   
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
@@ -264,7 +264,7 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
   
 }
 
-#' Generate box and whisker plot for each water quality parameter for each park and year. Includes annual and 3Yr springs only.
+#' Generate box plots for water temperature for each park and year. Includes annual and 3Yr springs only. 
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -273,22 +273,43 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return Box and whisker plots of the four water quality parameters for each park and field season.
+#' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
 #' @examples
-QcWqPlots <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.plots <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source = "database")
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
   
-  wq.plots.temp <- ggplot(subset(wq.plots, Parameter == "Temp" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
+  wq.plot.temp <- ggplot(subset(wq.plot, Parameter == "Temp" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
     geom_boxplot() +
     xlab("") + 
     ylab("Water Temperature (C)") + 
     theme(axis.text.x=element_text(angle=90)) +
     facet_grid(~Park,scales="free")
   
-  wq.plots.spcond <- ggplot(subset(wq.plots, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
+  return(wq.plot.temp)
+  
+}
+  
+#' Generate box plots for specific conductance for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Box plots of specific conductance data for each park and field season.
+#' @export
+#'
+#' @examples
+QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+
+  wq.plot.spcond <- ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
     geom_boxplot() +
     xlab("") + 
     ylab("Specific Conductance (uS/cm)") + 
@@ -296,22 +317,56 @@ QcWqPlots <- function(conn, path.to.data, park, site, field.season, data.source 
     facet_grid(~Park,scales="free") +
     scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
   
-  wq.plots.spcond.ms <- ggplot(subset(wq.plots, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median/1000)) + 
-    geom_boxplot() +
-    xlab("") + 
-    ylab("Specific Conductance (mS/cm)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free") +
-    scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
+    return(wq.plot.spcond)
+   
+}
   
-  wq.plots.ph <- ggplot(subset(wq.plots, Parameter == "pH" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
+#' Generate box plots for pH for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Box plots of pH data for each park and field season.
+#' @export
+#'
+#' @examples
+QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+    
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
+  
+  wq.plot.ph <- ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
     geom_boxplot() +
     xlab("") +
     ylab("pH") + 
     theme(axis.text.x=element_text(angle=90)) +
     facet_grid(~Park,scales="free")
   
-  wq.plots.do.pct <- ggplot(subset(wq.plots, Parameter == "DO" & Units == "%" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
+  return(wq.plot.ph)
+  
+}
+
+#' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Box plots of dissolved oxygen (percent) data for each park and field season.
+#' @export
+#'
+#' @examples
+QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
+
+  wq.plot.do.pct <- ggplot(subset(wq.plot, Parameter == "DO" & Units == "%" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
     geom_boxplot() +
     xlab("") +
     ylab("Dissolved Oxygen (%)") + 
@@ -319,13 +374,69 @@ QcWqPlots <- function(conn, path.to.data, park, site, field.season, data.source 
     facet_grid(~Park,scales="free") +
     ylim(0,100)
   
-  wq.plots.do.mgl <- ggplot(subset(wq.plots, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
+  return(wq.plot.do.pct)
+  
+}
+
+#' Generate box plots for concentration dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
+#' @export
+#'
+#' @examples
+QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+
+  wq.plot.do.mgl <- ggplot(subset(wq.plot, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
     geom_boxplot() +
     xlab("") +
     ylab("Dissolved Oxygen (mg/L)") + 
     theme(axis.text.x=element_text(angle=90)) +
     facet_grid(~Park,scales="free")
    
-  grid.arrange(wq.plots.temp, wq.plots.spcond.ms, wq.plots.ph, wq.plots.do.mgl, ncol=1)
+  return(wq.plot.do.mgl)
+  
+}
+
+#' Generate grid of box plots for core water quality parameters for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
+#' @export
+#'
+#' @examples
+QcWqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+
+  wq.plot.temp <- QcWqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.ph <- QcWqPlotPH(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.do.mgl <- QcWqPlotDOmgL(conn, path.to.data, park, site, field.season, data.source)
+  
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+  
+  wq.plot.spcond.ms <- ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median/1000)) + 
+    geom_boxplot() +
+    xlab("") + 
+    ylab("Specific Conductance (mS/cm)") + 
+    theme(axis.text.x=element_text(angle=90)) +
+    facet_grid(~Park,scales="free") +
+    scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
+  
+    wq.plot.grid <- grid.arrange(wq.plot.temp, wq.plot.spcond.ms, wq.plot.ph, wq.plot.do.mgl, ncol=1)
+    
+    return(wq.plot.grid)
   
 }
