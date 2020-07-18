@@ -18,38 +18,44 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
   ph <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitypH")
   do <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityDO")
   
+  wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  
   temp.med <- temp %>%
-    dplyr::filter(VisitType == "Primary" & MonitoringStatus == "Sampled") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(TempMedian = median(WaterTemperature_C)) %>%
     dplyr::rename(TempFlag = DataQualityFlag, TempFlagNote = DataQualityFlagNote) %>%
     dplyr::arrange(SiteCode)
   
   spcond.med <- spcond %>%
-    dplyr::filter(VisitType == "Primary" & MonitoringStatus == "Sampled") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(SpCondMedian = median(SpecificConductance_microS_per_cm)) %>%
     dplyr::rename(SpCondFlag = DataQualityFlag, SpCondFlagNote = DataQualityFlagNote) %>%
     dplyr::arrange(SiteCode)
   
   ph.med <- ph %>%
-    dplyr::filter(VisitType == "Primary" & MonitoringStatus == "Sampled") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(pHMedian = median(pH)) %>%
     dplyr::rename(pHFlag = DataQualityFlag, pHFlagNote = DataQualityFlagNote) %>%
     dplyr::arrange(SiteCode)
   
   do.med <- do %>%
-    dplyr::filter(VisitType == "Primary" & MonitoringStatus == "Sampled") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(DOPercentMedian = median(DissolvedOxygen_percent), DOmgLMedian = median(DissolvedOxygen_mg_per_L)) %>%
     dplyr::rename(DOFlag = DataQualityFlag, DOFlagNote = DataQualityFlagNote) %>%
     dplyr::arrange(SiteCode)
   
   wq.med <- temp.med %>%
-    dplyr::left_join(spcond.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
-    dplyr::left_join(ph.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
-    dplyr::left_join(do.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate"))
+    dplyr::left_join(spcond.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame")) %>%
+    dplyr::left_join(ph.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame")) %>%
+    dplyr::left_join(do.med, by= c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"))
   
   return(wq.med)
   
@@ -74,36 +80,36 @@ QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
   temp.sanity <- wq.sanity.predata %>%
     dplyr::filter(TempMedian > 30) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, TempMedian, TempFlag, TempFlagNote) %>%
-    tibble::add_column(Parameter = "Temp", Units = "C", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, TempMedian, TempFlag, TempFlagNote) %>%
+    tibble::add_column(Parameter = "Temp", Units = "C", .after = "SampleFrame") %>%
     dplyr::rename(Median = TempMedian, Flag = TempFlag, FlagNote = TempFlagNote)
   
   spcond.sanity <- wq.sanity.predata %>%
     dplyr::filter(SpCondMedian > 20000) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SpCondMedian, SpCondFlag, SpCondFlagNote) %>%
-    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, SpCondMedian, SpCondFlag, SpCondFlagNote) %>%
+    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
     dplyr::rename(Median = SpCondMedian, Flag = SpCondFlag, FlagNote = SpCondFlagNote)
  
   ph.sanity <- wq.sanity.predata %>%
     dplyr::filter(pHMedian > 10 | pHMedian < 6) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, pHMedian, pHFlag, pHFlagNote) %>%
-    tibble::add_column(Parameter = "pH", Units = "units", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
     dplyr::rename(Median = pHMedian, Flag = pHFlag, FlagNote = pHFlagNote)
   
   do.percent.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOPercentMedian > 110 | DOPercentMedian < 2) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, DOPercentMedian, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "%", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOPercentMedian, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOPercentMedian, Flag = DOFlag, FlagNote = DOFlagNote)
   
   do.mgl.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOmgLMedian > 12) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, DOmgLMedian, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOmgLMedian, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.sanity <- rbind(temp.sanity, spcond.sanity, ph.sanity, do.percent.sanity, do.mgl.sanity)
@@ -130,36 +136,36 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
   temp.flags <- wq.flags.predata %>%
     dplyr::filter(TempFlag %in% c("I", "W", "C")) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, TempMedian, TempFlag, TempFlagNote) %>%
-    tibble::add_column(Parameter = "Temp", Units = "C", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, TempMedian, TempFlag, TempFlagNote) %>%
+    tibble::add_column(Parameter = "Temp", Units = "C", .after = "SampleFrame") %>%
     dplyr::rename(Median = TempMedian, Flag = TempFlag, FlagNote = TempFlagNote)
   
   spcond.flags <- wq.flags.predata %>%
     dplyr::filter(SpCondFlag %in% c("I", "W", "C")) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SpCondMedian, SpCondFlag, SpCondFlagNote) %>%
-    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, SpCondMedian, SpCondFlag, SpCondFlagNote) %>%
+    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
     dplyr::rename(Median = SpCondMedian, Flag = SpCondFlag, FlagNote = SpCondFlagNote)
   
   ph.flags <- wq.flags.predata %>%
     dplyr::filter(pHFlag %in% c("I", "W", "C")) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, pHMedian, pHFlag, pHFlagNote) %>%
-    tibble::add_column(Parameter = "pH", Units = "units", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
     dplyr::rename(Median = pHMedian, Flag = pHFlag, FlagNote = pHFlagNote)
   
   do.percent.flags <- wq.flags.predata %>%
     dplyr::filter(DOFlag %in% c("I", "W", "C")) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, DOPercentMedian, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "%", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOPercentMedian, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOPercentMedian, Flag = DOFlag, FlagNote = DOFlagNote)
  
   do.mgl.flags <- wq.flags.predata %>%
     dplyr::filter(DOFlag %in% c("I", "W", "C")) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, DOmgLMedian, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "VisitDate") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOmgLMedian, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
   
   wq.flags <- rbind(temp.flags, spcond.flags, ph.flags, do.percent.flags, do.mgl.flags)
@@ -167,7 +173,7 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
   
 }
 
-#' Intermediate step used to clean water quality data for stats and plotting functions. Limit data to annual and 3Yr springs, and exclude data with "W" and "C" flags.
+#' Intermediate step used to clean water quality data for stats and plotting functions. Limit data to primary visits of annual and 3Yr springs, and exclude data with "W" and "C" flags.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -182,56 +188,49 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @examples
 QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  wq.cleaned.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
-  wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  
-  wq.cleaned.data <- wq.cleaned.predata %>%
-    left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"))
+  wq.cleaned.data <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
   
   temp.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, TempMedian, TempFlag) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, TempMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "Temp", Units = "C", .after = "SampleFrame") %>%
     dplyr::rename(Median = TempMedian)
   
   spcond.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, SpCondMedian, SpCondFlag) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !SpCondFlag %in% c("W", "C")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, SpCondMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
     dplyr::rename(Median = SpCondMedian)
   
   ph.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, pHMedian, pHFlag) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !pHFlag %in% c("W", "C")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, pHMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "pH", Units = "Units", .after = "SampleFrame")  %>%
     dplyr::rename(Median = pHMedian)
   
   do.percent.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOPercentMedian, DOFlag) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !DOFlag %in% c("W", "C"), DOPercentMedian < 110) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary", DOPercentMedian < 110)) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOPercentMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOPercentMedian)
   
   do.mgl.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOmgLMedian, DOFlag) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !DOFlag %in% c("W", "C"), DOmgLMedian < 12) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary", DOmgLMedian < 12)) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOmgLMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
     dplyr::rename(Median = DOmgLMedian)
   
-  wq.cleaned.joined <- rbind(temp.cleaned, spcond.cleaned, ph.cleaned, do.percent.cleaned, do.mgl.cleaned)
-  
-  wq.cleaned <- wq.cleaned.joined %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median)
+  wq.cleaned <- rbind(temp.cleaned, spcond.cleaned, ph.cleaned, do.percent.cleaned, do.mgl.cleaned)
   
   return(wq.cleaned)
   
