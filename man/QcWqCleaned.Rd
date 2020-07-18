@@ -2,7 +2,7 @@
 % Please edit documentation in R/waterquality.R
 \name{QcWqCleaned}
 \alias{QcWqCleaned}
-\title{Intermediate step used to clean water quality data for stats and plotting functions. Limit data to annual and 3Yr springs, and exclude data with "W" and "C" flags.}
+\title{Intermediate step used to clean water quality data for stats and plotting functions. Limit data to primary visits of annual and 3Yr springs, and exclude data with "W" and "C" flags.}
 \usage{
 QcWqCleaned(
   conn,
@@ -30,5 +30,5 @@ QcWqCleaned(
 A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 }
 \description{
-Intermediate step used to clean water quality data for stats and plotting functions. Limit data to annual and 3Yr springs, and exclude data with "W" and "C" flags.
+Intermediate step used to clean water quality data for stats and plotting functions. Limit data to primary visits of annual and 3Yr springs, and exclude data with "W" and "C" flags.
 }
