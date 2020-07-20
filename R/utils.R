@@ -202,6 +202,8 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
     filtered.data <- readr::read_csv(file.path(path.to.data, paste0(data.name, ".csv")), na = "", col_types = col.spec[[data.name]])
   }
 
+  class(filtered.data) <- c("tbl_df", "tbl", "data.frame")  # R 4.0 fix: makes sure that filtered.data is the same class regardless of where it was read from
+  
   if (!missing(park)) {
     filtered.data %<>%
       dplyr::filter(Park == park)

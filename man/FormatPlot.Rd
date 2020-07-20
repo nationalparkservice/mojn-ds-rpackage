@@ -30,7 +30,7 @@ FormatPlot(
 
 \item{field.seasons}{Either a single field season name, or a vector of field season names.}
 
-\item{sample.sizes}{Optional dataframe with columns Park, SampleSize, and optionally Site and FieldSeason.}
+\item{sample.sizes}{Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.}
 
 \item{plot.title}{The title of the plot.}
 
