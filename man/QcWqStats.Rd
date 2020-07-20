@@ -32,6 +32,3 @@ A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%,
 \description{
 Calculate quartile values for each water quality parameter for each park and year. Includes annual and 3Yr springs only.
 }
-\examples{
-
-}

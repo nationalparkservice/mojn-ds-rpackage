@@ -185,7 +185,6 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 #' @export
 #'
-#' @examples
 QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.cleaned.data <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
@@ -248,8 +247,6 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @return A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 #' @export
 #'
-#' @examples
-#' 
 QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.stats.predata <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
@@ -275,7 +272,6 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
@@ -303,7 +299,6 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
@@ -332,7 +327,6 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
 #' @return Box plots of pH data for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
     
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
@@ -360,7 +354,6 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return Box plots of dissolved oxygen (percent) data for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
@@ -389,7 +382,6 @@ QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
@@ -417,7 +409,6 @@ QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @return Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
 #' @export
 #'
-#' @examples
 QcWqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   wq.plot.temp <- QcWqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
