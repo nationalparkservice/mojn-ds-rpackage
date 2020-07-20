@@ -21,7 +21,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
   wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
   
   temp.med <- temp %>%
-    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
     dplyr::filter(MonitoringStatus == "Sampled") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(TempMedian = median(WaterTemperature_C)) %>%
@@ -29,7 +29,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::arrange(SiteCode)
   
   spcond.med <- spcond %>%
-    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
     dplyr::filter(MonitoringStatus == "Sampled") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(SpCondMedian = median(SpecificConductance_microS_per_cm)) %>%
@@ -37,7 +37,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::arrange(SiteCode)
   
   ph.med <- ph %>%
-    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
     dplyr::filter(MonitoringStatus == "Sampled") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(pHMedian = median(pH)) %>%
@@ -45,7 +45,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::arrange(SiteCode)
   
   do.med <- do %>%
-    dplyr::left_join(select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
     dplyr::filter(MonitoringStatus == "Sampled") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(DOPercentMedian = median(DissolvedOxygen_percent), DOmgLMedian = median(DissolvedOxygen_mg_per_L)) %>%
