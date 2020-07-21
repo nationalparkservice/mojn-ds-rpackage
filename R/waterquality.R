@@ -191,7 +191,7 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   temp.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(TempFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, TempMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "Temp", Units = "C", .after = "SampleFrame") %>%
@@ -199,7 +199,7 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   spcond.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(SpCondFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, SpCondMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
@@ -207,15 +207,15 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   ph.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(pHFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, pHMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "pH", Units = "Units", .after = "SampleFrame")  %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame")  %>%
     dplyr::rename(Median = pHMedian)
   
   do.percent.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary", DOPercentMedian < 110)) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(DOFlag %in% c("W", "C")), VisitType %in% c("Primary"), (DOPercentMedian < 110 | is.na(DOPercentMedian))) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOPercentMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
@@ -223,7 +223,7 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   do.mgl.cleaned <- wq.cleaned.data %>%
     dplyr::ungroup() %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !TempFlag %in% c("W", "C"), VisitType %in% c("Primary", DOmgLMedian < 12)) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(DOFlag %in% c("W", "C")), VisitType %in% c("Primary"), (DOmgLMedian < 12 | is.na(DOmgLMedian))) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOmgLMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
@@ -254,7 +254,45 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
+    tidyr::unnest_wider(stats) %>%
+    dplyr::mutate_if(is.double, list(~round(., case_when(Parameter == "SpCond" ~ 4,
+                                                         Parameter == "Temp" ~ 2,
+                                                         Parameter == "pH" ~ 1))))
+  
+  wq.stats <- wq.stats.predata %>%
+    dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
+    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
     tidyr::unnest_wider(stats)
+  
+  wq.stats[wq.stats$Parameter == "SpCond", '0%'] <- round(wq.stats[wq.stats$Parameter == "SpCond", '0%'], 1)
+    
+  
+  dplyr::mutate_if(is.double, round(., case_when(Parameter == "SpCond" ~ 1,
+                                                 Parameter == "DO" & Units == "%" ~ 1,
+                                                 Parameter == "DO" & Units == "mg/L" ~ 2,
+                                                 Parameter == "pH" ~ 2,
+                                                 Parameter == "Temp" ~ 2)))
+  
+  
+    dplyr::mutate_if(is.double, list(~case_when(Parameter == "SpCond" ~ round(1),
+                                                      Parameter == "DO" & Units == "%" ~ 1,
+                                                      Parameter == "DO" & Units == "mg/L" ~ 2,
+                                                      Parameter == "pH" ~ 2,
+                                                      Parameter == "Temp" ~ 2)))
+    
+    
+    dplyr::mutate_if(is.double, list(~round(if_else(Parameter == "SpCond", 1, 2))))
+    
+    
+    dplyr::mutate_if(is.double, round(case_when(.$Parameter == "SpCond" ~ 1,
+                                                .$Parameter == "DO" & .$Units == "%" ~ 1,
+                                                .$Parameter == "DO" & .$Units == "mg/L" ~ 2,
+                                                .$Parameter == "pH" ~ 2,
+                                                .$Parameter == "Temp" ~ 2)))
+  
+  dplyr::case_when(.$Parameter == "SpCond" ~ mutate_if(is.double, round(1)))
+  
+  
   
   return(wq.stats)
   
