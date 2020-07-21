@@ -2,7 +2,7 @@
 % Please edit documentation in R/waterquality.R
 \name{QcWqCleaned}
 \alias{QcWqCleaned}
-\title{Clean water quality data and format for plotting. Intermediate step.}
+\title{Intermediate step used to clean water quality data for stats and plotting functions. Limit data to annual and 3Yr springs, and exclude data with "W" and "C" flags.}
 \usage{
 QcWqCleaned(
   conn,
@@ -14,21 +14,21 @@ QcWqCleaned(
 )
 }
 \arguments{
-\item{conn}{}
+\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
 
-\item{path.to.data}{}
+\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
 
-\item{park}{}
+\item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{site}{}
+\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
-\item{field.season}{}
+\item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
-\item{data.source}{}
+\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-
+A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 }
 \description{
-Clean water quality data and format for plotting. Intermediate step.
+Intermediate step used to clean water quality data for stats and plotting functions. Limit data to annual and 3Yr springs, and exclude data with "W" and "C" flags.
 }
