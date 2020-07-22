@@ -255,44 +255,13 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
     tidyr::unnest_wider(stats) %>%
-    dplyr::mutate_if(is.double, list(~round(., case_when(Parameter == "SpCond" ~ 4,
-                                                         Parameter == "Temp" ~ 2,
-                                                         Parameter == "pH" ~ 1))))
+    ungroup()
   
-  wq.stats <- wq.stats.predata %>%
-    dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
-    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
-    tidyr::unnest_wider(stats)
-  
-  wq.stats[wq.stats$Parameter == "SpCond", '0%'] <- round(wq.stats[wq.stats$Parameter == "SpCond", '0%'], 1)
-    
-  
-  dplyr::mutate_if(is.double, round(., case_when(Parameter == "SpCond" ~ 1,
-                                                 Parameter == "DO" & Units == "%" ~ 1,
-                                                 Parameter == "DO" & Units == "mg/L" ~ 2,
-                                                 Parameter == "pH" ~ 2,
-                                                 Parameter == "Temp" ~ 2)))
-  
-  
-    dplyr::mutate_if(is.double, list(~case_when(Parameter == "SpCond" ~ round(1),
-                                                      Parameter == "DO" & Units == "%" ~ 1,
-                                                      Parameter == "DO" & Units == "mg/L" ~ 2,
-                                                      Parameter == "pH" ~ 2,
-                                                      Parameter == "Temp" ~ 2)))
-    
-    
-    dplyr::mutate_if(is.double, list(~round(if_else(Parameter == "SpCond", 1, 2))))
-    
-    
-    dplyr::mutate_if(is.double, round(case_when(.$Parameter == "SpCond" ~ 1,
-                                                .$Parameter == "DO" & .$Units == "%" ~ 1,
-                                                .$Parameter == "DO" & .$Units == "mg/L" ~ 2,
-                                                .$Parameter == "pH" ~ 2,
-                                                .$Parameter == "Temp" ~ 2)))
-  
-  dplyr::case_when(.$Parameter == "SpCond" ~ mutate_if(is.double, round(1)))
-  
-  
+  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% mutate_if(is.double, ~round(., 1))
+  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% mutate_if(is.double, ~round(., 2))
+  wq.stats[wq.stats$Parameter == "SpCond", ] %<>% mutate_if(is.double, ~round(., 1))
+  wq.stats[wq.stats$Parameter == "pH", ] %<>% mutate_if(is.double, ~round(., 2))
+  wq.stats[wq.stats$Parameter == "Temp", ] %<>% mutate_if(is.double, ~round(., 2))
   
   return(wq.stats)
   
