@@ -283,12 +283,12 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
   
-  wq.plot.temp <- ggplot(subset(wq.plot, Parameter == "Temp" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
-    geom_boxplot() +
-    xlab("") + 
-    ylab("Water Temperature (C)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free")
+  wq.plot.temp <- ggplot2::ggplot(subset(wq.plot, Parameter == "Temp" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") + 
+    ggplot2::ylab("Water Temperature (C)") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free")
   
   return(wq.plot.temp)
   
@@ -310,13 +310,13 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
 
-  wq.plot.spcond <- ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
-    geom_boxplot() +
-    xlab("") + 
-    ylab("Specific Conductance (uS/cm)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free") +
-    scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
+  wq.plot.spcond <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") + 
+    ggplot2::ylab("Specific Conductance (uS/cm)") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free") +
+    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
   
     return(wq.plot.spcond)
    
@@ -338,12 +338,12 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
     
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
   
-  wq.plot.ph <- ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
-    geom_boxplot() +
-    xlab("") +
-    ylab("pH") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free")
+  wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") +
+    ggplot2::ylab("pH") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free")
   
   return(wq.plot.ph)
   
@@ -365,13 +365,13 @@ QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sou
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)  
 
-  wq.plot.do.pct <- ggplot(subset(wq.plot, Parameter == "DO" & Units == "%" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
-    geom_boxplot() +
-    xlab("") +
-    ylab("Dissolved Oxygen (%)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free") +
-    ylim(0,100)
+  wq.plot.do.pct <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "%" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") +
+    ggplot2::ylab("Dissolved Oxygen (%)") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free") +
+    ggplot2::ylim(0,100)
   
   return(wq.plot.do.pct)
   
@@ -393,12 +393,12 @@ QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sou
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
 
-  wq.plot.do.mgl <- ggplot(subset(wq.plot, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), aes(x=FieldSeason, y=Median)) + 
-    geom_boxplot() +
-    xlab("") +
-    ylab("Dissolved Oxygen (mg/L)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free")
+  wq.plot.do.mgl <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") +
+    ggplot2::ylab("Dissolved Oxygen (mg/L)") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free")
    
   return(wq.plot.do.mgl)
   
@@ -424,15 +424,15 @@ QcWqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.sour
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
   
-  wq.plot.spcond.ms <- ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), aes(x=FieldSeason, y=Median/1000)) + 
-    geom_boxplot() +
-    xlab("") + 
-    ylab("Specific Conductance (mS/cm)") + 
-    theme(axis.text.x=element_text(angle=90)) +
-    facet_grid(~Park,scales="free") +
-    scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
+  wq.plot.spcond.ms <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x=FieldSeason, y=Median/1000)) + 
+    ggplot2::geom_boxplot() +
+    ggplot2::xlab("") + 
+    ggplot2::ylab("Specific Conductance (mS/cm)") + 
+    ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90)) +
+    ggplot2::facet_grid(~Park,scales="free") +
+    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
   
-    wq.plot.grid <- grid.arrange(wq.plot.temp, wq.plot.spcond.ms, wq.plot.ph, wq.plot.do.mgl, ncol=1)
+    wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond.ms, wq.plot.ph, wq.plot.do.mgl, ncol=1)
     
     return(wq.plot.grid)
   
