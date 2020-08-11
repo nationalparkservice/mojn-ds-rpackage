@@ -3,4 +3,5 @@ inst/doc
 *.Rproj
 *.Rhistory
 *.RData
-data/
+test-data/
+temp-test-csv/
