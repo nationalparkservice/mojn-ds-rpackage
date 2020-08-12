@@ -368,6 +368,35 @@ GetSampleSizes <- function(data) {
   return(sample.size)
 }
 
+
+#' Label sample size on boxplots
+#' 
+#' @param position Either a function (e.g. max, min, median) or a number specifying where on the y-axis the sample size label should appear.
+#'
+#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
+#'
+LabelBoxplotSampleSize <- function(position) {
+  n_labels <- function(x) {
+    # Add space above or below label
+    if (identical(position, min)) {
+      space_before <- '\n\n'
+      space_after <- ''
+    } else if (identical(position, max)) {
+      space_before <- ''
+      space_after <- '\n\n'
+    } else if (identical(position, median)) {
+      space_before <- ''
+      space_after <- '\n\n'
+    }
+    
+    sample_sizes <- data.frame(y = ifelse(is.numeric(position), position, do.call(position, list(x))),
+                               label = paste0(space_before, "n = ", length(x), space_after))
+    return(sample_sizes)
+  }
+  
+  return(stat_summary(fun.data = n_labels, geom = "text"))
+}
+
 #' Apply some standard formatting to a ggplot object.
 #'
 #' @param p A ggplot object.
