@@ -478,3 +478,18 @@ FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.tit
   
   return(p)
 }
+
+#' Test for dataframe equivalence
+#'
+#' @param result Actual data frame
+#' @param expected Expected data frame
+#' @param ignore_col_order Ignore order of columns in dataframe? Defaults to FALSE.
+#' @param ignore_row_order Ignore order of rows in dataframe? Defaults to TRUE.
+#' @param convert Convert similar classes (factor to character, int to double)?
+#'
+#' @return If test passes, nothing. If it fails, description of failure.
+#'
+expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
+  test_result <- dplyr::all_equal(expected, result, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+  return(expect_true(test_result, label = test_result))
+}
