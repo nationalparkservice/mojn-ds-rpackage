@@ -244,16 +244,16 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
-    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>%
-    tidyr::unnest_wider(stats) %>%
-    ungroup()
-
-  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% mutate_if(is.double, ~ round(., 1))
-  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% mutate_if(is.double, ~ round(., 2))
-  wq.stats[wq.stats$Parameter == "SpCond", ] %<>% mutate_if(is.double, ~ round(., 1))
-  wq.stats[wq.stats$Parameter == "pH", ] %<>% mutate_if(is.double, ~ round(., 2))
-  wq.stats[wq.stats$Parameter == "Temp", ] %<>% mutate_if(is.double, ~ round(., 2))
-
+    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
+    tidyr::unnest_wider(stats) %>% 
+    dplyr::ungroup()
+  
+  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
+  wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
+  wq.stats[wq.stats$Parameter == "SpCond", ] %<>% dplyr::mutate_if(is.double, ~ round(., 0))
+  wq.stats[wq.stats$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
+  wq.stats[wq.stats$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
+  
   return(wq.stats)
 }
 
