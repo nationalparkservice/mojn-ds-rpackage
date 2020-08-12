@@ -99,9 +99,9 @@ test_that("QcWqMedian works as expected", {
   result <- QcWqMedian(path.to.data = dir, data.source = "local")
   result_DEVA <- QcWqMedian(path.to.data = dir, data.source = "local", park = "DEVA")
   result_2019 <- QcWqMedian(path.to.data = dir, data.source = "local", field.season = "2019")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-  expect_mapequal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
 })
 
 test_that("QcWqSanity works as expected", {
@@ -119,9 +119,9 @@ test_that("QcWqSanity works as expected", {
   result <- QcWqSanity(path.to.data = dir, data.source = "local")
   result_DEVA <- QcWqSanity(path.to.data = dir, data.source = "local", park = "DEVA")
   result_2019 <- QcWqSanity(path.to.data = dir, data.source = "local", field.season = "2019")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-  expect_mapequal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
 })
 
 test_that("QcWqFlags works as expected", {
@@ -139,9 +139,9 @@ test_that("QcWqFlags works as expected", {
   result <- QcWqFlags(path.to.data = dir, data.source = "local")
   result_DEVA <- QcWqFlags(path.to.data = dir, data.source = "local", park = "DEVA")
   result_2019 <- QcWqFlags(path.to.data = dir, data.source = "local", field.season = "2019")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-  expect_mapequal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
 })
 
 test_that("QcWqCleaned works as expected", {
@@ -156,9 +156,9 @@ test_that("QcWqCleaned works as expected", {
   result <- QcWqCleaned(path.to.data = dir, data.source = "local")
   result_DEVA <- QcWqCleaned(path.to.data = dir, data.source = "local", park = "DEVA")
   result_2019 <- QcWqCleaned(path.to.data = dir, data.source = "local", field.season = "2019")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-  expect_mapequal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
 })
 
 test_that("QcWqStats works as expected", {
@@ -170,7 +170,8 @@ test_that("QcWqStats works as expected", {
                              `25%` = c(9.1, 6.2, 12.1, 26.6, 18.8, 14.2, 10.7, 10.9, 2342, 976, 782, 1465, 3312, 51102, 690, 346, 7.35, 7.42, 6.89, 7.21, 7.71, 7.10, 8.13, 7.33, 80.7, 88.8, 29.3, 42.1, 78.9, 72.2, 86.0, 82.5, 5.35, 6.76, 1.96, 2.33, 5.05, 4.96, 5.805, 5.30),
                              `50%` = c(11.8, 6.2, 12.1, 34.9, 18.8, 14.2, 12.0, 10.9, 2676, 976, 782, 2055, 3312, 51102, 1061, 346, 7.9, 7.42, 6.89, 7.36, 7.71, 7.10, 9.03, 7.33, 85.0, 88.8, 29.3, 42.1, 78.9, 72.2, 87.6, 82.5, 5.66, 6.76, 1.96, 2.33, 5.05, 4.96, 6.15, 5.30),
                              `75%` = c(16.3, 6.2, 12.1, 43.1, 18.8, 14.2, 13.3, 10.9, 3863, 976, 782, 2644, 3312, 51102, 1431, 346, 7.96, 7.42, 6.89, 7.50, 7.71, 7.10, 9.92, 7.33, 87.0, 88.8, 29.3, 42.1, 78.9, 72.2, 89.1, 82.5, 6.04, 6.76, 1.96, 2.33, 5.05, 4.96, 6.50, 5.30),
-                             `100%` = c(19.4, 6.2, 12.1, 51.3, 18.8, 14.2, 14.6, 10.9, 8643, 976, 782, 3233, 3312, 51102, 1801, 346, 8.18, 7.42, 6.89, 7.65, 7.71, 7.10, 10.81, 7.33, 91.3, 88.8, 29.3, 42.1, 78.9, 72.2, 90.7, 82.5, 6.92, 6.76, 1.96, 2.33, 5.05, 4.96, 6.84, 5.30))
+                             `100%` = c(19.4, 6.2, 12.1, 51.3, 18.8, 14.2, 14.6, 10.9, 8643, 976, 782, 3233, 3312, 51102, 1801, 346, 8.18, 7.42, 6.89, 7.65, 7.71, 7.10, 10.81, 7.33, 91.3, 88.8, 29.3, 42.1, 78.9, 72.2, 90.7, 82.5, 6.92, 6.76, 1.96, 2.33, 5.05, 4.96, 6.84, 5.30)) %>%
+    dplyr::arrange(Parameter, Units, FieldSeason)
   
   expected[expected$Parameter == "DO" & expected$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   expected[expected$Parameter == "DO" & expected$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
@@ -178,12 +179,15 @@ test_that("QcWqStats works as expected", {
   expected[expected$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   expected[expected$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   
-  result <- QcWqStats(path.to.data = dir, data.source = "local")
-  result_DEVA <- QcWqStats(path.to.data = dir, data.source = "local", park = "DEVA")
-  result_2019 <- QcWqStats(path.to.data = dir, data.source = "local", field.season = "2019")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-  expect_mapequal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
+  result <- QcWqStats(path.to.data = dir, data.source = "local") %>%
+    dplyr::arrange(Parameter, Units, FieldSeason)
+  result_DEVA <- QcWqStats(path.to.data = dir, data.source = "local", park = "DEVA") %>%
+    dplyr::arrange(Parameter, Units, FieldSeason)
+  result_2019 <- QcWqStats(path.to.data = dir, data.source = "local", field.season = "2019") %>%
+    dplyr::arrange(Parameter, Units, FieldSeason)
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
 })
 
 # Remove temporary CSV files
