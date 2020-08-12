@@ -340,30 +340,25 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
 #' Compute sample size by spring and field season
 #'
 #' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
-#'
+#' @param grouping.cols A vector of column names to group by.
+#' 
 #' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
 #'
-GetSampleSizes <- function(data) {
+GetSampleSizes <- function(data, grouping.cols = c("Park", "FieldSeason")) {
   
   # Check for valid input
   if (nrow(data) == 0) {
     stop("The dataframe provided contains no data")
   }
-  
-  # Figure out which grouping columns are present
-  grouping.cols <- c("Park", "SiteCode", "FieldSeason")
-  group.by <- grouping.cols[grouping.cols %in% names(data)]
-  
-  # Get a list of plots monitored by event group
-  if (length(group.by) > 0) {
-    sample.size <- data %>%
-      group_by_at(group.by) %>%
-      dplyr::summarise(SampleSize = dplyr::n()) %>%
-      dplyr::ungroup()
-  } else {
-    sample.size <- data %>%
-      dplyr::summarise(SampleSize = dplyr::n())
+  if (!all(grouping.cols %in% names(data))) {
+    stop("One or more of the grouping columns specified are not present")
   }
+  
+  # Calculate sample size
+  sample.size <- data %>%
+    group_by_at(grouping.cols) %>%
+    dplyr::summarise(SampleSize = dplyr::n()) %>%
+    dplyr::ungroup()
   
   return(sample.size)
 }
