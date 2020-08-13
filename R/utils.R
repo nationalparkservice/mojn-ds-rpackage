@@ -7,8 +7,6 @@
 #' @return A database connection pool object
 #' @export
 #'
-#' @importFrom magrittr %>% %<>%
-#'
 #' @examples
 #' \dontrun{
 #' conn <- OpenDatabaseConnection()
