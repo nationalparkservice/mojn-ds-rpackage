@@ -354,7 +354,7 @@ GetSampleSizes <- function(data, grouping.cols = c("Park", "FieldSeason")) {
   
   # Calculate sample size
   sample.size <- data %>%
-    group_by_at(grouping.cols) %>%
+    dplyr::group_by_at(grouping.cols) %>%
     dplyr::summarise(SampleSize = dplyr::n()) %>%
     dplyr::ungroup()
   
