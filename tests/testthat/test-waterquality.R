@@ -1,4 +1,4 @@
-context ("Waterquality")
+context("Waterquality")
 
 dummy.temp <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "MOJA", "MOJA", "MOJA", "JOTR", "JOTR", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA", "MOJA", "MOJA"),
                              SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
@@ -178,12 +178,9 @@ test_that("QcWqStats works as expected", {
   expected[expected$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   expected[expected$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   
-  result <- QcWqStats(path.to.data = dir, data.source = "local") %>%
-    dplyr::arrange(Parameter, Units, FieldSeason)
-  result_DEVA <- QcWqStats(path.to.data = dir, data.source = "local", park = "DEVA") %>%
-    dplyr::arrange(Parameter, Units, FieldSeason)
-  result_2019 <- QcWqStats(path.to.data = dir, data.source = "local", field.season = "2019") %>%
-    dplyr::arrange(Parameter, Units, FieldSeason)
+  result <- QcWqStats(path.to.data = dir, data.source = "local")
+  result_DEVA <- QcWqStats(path.to.data = dir, data.source = "local", park = "DEVA")
+  result_2019 <- QcWqStats(path.to.data = dir, data.source = "local", field.season = "2019")
   expect_dataframe_equal(result, expected)
   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
