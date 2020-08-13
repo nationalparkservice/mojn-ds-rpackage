@@ -486,8 +486,10 @@ FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.tit
 #' @param convert Convert similar classes (factor to character, int to double)?
 #'
 #' @return If test passes, nothing. If it fails, description of failure.
+#' 
+#' @export
 #'
 expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
-  test_result <- dplyr::all_equal(expected, result, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+  test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
   return(expect_true(test_result, label = test_result))
 }
