@@ -2,6 +2,7 @@
 
 export("%>%")
 export(CloseDatabaseConnection)
+export(FormatPlot)
 export(GetRawData)
 export(GetSiteName)
 export(OpenDatabaseConnection)

@@ -369,11 +369,6 @@ GetSampleSizes <- function(data, ..., pop = FALSE) {
 
 #' Apply some standard formatting to a ggplot object.
 #'
-#' @param p A ggplot object.
-#' @param site The spring code.
-#' @param site.name The spring name.
-#' @param field.seasons Either a single field season name, or a vector of field season names.
-#' @param sample.sizes Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.
 #' @param plot.title The title of the plot.
 #' @param sub.title Optional custom plot subtitle.
 #' @param x.lab X axis label.
@@ -383,35 +378,61 @@ GetSampleSizes <- function(data, ..., pop = FALSE) {
 #' @param ymin Optional minimum y limit.
 #' @param xmax Optional maximum x limit.
 #' @param xmin Optional minimum x limit.
+#' @param data Data frame containing the data to be plotted.
+#' @param x.col Column name of independent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col. 
+#' @param y.col Column name of dependent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col.
+#' @param facet.col Column to facet on. If this results in only one facet, it will be used as a subtitle instead.
+#' @param n.col.facet Number of columns of facet grid.
+#' @param sample.size.col Column containing sample size labels.
+#' @param sample.size.loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
 #'
 #' @return A ggplot object.
+#' 
+#' @export
 #'
-FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.title, sub.title, x.lab, y.lab, rotate.x.labs, ymax, ymin, xmax, xmin) {
+FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.size.col, sample.size.loc, plot.title = '', sub.title = '', facet.as.subtitle = TRUE, x.lab = '', y.lab = '', rotate.x.labs = FALSE, ymax, ymin, xmax, xmin) {
   
-  # Generate a subtitle from park and event group if subtitle not provided by user
-  if (missing(sub.title)) {
-    # For multiple seasons of data, just use the spring name since season and sample size will go in the facet titles
-    if (missing(field.seasons) || (length(field.seasons) > 1)) {
-      sub.title <- site.name
-      # Otherwise, include spring name, season and sample size
-    } else if (!missing(sample.sizes)) {
-      n <- sample.sizes[(sample.sizes$Site == site & sample.sizes$FieldSeason == field.seasons), ]$SampleSize
-      sub.title <- paste0(site.name, " (", field.seasons, ")", "\n", "n = ", n)
+  x.col <- dplyr::enquo(x.col)
+  facet.col <- dplyr::enquo(facet.col)
+  sample.size.col <- dplyr::enquo(sample.size.col)
+  
+  # Add sample size information to either x axis labels or facet/subtitle
+  if (!missing(sample.size.col) & !missing(sample.size.loc)) {
+    if (sample.size.loc == 'xaxis') {
+      data %<>% dplyr::mutate(!!x.col := paste0(!!x.col, '\n', !!sample.size.col))
+    } else if (sample.size.loc == 'plot' & !missing(facet.col)) {
+      data %<>% dplyr::mutate(!!facet.col := paste0(!!facet.col, ' (', !!sample.size.col, ')'))
     } else {
-      sub.title <- paste0(site.name, " (", field.seasons, ")")
+      facet.col <- sample.size.col
     }
   }
   
-  # Create facets if >1 event group
-  if (!missing(field.seasons) && (length(field.seasons) > 1)) {
-    p <- p + ggplot2::facet_wrap(ggplot2::vars(FieldSeason), ncol = 2, labeller = ggplot2::as_labeller(function(field.seasons){FacetTitle(field.seasons, sample.sizes)}))
+  # Allow for 1 or 2 variables
+  if (!missing(y.col) & !missing(x.col)) {
+    y.col <- dplyr::enquo(y.col)
+    p <- ggplot2::ggplot(data, ggplot2::aes(x = !!x.col, y = !!y.col))
+  } else if (!missing(x.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!x.col))
+  } else if (!missing(y.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!y.col))
+  }
+  
+  
+  # Create facets if >1 event group, otherwise create subtitle
+  if (!missing(facet.col)) {
+    facets <- unique(dplyr::select(data, !!facet.col))
+    if (nrow(facets) > 1) {
+      p <- p + ggplot2::facet_wrap(ggplot2::vars(!!facet.col), ncol = n.col.facet, scales = 'free')
+    } else if (sub.title == '' & facet.as.subtitle) {
+      sub.title <- facets
+    }
   }
   
   # Add title and subtitle if not blank
-  if (plot.title != "") {
+  if (!missing(plot.title) & plot.title != '') {
     p <- p + ggplot2::labs(title = plot.title)
   }
-  if (sub.title != "") {
+  if (!missing(sub.title) & sub.title != '') {
     p <- p + ggplot2::labs(subtitle = sub.title)
   }
   
