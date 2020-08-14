@@ -338,56 +338,33 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
 #' Compute sample size by spring and field season
 #'
 #' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
-#' @param grouping.cols A vector of column names to group by.
+
+#' @param ... Columns to group by.
+#' @param pop Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.
 #' 
 #' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
 #'
-GetSampleSizes <- function(data, grouping.cols = c("Park", "FieldSeason")) {
+GetSampleSizes <- function(data, ..., pop = FALSE) {
   
   # Check for valid input
   if (nrow(data) == 0) {
     stop("The dataframe provided contains no data")
   }
-  if (!all(grouping.cols %in% names(data))) {
-    stop("One or more of the grouping columns specified are not present")
-  }
   
   # Calculate sample size
   sample.size <- data %>%
-    dplyr::group_by_at(grouping.cols) %>%
+    dplyr::group_by(...) %>%
     dplyr::summarise(SampleSize = dplyr::n()) %>%
+    dplyr::mutate(SampleSizeLabel = paste0("n = ", SampleSize)) %>%
     dplyr::ungroup()
   
-  return(sample.size)
-}
-
-
-#' Label sample size on boxplots
-#' 
-#' @param position Either a function (e.g. max, min, median) or a number specifying where on the y-axis the sample size label should appear.
-#'
-#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
-#'
-LabelBoxplotSampleSize <- function(position) {
-  n_labels <- function(x) {
-    # Add space above or below label
-    if (identical(position, min)) {
-      space_before <- '\n\n'
-      space_after <- ''
-    } else if (identical(position, max)) {
-      space_before <- ''
-      space_after <- '\n\n'
-    } else if (identical(position, median)) {
-      space_before <- ''
-      space_after <- '\n\n'
-    }
-    
-    sample_sizes <- data.frame(y = ifelse(is.numeric(position), position, do.call(position, list(x))),
-                               label = paste0(space_before, "n = ", length(x), space_after))
-    return(sample_sizes)
+  if (pop) {
+    sample.size$SampleSizeLabel <- toupper(sample.size$SampleSizeLabel)
   }
   
-  return(stat_summary(fun.data = n_labels, geom = "text"))
+  sample.size <- dplyr::left_join(data, sample.size)
+  
+  return(sample.size)
 }
 
 #' Apply some standard formatting to a ggplot object.
