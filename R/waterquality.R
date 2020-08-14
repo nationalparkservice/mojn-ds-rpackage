@@ -106,7 +106,7 @@ QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.sanity <- rbind(temp.sanity, spcond.sanity, ph.sanity, do.percent.sanity, do.mgl.sanity)
-  
+
   return(wq.sanity)
 }
 
@@ -156,7 +156,7 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.flags <- rbind(temp.flags, spcond.flags, ph.flags, do.percent.flags, do.mgl.flags)
-  
+
   return(wq.flags)
 }
 
@@ -233,16 +233,16 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
-    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
-    tidyr::unnest_wider(stats) %>% 
+    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>%
+    tidyr::unnest_wider(stats) %>%
     dplyr::ungroup()
-  
+
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   wq.stats[wq.stats$Parameter == "SpCond", ] %<>% dplyr::mutate_if(is.double, ~ round(., 0))
   wq.stats[wq.stats$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   wq.stats[wq.stats$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
-  
+
   return(wq.stats)
 }
 
@@ -254,20 +254,26 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param n.col.facet Number of columns in facet grid. Default 2.
 #'
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", ...) {
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "Temp" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
 
-  wq.plot.temp <- ggplot2::ggplot(subset(wq.plot, Parameter == "Temp" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Water Temperature (C)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free") + 
-    LabelBoxplotSampleSize(max)
+  wq.plot.temp <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    ...
+  ) +
+    ggplot2::geom_boxplot()
 
   return(wq.plot.temp)
 }
