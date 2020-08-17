@@ -43,6 +43,8 @@ FormatPlot(
 
 \item{sub.title}{Optional custom plot subtitle.}
 
+\item{facet.as.subtitle}{If only one facet, use facet name as subtitle? Defaults to TRUE.}
+
 \item{x.lab}{X axis label.}
 
 \item{y.lab}{Y axis label.}

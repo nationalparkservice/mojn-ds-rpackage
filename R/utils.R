@@ -338,7 +338,6 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
 #' Compute sample size by spring and field season
 #'
 #' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
-
 #' @param ... Columns to group by.
 #' @param pop Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.
 #' 
@@ -385,6 +384,7 @@ GetSampleSizes <- function(data, ..., pop = FALSE) {
 #' @param n.col.facet Number of columns of facet grid.
 #' @param sample.size.col Column containing sample size labels.
 #' @param sample.size.loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
+#' @param facet.as.subtitle If only one facet, use facet name as subtitle? Defaults to TRUE.
 #'
 #' @return A ggplot object.
 #' 
