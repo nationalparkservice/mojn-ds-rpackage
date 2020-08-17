@@ -254,7 +254,7 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#' @param n.col.facet Number of columns in facet grid. Default 2.
+#' @param ... Additional arguments to \code{\link{FormatPlot}}.
 #'
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
@@ -271,6 +271,8 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
+    x.lab = "Field Season",
+    y.lab = "Temperature (C)",
     ...
   ) +
     ggplot2::geom_boxplot()
