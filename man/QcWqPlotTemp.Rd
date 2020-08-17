@@ -11,7 +11,7 @@ QcWqPlotTemp(
   site,
   field.season,
   data.source = "database",
-  ...
+  include.title = TRUE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ QcWqPlotTemp(
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 
-\item{...}{Additional arguments to \code{\link{FormatPlot}}.}
+\item{include.title}{Include plot title? Defaults to TRUE}
 }
 \value{
 Box plots of water temperature data for each park and field season.
