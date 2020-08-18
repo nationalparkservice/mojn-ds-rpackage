@@ -385,12 +385,14 @@ GetSampleSizes <- function(data, ..., pop = FALSE) {
 #' @param sample.size.col Column containing sample size labels.
 #' @param sample.size.loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
 #' @param facet.as.subtitle If only one facet, use facet name as subtitle? Defaults to TRUE.
+#' @param transform.x Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.
+#' @param transform.y Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.
 #'
 #' @return A ggplot object.
 #' 
 #' @export
 #'
-FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.size.col, sample.size.loc, plot.title = '', sub.title = '', facet.as.subtitle = TRUE, x.lab = '', y.lab = '', rotate.x.labs = FALSE, ymax, ymin, xmax, xmin) {
+FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.size.col, sample.size.loc, plot.title = '', sub.title = '', facet.as.subtitle = TRUE, x.lab = '', y.lab = '', rotate.x.labs = FALSE, ymax, ymin, xmax, xmin, transform.x, transform.y) {
   
   x.col <- dplyr::enquo(x.col)
   facet.col <- dplyr::enquo(facet.col)
@@ -455,7 +457,7 @@ FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.si
   }
   
   # Set ymin and ymax if provided
-  if (!missing(ymin) && !missing(ymax)) {
+  if (!missing(ymin) & !missing(ymax)) {
     p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
   } else if (!missing(ymax)) {
     p <- p + ggplot2::expand_limits(y = ymax)
@@ -464,12 +466,38 @@ FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.si
   }
   
   # Set xmin and xmax if provided
-  if (!missing(xmin) && !missing(xmax)) {
+  if (!missing(xmin) & !missing(xmax)) {
     p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
   } else if (!missing(xmax)) {
     p <- p + ggplot2::expand_limits(x = xmax)
   } else if (!missing(xmin)) {
     p <- p + ggplot2::expand_limits(x = xmin)
+  }
+  
+  # Tranform x axis, if transformation specified
+  if (!missing(transform.x)) {
+    if (transform.x == 'log10') {
+      p <- p + ggplot2::scale_x_log10()
+    } else if (transform.x == 'sqrt') {
+      p <- p + ggplot2::scale_x_sqrt()
+    } else if (transform.x == 'reverse') {
+      p <- p + ggplot2::scale_x_reverse()
+    } else {
+      stop(paste0("The x transformation specified, '", transform.x, "' is not a valid option."))
+    }
+  }
+  
+  # Transform y axis, if transformation specified
+  if (!missing(transform.y)) {
+    if (transform.y == 'log10') {
+      p <- p + ggplot2::scale_y_log10()
+    } else if (transform.y == 'sqrt') {
+      p <- p + ggplot2::scale_y_sqrt()
+    } else if (transform.y == 'reverse') {
+      p <- p + ggplot2::scale_y_reverse()
+    } else {
+      stop(paste0("The y transformation specified, '", transform.y, "' is not a valid option."))
+    }
   }
   
   return(p)
