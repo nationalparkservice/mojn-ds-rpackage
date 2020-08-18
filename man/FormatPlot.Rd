@@ -21,7 +21,9 @@ FormatPlot(
   ymax,
   ymin,
   xmax,
-  xmin
+  xmin,
+  transform.x,
+  transform.y
 )
 }
 \arguments{
@@ -58,6 +60,10 @@ FormatPlot(
 \item{xmax}{Optional maximum x limit.}
 
 \item{xmin}{Optional minimum x limit.}
+
+\item{transform.x}{Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.}
+
+\item{transform.y}{Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.}
 }
 \value{
 A ggplot object.
