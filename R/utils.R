@@ -15,7 +15,7 @@
 #' }
 OpenDatabaseConnection <- function(use.mojn.default = TRUE, drv = odbc::odbc(), ...) {
   if (use.mojn.default) {
-    params <- readr::read_csv("Y:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv") %>%
+    params <- readr::read_csv("M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv") %>%
       as.list()
     params$drv <- drv
     my.pool <- do.call(pool::dbPool, params)
@@ -202,6 +202,8 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
     filtered.data <- readr::read_csv(file.path(path.to.data, paste0(data.name, ".csv")), na = "", col_types = col.spec[[data.name]])
   }
 
+  class(filtered.data) <- c("tbl_df", "tbl", "data.frame")  # R 4.0 fix: makes sure that filtered.data is the same class regardless of where it was read from
+  
   if (!missing(park)) {
     filtered.data %<>%
       dplyr::filter(Park == park)
@@ -333,4 +335,161 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
     dplyr::filter(SiteCode == site.code)
 
   return(site$SiteName)
+}
+
+#' Compute sample size by spring and field season
+#'
+#' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
+#' @param grouping.cols A vector of column names to group by.
+#' 
+#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
+#'
+GetSampleSizes <- function(data, grouping.cols = c("Park", "FieldSeason")) {
+  
+  # Check for valid input
+  if (nrow(data) == 0) {
+    stop("The dataframe provided contains no data")
+  }
+  if (!all(grouping.cols %in% names(data))) {
+    stop("One or more of the grouping columns specified are not present")
+  }
+  
+  # Calculate sample size
+  sample.size <- data %>%
+    group_by_at(grouping.cols) %>%
+    dplyr::summarise(SampleSize = dplyr::n()) %>%
+    dplyr::ungroup()
+  
+  return(sample.size)
+}
+
+
+#' Label sample size on boxplots
+#' 
+#' @param position Either a function (e.g. max, min, median) or a number specifying where on the y-axis the sample size label should appear.
+#'
+#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
+#'
+LabelBoxplotSampleSize <- function(position) {
+  n_labels <- function(x) {
+    # Add space above or below label
+    if (identical(position, min)) {
+      space_before <- '\n\n'
+      space_after <- ''
+    } else if (identical(position, max)) {
+      space_before <- ''
+      space_after <- '\n\n'
+    } else if (identical(position, median)) {
+      space_before <- ''
+      space_after <- '\n\n'
+    }
+    
+    sample_sizes <- data.frame(y = ifelse(is.numeric(position), position, do.call(position, list(x))),
+                               label = paste0(space_before, "n = ", length(x), space_after))
+    return(sample_sizes)
+  }
+  
+  return(stat_summary(fun.data = n_labels, geom = "text"))
+}
+
+#' Apply some standard formatting to a ggplot object.
+#'
+#' @param p A ggplot object.
+#' @param site The spring code.
+#' @param site.name The spring name.
+#' @param field.seasons Either a single field season name, or a vector of field season names.
+#' @param sample.sizes Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.
+#' @param plot.title The title of the plot.
+#' @param sub.title Optional custom plot subtitle.
+#' @param x.lab X axis label.
+#' @param y.lab Y axis label.
+#' @param rotate.x.labs Boolean indicating whether to rotate x axis labels 90 degrees.
+#' @param ymax Optional maximum y limit.
+#' @param ymin Optional minimum y limit.
+#' @param xmax Optional maximum x limit.
+#' @param xmin Optional minimum x limit.
+#'
+#' @return A ggplot object.
+#'
+FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.title, sub.title, x.lab, y.lab, rotate.x.labs, ymax, ymin, xmax, xmin) {
+  
+  # Generate a subtitle from park and event group if subtitle not provided by user
+  if (missing(sub.title)) {
+    # For multiple seasons of data, just use the spring name since season and sample size will go in the facet titles
+    if (missing(field.seasons) || (length(field.seasons) > 1)) {
+      sub.title <- site.name
+      # Otherwise, include spring name, season and sample size
+    } else if (!missing(sample.sizes)) {
+      n <- sample.sizes[(sample.sizes$Site == site & sample.sizes$FieldSeason == field.seasons), ]$SampleSize
+      sub.title <- paste0(site.name, " (", field.seasons, ")", "\n", "n = ", n)
+    } else {
+      sub.title <- paste0(site.name, " (", field.seasons, ")")
+    }
+  }
+  
+  # Create facets if >1 event group
+  if (!missing(field.seasons) && (length(field.seasons) > 1)) {
+    p <- p + ggplot2::facet_wrap(ggplot2::vars(FieldSeason), ncol = 2, labeller = ggplot2::as_labeller(function(field.seasons){FacetTitle(field.seasons, sample.sizes)}))
+  }
+  
+  # Add title and subtitle if not blank
+  if (plot.title != "") {
+    p <- p + ggplot2::labs(title = plot.title)
+  }
+  if (sub.title != "") {
+    p <- p + ggplot2::labs(subtitle = sub.title)
+  }
+  
+  # Add x and y axis titles if not blank
+  if (x.lab != "") {
+    p <- p + ggplot2::xlab(x.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+  }
+  
+  if (y.lab != "") {
+    p <- p + ggplot2::ylab(y.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+  }
+  
+  # Rotate x labels 90 degrees if rotate.x.labs is TRUE
+  if (!missing(rotate.x.labs)) {
+    p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1))
+  }
+  
+  # Set ymin and ymax if provided
+  if (!missing(ymin) && !missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
+  } else if (!missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = ymax)
+  } else if (!missing(ymin)) {
+    p <- p + ggplot2::expand_limits(y = ymin)
+  }
+  
+  # Set xmin and xmax if provided
+  if (!missing(xmin) && !missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
+  } else if (!missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = xmax)
+  } else if (!missing(xmin)) {
+    p <- p + ggplot2::expand_limits(x = xmin)
+  }
+  
+  return(p)
+}
+
+#' Test for dataframe equivalence
+#'
+#' @param result Actual data frame
+#' @param expected Expected data frame
+#' @param ignore_col_order Ignore order of columns in dataframe? Defaults to FALSE.
+#' @param ignore_row_order Ignore order of rows in dataframe? Defaults to TRUE.
+#' @param convert Convert similar classes (factor to character, int to double)?
+#'
+#' @return If test passes, nothing. If it fails, description of failure.
+#'
+expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
+  test_result <- dplyr::all_equal(expected, result, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+  return(expect_true(test_result, label = test_result))
 }

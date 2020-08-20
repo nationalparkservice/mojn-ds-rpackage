@@ -40,9 +40,9 @@ test_that("SensorQcSummary works as expected", {
   result <- SensorQcSummary(path.to.data = dir, data.source = "local")
   result_LAKE <- SensorQcSummary(path.to.data = dir, park = "LAKE", data.source = "local")
   result_2019 <- SensorQcSummary(path.to.data = dir, deployment.field.season = "2019", data.source = "local")
-  expect_mapequal(result, expected)
-  expect_mapequal(result_LAKE, dplyr::filter(expected, Park == "LAKE"))
-  expect_mapequal(result_2019, dplyr::filter(expected, DeploymentFieldSeason == "2019"))
+  expect_dataframe_equal(result, expected)
+  expect_dataframe_equal(result_LAKE, dplyr::filter(expected, Park == "LAKE"))
+  expect_dataframe_equal(result_2019, dplyr::filter(expected, DeploymentFieldSeason == "2019"))
 })
 
 # Remove temporary csv's

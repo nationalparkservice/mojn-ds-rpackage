@@ -27,7 +27,7 @@ SensorQcSummary <- function(conn, path.to.data, park, deployment.field.season, d
   latest.attempts <- attempts %>%
     dplyr::select(Park, SiteCode, SensorNumber, SerialNumber, DeploymentDate, RetrievalDate) %>%
     dplyr::group_by(Park, SiteCode, SensorNumber, SerialNumber, DeploymentDate) %>%
-    dplyr::summarize(RetrievalDate = max(RetrievalDate)) %>%
+    dplyr::summarize(RetrievalDate = max(RetrievalDate, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     dplyr::inner_join(attempts, by = c("Park", "SiteCode", "SensorNumber", "SerialNumber", "DeploymentDate", "RetrievalDate"))
 
@@ -63,4 +63,32 @@ SensorQcSummary <- function(conn, path.to.data, park, deployment.field.season, d
     dplyr::arrange(Park, DeploymentFieldSeason)
 
   return(summary)
+}
+
+#' Plot sensor retrieval results over time as a heatmap.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A ggplot object.
+#' @export
+#'
+#' @importFrom magrittr %>% %<>%
+SensorQcHeatmap <- function(conn, path.to.data, park, data.source = "database") {
+  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+  attempts %<>%
+    filter(DeploymentVisitType == "Primary") %>%
+    mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
+                                  if_else(SensorRetrieved == "Y", "Retrieved, download failed", "Lost")),
+           SensorResultOrder = if_else(DownloadResult == "Y", 1,
+                                       if_else(SensorRetrieved == "Y", 2, 3)))
+  
+  plt <- ggplot(attempts, aes(x = DeploymentFieldSeason, 
+                              y = reorder(SiteCode, desc(SiteCode)))) + 
+    geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
+    scale_fill_manual(values = c("green", "yellow", "red"), name = "Outcome")
+  
+  return(plt)
 }
