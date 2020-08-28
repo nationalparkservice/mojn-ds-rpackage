@@ -1,24 +1,112 @@
 # Calculate median discharge; join and clean flow condition, springbrook length, and discharge data; assign springbrook length to categories
 # DischargeEstimated, DischargeFlowCondition, DischargeVolumetric,
 
-QcFlow <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+QcFlowCat <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   volumetric <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
   estimated <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeEstimated")
   flowcondition <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeFlowCondition")
   
-  volumetric.test <- volumetric %>%
+  # Find median fill time.
+  volumetric.median <- volumetric %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, ContainerVolume_mL, EstimatedCapture_percent, VisitType, DPL) %>%
     dplyr::summarize(MedianFillTime_seconds = median(FillTime_seconds)) %>%
-    dplyr::summarize(VolumetricDischarge_L/s = ((ContainerVolume_mL/1000)/MedianFillTime_seconds)*(100/EstimatedCapture_percent))
-    dplyr::relocate(MedianFillTime_seconds, .after = EstimatedCapture_percent)
+    dplyr::relocate(MedianFillTime_seconds, .after = ContainerVolume_mL)
   
+  # Calculate discharge.
+  volumetric.discharge <- volumetric.median %>%
+    dplyr::mutate(VolumetricDischarge_L_per_s = ContainerVolume_mL/1000/MedianFillTime_seconds*100/EstimatedCapture_percent) %>%
+    dplyr::relocate(VolumetricDischarge_L_per_s, .after = EstimatedCapture_percent) %>%
+    dplyr::ungroup()
   
+  # Join volumetric and estimated discharge to flow condition.
+  flowcondition.joined <- flowcondition %>%
+    dplyr::left_join(dplyr::select(volumetric.discharge, VolumetricDischarge_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
+    dplyr::left_join(dplyr::select(estimated, DischargeClass_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
+    dplyr::relocate(VolumetricDischarge_L_per_s, .after = SpringbrookWidth_m) %>%
+    dplyr::relocate(DischargeClass_L_per_s, .after = VolumetricDischarge_L_per_s)
+    
+  # Assign springbrook length categories. 1 = dry, 2 = wet soil, 3 = springbrook < 10 m, 4 = springbrook 10 - 50 m, 5 = springbrook > 50 m.
+  fc.cat <- flowcondition.joined %>%
+    dplyr::mutate(FlowCategory = ifelse(FlowCondition == "dry", "Dry",
+                                   ifelse(FlowCondition == "wet soil only", "Wet Soil",
+                                     ifelse(FlowCondition %in% c("standing water", "flowing", "flood") &
+                                            SpringbrookLength_m < 10 &
+                                            SpringbrookLengthFlag == "Measured", "< 10 m",
+                                       ifelse(FlowCondition %in% c("standing water", "flowing", "flood") & 
+                                              SpringbrookLength_m >= 10 & 
+                                              SpringbrookLength_m <= 50 &
+                                                SpringbrookLengthFlag == "Measured", "10 - 50 m",
+                                         ifelse(FlowCondition %in% c("standing water", "flowing", "flood") &
+                                                SpringbrookLengthFlag == ">50m", "> 50 m", NA))))))
   
+  return(fc.cat)
+}
+
+# Discharge > 0, but flow condition dry. Flow condition not dry, but discharge = 0 or no estimate/volumetric measurement.
+
+QcFlowCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  fc.data <- QcFlow(conn, path.to.data, park, site, field.season, data.source)
   
-  return(QcFlow)
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition == "dry" & VolumetricDischarge_L_per_s != 0)
+  
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition == "dry" & DischargeClass_L_per_s != "0 L/s")
+  
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition == "dry" & SpringbrookLength_m != 0)
+  
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition != "dry" & VolumetricDischarge_L_per_s == 0)
+  
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition != "dry" & DischargeClass_L_per_s == "0 L/s")
+  
+  fc.check <- fc.data %>%
+    dplyr::filter(FlowCondition != "dry" & SpringbrookLength_m == 0)
   
 }
 
+# Limited to annual and 3-year springs as well as primary visits.
+
+QcFlowTidy <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  fc.cat.data <- QcFlowCat(conn, path.to.data, park, site, field.season, data.source)
+  
+  flow.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  
+  fc.tidy <- fc.cat.data %>%
+    dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::filter(VisitType == "Primary", SampleFrame %in% c("Annual", "3Yr"))
+  
+}
+
+# Generate table of springbrook length categories
+
 # Plot springbrook length categories
+
+QcFcPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  fc.plot.data <- QcFlowTidy(conn, path.to.data, park, site, field.season, data.source)
+  
+  df <- fc.plot.data %>%
+    dplyr::group_by(Park, FieldSeason, FlowCategory) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup()
+  
+  fc.plot <- ggplot2::ggplot(df, aes(fill = factor(FlowCategory, levels=c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry")), x = FieldSeason, y = Count)) +
+    ggplot2::geom_bar(position = "stack", stat = "identity") +
+    ggplot2::xlab("") +
+    ggplot2::ylab("Number of Springs") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+    ggplot2::facet_wrap(~Park, scales = "free", ncol = 1) +
+    ggplot2::scale_fill_manual(values=c("blue", "dodgerblue", "skyblue1", "darkgoldenrod1", "red2", "gray40"), na.value ="gray40") +
+    ggplot2::coord_flip() +
+    ggplot2::scale_x_discrete(limits = rev(levels(as.factor(df$FieldSeason)))) +
+    ggplot2::labs(fill = "Flow Category") +
+    ggplot2::theme(legend.position="top", legend.box = "horizontal") +
+    ggplot2::guides(fill = guide_legend(nrow = 1))
+  
+  return(fc.plot)
+}
+# Just plot annual and/or 3-year springs
 
 # Map springbrook length categories
