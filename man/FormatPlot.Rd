@@ -5,36 +5,47 @@
 \title{Apply some standard formatting to a ggplot object.}
 \usage{
 FormatPlot(
-  p,
-  site,
-  site.name,
-  field.seasons,
-  sample.sizes,
-  plot.title,
-  sub.title,
-  x.lab,
-  y.lab,
-  rotate.x.labs,
+  data,
+  x.col,
+  y.col,
+  facet.col,
+  n.col.facet = 2,
+  sample.size.col,
+  sample.size.loc,
+  plot.title = "",
+  sub.title = "",
+  facet.as.subtitle = TRUE,
+  x.lab = "",
+  y.lab = "",
+  rotate.x.labs = FALSE,
   ymax,
   ymin,
   xmax,
-  xmin
+  xmin,
+  transform.x,
+  transform.y
 )
 }
 \arguments{
-\item{p}{A ggplot object.}
+\item{data}{Data frame containing the data to be plotted.}
 
-\item{site}{The spring code.}
+\item{x.col}{Column name of independent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col.}
 
-\item{site.name}{The spring name.}
+\item{y.col}{Column name of dependent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col.}
 
-\item{field.seasons}{Either a single field season name, or a vector of field season names.}
+\item{facet.col}{Column to facet on. If this results in only one facet, it will be used as a subtitle instead.}
 
-\item{sample.sizes}{Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.}
+\item{n.col.facet}{Number of columns of facet grid.}
+
+\item{sample.size.col}{Column containing sample size labels.}
+
+\item{sample.size.loc}{Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).}
 
 \item{plot.title}{The title of the plot.}
 
 \item{sub.title}{Optional custom plot subtitle.}
+
+\item{facet.as.subtitle}{If only one facet, use facet name as subtitle? Defaults to TRUE.}
 
 \item{x.lab}{X axis label.}
 
@@ -49,6 +60,10 @@ FormatPlot(
 \item{xmax}{Optional maximum x limit.}
 
 \item{xmin}{Optional minimum x limit.}
+
+\item{transform.x}{Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.}
+
+\item{transform.y}{Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.}
 }
 \value{
 A ggplot object.

@@ -7,8 +7,6 @@
 #' @return A database connection pool object
 #' @export
 #'
-#' @importFrom magrittr %>% %<>%
-#'
 #' @examples
 #' \dontrun{
 #' conn <- OpenDatabaseConnection()
@@ -340,65 +338,36 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
 #' Compute sample size by spring and field season
 #'
 #' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
-#' @param grouping.cols A vector of column names to group by.
+#' @param ... Columns to group by.
+#' @param pop Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.
 #' 
 #' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
 #'
-GetSampleSizes <- function(data, grouping.cols = c("Park", "FieldSeason")) {
+GetSampleSizes <- function(data, ..., pop = FALSE) {
   
   # Check for valid input
   if (nrow(data) == 0) {
     stop("The dataframe provided contains no data")
   }
-  if (!all(grouping.cols %in% names(data))) {
-    stop("One or more of the grouping columns specified are not present")
-  }
   
   # Calculate sample size
   sample.size <- data %>%
-    group_by_at(grouping.cols) %>%
+    dplyr::group_by(...) %>%
     dplyr::summarise(SampleSize = dplyr::n()) %>%
+    dplyr::mutate(SampleSizeLabel = paste0("n = ", SampleSize)) %>%
     dplyr::ungroup()
+  
+  if (pop) {
+    sample.size$SampleSizeLabel <- toupper(sample.size$SampleSizeLabel)
+  }
+  
+  sample.size <- dplyr::left_join(data, sample.size)
   
   return(sample.size)
 }
 
-
-#' Label sample size on boxplots
-#' 
-#' @param position Either a function (e.g. max, min, median) or a number specifying where on the y-axis the sample size label should appear.
-#'
-#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
-#'
-LabelBoxplotSampleSize <- function(position) {
-  n_labels <- function(x) {
-    # Add space above or below label
-    if (identical(position, min)) {
-      space_before <- '\n\n'
-      space_after <- ''
-    } else if (identical(position, max)) {
-      space_before <- ''
-      space_after <- '\n\n'
-    } else if (identical(position, median)) {
-      space_before <- ''
-      space_after <- '\n\n'
-    }
-    
-    sample_sizes <- data.frame(y = ifelse(is.numeric(position), position, do.call(position, list(x))),
-                               label = paste0(space_before, "n = ", length(x), space_after))
-    return(sample_sizes)
-  }
-  
-  return(stat_summary(fun.data = n_labels, geom = "text"))
-}
-
 #' Apply some standard formatting to a ggplot object.
 #'
-#' @param p A ggplot object.
-#' @param site The spring code.
-#' @param site.name The spring name.
-#' @param field.seasons Either a single field season name, or a vector of field season names.
-#' @param sample.sizes Optional dataframe with columns SampleSize and optionally Park, SiteCode and FieldSeason.
 #' @param plot.title The title of the plot.
 #' @param sub.title Optional custom plot subtitle.
 #' @param x.lab X axis label.
@@ -408,35 +377,64 @@ LabelBoxplotSampleSize <- function(position) {
 #' @param ymin Optional minimum y limit.
 #' @param xmax Optional maximum x limit.
 #' @param xmin Optional minimum x limit.
+#' @param data Data frame containing the data to be plotted.
+#' @param x.col Column name of independent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col. 
+#' @param y.col Column name of dependent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col.
+#' @param facet.col Column to facet on. If this results in only one facet, it will be used as a subtitle instead.
+#' @param n.col.facet Number of columns of facet grid.
+#' @param sample.size.col Column containing sample size labels.
+#' @param sample.size.loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
+#' @param facet.as.subtitle If only one facet, use facet name as subtitle? Defaults to TRUE.
+#' @param transform.x Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.
+#' @param transform.y Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.
 #'
 #' @return A ggplot object.
+#' 
+#' @export
 #'
-FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.title, sub.title, x.lab, y.lab, rotate.x.labs, ymax, ymin, xmax, xmin) {
+FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.size.col, sample.size.loc, plot.title = '', sub.title = '', facet.as.subtitle = TRUE, x.lab = '', y.lab = '', rotate.x.labs = FALSE, ymax, ymin, xmax, xmin, transform.x, transform.y) {
   
-  # Generate a subtitle from park and event group if subtitle not provided by user
-  if (missing(sub.title)) {
-    # For multiple seasons of data, just use the spring name since season and sample size will go in the facet titles
-    if (missing(field.seasons) || (length(field.seasons) > 1)) {
-      sub.title <- site.name
-      # Otherwise, include spring name, season and sample size
-    } else if (!missing(sample.sizes)) {
-      n <- sample.sizes[(sample.sizes$Site == site & sample.sizes$FieldSeason == field.seasons), ]$SampleSize
-      sub.title <- paste0(site.name, " (", field.seasons, ")", "\n", "n = ", n)
+  x.col <- dplyr::enquo(x.col)
+  facet.col <- dplyr::enquo(facet.col)
+  sample.size.col <- dplyr::enquo(sample.size.col)
+  
+  # Add sample size information to either x axis labels or facet/subtitle
+  if (!missing(sample.size.col) & !missing(sample.size.loc)) {
+    if (sample.size.loc == 'xaxis') {
+      data %<>% dplyr::mutate(!!x.col := paste0(!!x.col, '\n', !!sample.size.col))
+    } else if (sample.size.loc == 'plot' & !missing(facet.col)) {
+      data %<>% dplyr::mutate(!!facet.col := paste0(!!facet.col, ' (', !!sample.size.col, ')'))
     } else {
-      sub.title <- paste0(site.name, " (", field.seasons, ")")
+      facet.col <- sample.size.col
     }
   }
   
-  # Create facets if >1 event group
-  if (!missing(field.seasons) && (length(field.seasons) > 1)) {
-    p <- p + ggplot2::facet_wrap(ggplot2::vars(FieldSeason), ncol = 2, labeller = ggplot2::as_labeller(function(field.seasons){FacetTitle(field.seasons, sample.sizes)}))
+  # Allow for 1 or 2 variables
+  if (!missing(y.col) & !missing(x.col)) {
+    y.col <- dplyr::enquo(y.col)
+    p <- ggplot2::ggplot(data, ggplot2::aes(x = !!x.col, y = !!y.col))
+  } else if (!missing(x.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!x.col))
+  } else if (!missing(y.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!y.col))
+  }
+  
+  
+  # Create facets if >1 event group, otherwise create subtitle
+  if (!missing(facet.col)) {
+    facets <- unique(dplyr::select(data, !!facet.col))
+    if (nrow(facets) > 1) {
+      p <- p + ggplot2::facet_wrap(ggplot2::vars(!!facet.col), ncol = n.col.facet, scales = 'free')
+    } else if (sub.title == '' & facet.as.subtitle) {
+      sub.title <- facets
+    }
   }
   
   # Add title and subtitle if not blank
-  if (plot.title != "") {
+  if (!missing(plot.title) & plot.title != '') {
     p <- p + ggplot2::labs(title = plot.title)
   }
-  if (sub.title != "") {
+  if (!missing(sub.title) & sub.title != '') {
     p <- p + ggplot2::labs(subtitle = sub.title)
   }
   
@@ -459,7 +457,7 @@ FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.tit
   }
   
   # Set ymin and ymax if provided
-  if (!missing(ymin) && !missing(ymax)) {
+  if (!missing(ymin) & !missing(ymax)) {
     p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
   } else if (!missing(ymax)) {
     p <- p + ggplot2::expand_limits(y = ymax)
@@ -468,12 +466,38 @@ FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.tit
   }
   
   # Set xmin and xmax if provided
-  if (!missing(xmin) && !missing(xmax)) {
+  if (!missing(xmin) & !missing(xmax)) {
     p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
   } else if (!missing(xmax)) {
     p <- p + ggplot2::expand_limits(x = xmax)
   } else if (!missing(xmin)) {
     p <- p + ggplot2::expand_limits(x = xmin)
+  }
+  
+  # Tranform x axis, if transformation specified
+  if (!missing(transform.x)) {
+    if (transform.x == 'log10') {
+      p <- p + ggplot2::scale_x_log10()
+    } else if (transform.x == 'sqrt') {
+      p <- p + ggplot2::scale_x_sqrt()
+    } else if (transform.x == 'reverse') {
+      p <- p + ggplot2::scale_x_reverse()
+    } else {
+      stop(paste0("The x transformation specified, '", transform.x, "' is not a valid option."))
+    }
+  }
+  
+  # Transform y axis, if transformation specified
+  if (!missing(transform.y)) {
+    if (transform.y == 'log10') {
+      p <- p + ggplot2::scale_y_log10()
+    } else if (transform.y == 'sqrt') {
+      p <- p + ggplot2::scale_y_sqrt()
+    } else if (transform.y == 'reverse') {
+      p <- p + ggplot2::scale_y_reverse()
+    } else {
+      stop(paste0("The y transformation specified, '", transform.y, "' is not a valid option."))
+    }
   }
   
   return(p)
@@ -488,8 +512,10 @@ FormatPlot <- function(p, site, site.name, field.seasons, sample.sizes, plot.tit
 #' @param convert Convert similar classes (factor to character, int to double)?
 #'
 #' @return If test passes, nothing. If it fails, description of failure.
+#' 
+#' @export
 #'
 expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
-  test_result <- dplyr::all_equal(expected, result, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+  test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
   return(expect_true(test_result, label = test_result))
 }
