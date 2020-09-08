@@ -275,7 +275,8 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
     plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
-    y.lab = "Temperature (C)"
+    y.lab = "Temperature (C)",
+    n.col.facet = 5
   ) +
     ggplot2::geom_boxplot()
 
@@ -321,16 +322,31 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #'
 QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
 
-  wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("pH") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free")
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
 
-  return(wq.plot.ph)
+  wq.plot.ph <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    ymin = 3.5,
+    ymax = 10.5,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "pH", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "pH",
+    n.col.facet = 5
+    ) +
+  ggplot2::geom_boxplot() +
+  ggplot2::scale_y_continuous(breaks = c(4,5,6,7,8,9,10))
+
+return(wq.plot.ph)
+
 }
 
 #' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
