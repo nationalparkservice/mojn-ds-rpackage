@@ -267,7 +267,7 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
     ggplot2::ylab("Water Temperature (C)") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::facet_grid(~Park, scales = "free") + 
-    LabelBoxplotSampleSize(max)
+    desertsprings:::LabelBoxplotSampleSize(max)
 
   return(wq.plot.temp)
 }
@@ -318,7 +318,8 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
     ggplot2::xlab("") +
     ggplot2::ylab("pH") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::scale_y_continuous(breaks=seq(3,11,1))
 
   return(wq.plot.ph)
 }
