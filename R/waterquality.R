@@ -106,7 +106,7 @@ QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.sanity <- rbind(temp.sanity, spcond.sanity, ph.sanity, do.percent.sanity, do.mgl.sanity)
-  
+
   return(wq.sanity)
 }
 
@@ -156,7 +156,7 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
     dplyr::rename(Median = DOmgLMedian, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.flags <- rbind(temp.flags, spcond.flags, ph.flags, do.percent.flags, do.mgl.flags)
-  
+
   return(wq.flags)
 }
 
@@ -233,16 +233,16 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
-    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>% 
-    tidyr::unnest_wider(stats) %>% 
+    dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>%
+    tidyr::unnest_wider(stats) %>%
     dplyr::ungroup()
-  
+
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   wq.stats[wq.stats$Parameter == "SpCond", ] %<>% dplyr::mutate_if(is.double, ~ round(., 0))
   wq.stats[wq.stats$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   wq.stats[wq.stats$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
-  
+
   return(wq.stats)
 }
 
@@ -254,10 +254,12 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
+<<<<<<< HEAD
 QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
 
@@ -268,6 +270,28 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::facet_grid(~Park, scales = "free") + 
     desertsprings:::LabelBoxplotSampleSize(max)
+=======
+QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = TRUE) {
+  
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "Temp" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.temp <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Temperature (C)",
+    n.col.facet = 5
+  ) +
+    ggplot2::geom_boxplot()
+>>>>>>> utils
 
   return(wq.plot.temp)
 }
@@ -311,8 +335,8 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #'
 QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
 
+<<<<<<< HEAD
   wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
     ggplot2::geom_boxplot() +
     ggplot2::xlab("") +
@@ -320,8 +344,32 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::scale_y_continuous(breaks=seq(3,11,1))
+=======
+  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
 
-  return(wq.plot.ph)
+  wq.plot.ph <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    ymin = 3.5,
+    ymax = 10.5,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "pH", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "pH",
+    n.col.facet = 5
+    ) +
+  ggplot2::geom_boxplot() +
+  ggplot2::scale_y_continuous(breaks = c(4,5,6,7,8,9,10))
+
+return(wq.plot.ph)
+>>>>>>> utils
+
 }
 
 #' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
