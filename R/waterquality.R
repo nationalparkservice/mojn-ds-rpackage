@@ -259,18 +259,6 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-<<<<<<< HEAD
-QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.temp <- ggplot2::ggplot(subset(wq.plot, Parameter == "Temp" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Water Temperature (C)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free") + 
-    desertsprings:::LabelBoxplotSampleSize(max)
-=======
 QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = TRUE) {
   
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
@@ -291,7 +279,6 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
     n.col.facet = 5
   ) +
     ggplot2::geom_boxplot()
->>>>>>> utils
 
   return(wq.plot.temp)
 }
@@ -317,7 +304,8 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
     ggplot2::ylab("Specific Conductance (uS/cm)") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
+    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000)) + 
+    desertsprings:::LabelBoxplotSampleSize(max)
 
   return(wq.plot.spcond)
 }
@@ -336,15 +324,6 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
 #'
 QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-<<<<<<< HEAD
-  wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("pH") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_continuous(breaks=seq(3,11,1))
-=======
   wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
@@ -368,7 +347,6 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
   ggplot2::scale_y_continuous(breaks = c(4,5,6,7,8,9,10))
 
 return(wq.plot.ph)
->>>>>>> utils
 
 }
 
@@ -393,7 +371,8 @@ QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sou
     ggplot2::ylab("Dissolved Oxygen (%)") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::ylim(0, 100)
+    ggplot2::ylim(0, 100) + 
+    desertsprings:::LabelBoxplotSampleSize(max)
 
   return(wq.plot.do.pct)
 }
@@ -418,7 +397,9 @@ QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sou
     ggplot2::xlab("") +
     ggplot2::ylab("Dissolved Oxygen (mg/L)") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") + 
+    ggplot2::scale_y_continuous(breaks=seq(0,12,1)) +
+    desertsprings:::LabelBoxplotSampleSize(max)
 
   return(wq.plot.do.mgl)
 }
