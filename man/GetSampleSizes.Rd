@@ -4,12 +4,14 @@
 \alias{GetSampleSizes}
 \title{Compute sample size by spring and field season}
 \usage{
-GetSampleSizes(data, grouping.cols = c("Park", "FieldSeason"))
+GetSampleSizes(data, ..., pop = FALSE)
 }
 \arguments{
 \item{data}{A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.}
 
-\item{grouping.cols}{A vector of column names to group by.}
+\item{...}{Columns to group by.}
+
+\item{pop}{Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.}
 }
 \value{
 A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
