@@ -89,6 +89,7 @@ QcFcPlot <- function(conn, path.to.data, park, site, field.season, data.source =
   
   df <- fc.plot.data %>%
     dplyr::group_by(Park, FieldSeason, FlowCategory) %>%
+    dplyr::filter(Park != "CAMO") %>%
     dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup()
   
@@ -103,7 +104,9 @@ QcFcPlot <- function(conn, path.to.data, park, site, field.season, data.source =
     ggplot2::scale_x_discrete(limits = rev(levels(as.factor(df$FieldSeason)))) +
     ggplot2::labs(fill = "Flow Category") +
     ggplot2::theme(legend.position="top", legend.box = "horizontal") +
-    ggplot2::guides(fill = guide_legend(nrow = 1))
+    ggplot2::guides(fill = guide_legend(nrow = 1)) +
+    ggplot2::ylim(0,80) +
+    ggplot2::scale_y_continuous(breaks = c(0,10,20,30,40,50,60,70,80))
   
   return(fc.plot)
 }
