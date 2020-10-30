@@ -45,25 +45,25 @@ QcFlowCat <- function(conn, path.to.data, park, site, field.season, data.source 
 # Discharge > 0, but flow condition dry. Flow condition not dry, but discharge = 0 or no estimate/volumetric measurement.
 
 QcFlowCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  fc.data <- QcFlow(conn, path.to.data, park, site, field.season, data.source)
+  fc.data <- QcFlowCat(conn, path.to.data, park, site, field.season, data.source)
   
-  fc.check <- fc.data %>%
+  fc.check.1 <- fc.data %>%
     dplyr::filter(FlowCondition == "dry" & VolumetricDischarge_L_per_s != 0)
   
-  fc.check <- fc.data %>%
+  fc.check.2 <- fc.data %>%
     dplyr::filter(FlowCondition == "dry" & DischargeClass_L_per_s != "0 L/s")
   
-  fc.check <- fc.data %>%
+  fc.check.3 <- fc.data %>%
     dplyr::filter(FlowCondition == "dry" & SpringbrookLength_m != 0)
   
-  fc.check <- fc.data %>%
-    dplyr::filter(FlowCondition != "dry" & VolumetricDischarge_L_per_s == 0)
+  fc.check.4 <- fc.data %>%
+    dplyr::filter(!FlowCondition %in% c("dry", "wet soil only") & VolumetricDischarge_L_per_s == 0)
   
-  fc.check <- fc.data %>%
+  fc.check.5 <- fc.data %>%
     dplyr::filter(FlowCondition != "dry" & DischargeClass_L_per_s == "0 L/s")
   
-  fc.check <- fc.data %>%
-    dplyr::filter(FlowCondition != "dry" & SpringbrookLength_m == 0)
+  fc.check.6 <- fc.data %>%
+    dplyr::filter(!FlowCondition %in% c("dry", "wet soil only") & SpringbrookLength_m == 0)
   
 }
 
@@ -78,9 +78,13 @@ QcFlowTidy <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
     dplyr::filter(VisitType == "Primary", SampleFrame %in% c("Annual", "3Yr"))
   
+  return(fc.tidy)
+  
 }
 
 # Generate table of springbrook length categories
+
+
 
 # Plot springbrook length categories
 
