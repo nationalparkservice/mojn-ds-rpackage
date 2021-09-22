@@ -300,7 +300,7 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
     dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
-  wq.plot.temp <- FormatPlot(
+  wq.plot.spcond <- FormatPlot(
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Median,
@@ -314,7 +314,7 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
+    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000))
   
   return(wq.plot.spcond)
 }
@@ -352,7 +352,7 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
+    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), labels = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), limits = c(0.2, 100))
   
   return(wq.plot.spcond.ms)
 }
