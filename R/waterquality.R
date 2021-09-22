@@ -11,7 +11,7 @@
 #' @return A tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
 #' @export
 #'
-QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+WqMedian <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   temp <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityTemperature")
   spcond <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitySpCond")
   ph <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitypH")
@@ -72,7 +72,7 @@ QcWqMedian <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
-QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.sanity.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.sanity <- wq.sanity.predata %>%
@@ -122,7 +122,7 @@ QcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
-QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.flags.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.flags <- wq.flags.predata %>%
@@ -172,7 +172,7 @@ QcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 #' @export
 #'
-QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.cleaned.data <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.cleaned <- wq.cleaned.data %>%
@@ -228,8 +228,8 @@ QcWqCleaned <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @return A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 #' @export
 #'
-QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.stats.predata <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+WqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.stats.predata <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
@@ -259,9 +259,9 @@ QcWqStats <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = TRUE) {
+WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = TRUE) {
   
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source) %>%
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temp" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
@@ -294,8 +294,8 @@ QcWqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
 #'
-QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.plot.spcond <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
     ggplot2::geom_boxplot() +
@@ -320,8 +320,8 @@ QcWqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.so
 #' @return Box plots of pH data for each park and field season.
 #' @export
 #'
-QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
     ggplot2::geom_boxplot() +
@@ -345,8 +345,8 @@ QcWqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return Box plots of dissolved oxygen (percent) data for each park and field season.
 #' @export
 #'
-QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.plot.do.pct <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "%" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
     ggplot2::geom_boxplot() +
@@ -371,8 +371,8 @@ QcWqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
 #' @export
 #'
-QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.plot.do.mgl <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
     ggplot2::geom_boxplot() +
@@ -396,12 +396,12 @@ QcWqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @return Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
 #' @export
 #'
-QcWqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot.temp <- QcWqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
-  wq.plot.ph <- QcWqPlotPH(conn, path.to.data, park, site, field.season, data.source)
-  wq.plot.do.mgl <- QcWqPlotDOmgL(conn, path.to.data, park, site, field.season, data.source)
+WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  wq.plot.temp <- WqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.ph <- WqPlotPH(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.do.mgl <- WqPlotDOmgL(conn, path.to.data, park, site, field.season, data.source)
 
-  wq.plot <- QcWqCleaned(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.plot.spcond.ms <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median / 1000)) +
     ggplot2::geom_boxplot() +

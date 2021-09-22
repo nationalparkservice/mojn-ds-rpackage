@@ -10,7 +10,7 @@
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-SensorQcSummary <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
+qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorRetrievalAttempts")
   deployed.only <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
 
@@ -76,7 +76,7 @@ SensorQcSummary <- function(conn, path.to.data, park, deployment.field.season, d
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-SensorQcHeatmap <- function(conn, path.to.data, park, data.source = "database") {
+qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") {
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
   attempts %<>%
     filter(DeploymentVisitType == "Primary") %>%
@@ -127,7 +127,7 @@ qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, 
 #' @export
 #'
 #' @examples
-qcSensorDownload <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
+qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
   
   nodata <- attempts %>%
@@ -137,15 +137,15 @@ qcSensorDownload <- function(conn, path.to.data, park, deployment.field.season, 
    
 }
 
-#' Sensors that are still unaccounted for in the field 
+#' Sensors were deployed in previous field seasons and are still unaccounted for 
 #'
-#' @param conn 
-#' @param path.to.data 
-#' @param park 
-#' @param deployment.field.season 
-#' @param data.source 
-#'
-#' @return
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+
+#' @return A tibble
 #' @export
 #'
 #' @examples
@@ -170,13 +170,13 @@ qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, 
 
 #' Sensors whose retrieval date is the same as their deployment date
 #'
-#' @param conn 
-#' @param path.to.data 
-#' @param park 
-#' @param deployment.field.season 
-#' @param data.source 
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return A tibble
 #' @export
 #'
 #' @examples
@@ -188,4 +188,38 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
   
   return(error)
   
+}
+
+
+#' Springs with no sensor deployment data for latest field season
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "database") {
+ 
+  visit <- ReadAndFilterData(conn, data.source = "database", data.name = "Visit")
+  attempts <- ReadAndFilterData(conn, data.source = "database", data.name = "SensorRetrievalAttempts")
+  
+  visit.x <- visit %>%
+    select(Park, SiteCode, SiteName, SampleFrame) %>%
+    filter(SampleFrame == "Annual") %>%
+    unique()
+  
+  attempts.x <- attempts %>%
+    filter(RetrievalFieldSeason == "2021") %>%
+    select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
+  
+  discrepancies <- visit.x %>%
+    dplyr::left_join(attempts.x, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::filter(is.na(SensorRetrieved))
+  
+  return(discrepancies)
 }

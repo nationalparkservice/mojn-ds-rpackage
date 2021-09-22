@@ -11,7 +11,7 @@
 #' @return A tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 #' @export
 #' 
-QcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   completeness <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
   df <- completeness %>%
@@ -46,7 +46,7 @@ QcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' @return A stacked bar graph showing the count of annual and 3Yr springs monitored for each park and field season.
 #' @export
 #' 
-QcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   completeness.plot <- QcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   df <- completeness.plot %>%

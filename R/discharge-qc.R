@@ -1,5 +1,16 @@
-# Function NYI: Volumetric method, median, max, min times
-
+#' Calculate median discharge and count of fill times for volumetric method
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 VolumetricMedian  <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
@@ -16,8 +27,20 @@ VolumetricMedian  <- function(conn, path.to.data, park, site, field.season, data
   return(summarized) 
 }
 
-# Joined discharge table
 
+#' Join flow condition, estimated discharge, and volumetric discharge data into one table
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   discharge <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeFlowCondition")
@@ -35,8 +58,19 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
 }
 
 
-# Function NYI: Spring is dry, estimated discharge >0 or volumetric discharge >0 or springbrook dimension > 0
-
+#' Spring is dry, estimated discharge >0 or volumetric discharge >0 or springbrook dimension > 0
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcSpringDryDischarge <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -49,8 +83,19 @@ qcSpringDryDischarge <- function(conn, path.to.data, park, site, field.season, d
 }
 
 
-# Function NYI: Spring is not dry, estimated discharge = 0 or volumetric discharge = 0
-
+#' Spring is not dry, estimated discharge = 0 or volumetric discharge = 0
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcSpringNotDryNoDischarge <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -63,8 +108,19 @@ qcSpringNotDryNoDischarge <- function(conn, path.to.data, park, site, field.seas
 }  
 
 
-# Function NYI: Spring is not dry, springbrook dimensions = 0
-  
+#' Spring is not dry, springbrook dimensions = 0
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcSpringNotDryNoSpringbrook <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -78,8 +134,19 @@ qcSpringNotDryNoSpringbrook <- function(conn, path.to.data, park, site, field.se
 }
 
 
-# Function NYI: Volumetric method, but no container volume, percent of flow, or fill times
-
+#' Volumetric method was used, but there is no container volume, percent of flow, or fill time recorded
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcVolumetricMissing <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
@@ -91,8 +158,19 @@ qcVolumetricMissing <- function(conn, path.to.data, park, site, field.season, da
 }  
 
 
-# Function NYI: Volumetric method, fewer than five fill times
-
+#' Volumetric method was used, but there are fewer than five fill times
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcVolumetricFillEvents <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   median <- VolumetricMedian(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -104,8 +182,19 @@ qcVolumetricFillEvents <- function(conn, path.to.data, park, site, field.season,
 }
 
 
-# Function NYI: Volumetric method, median time less than 5 seconds
-
+#' Volumetric method was used, but the median fill time is less than 5 seconds
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcVolumetricTimes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
@@ -120,22 +209,45 @@ qcVolumetricTimes <- function(conn, path.to.data, park, site, field.season, data
   return(times)
 }
   
-  
-# Function NYI: Continuous surface water length > discontinuous surface water length
 
+#' Continuous surface water length > discontinuous surface water length
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
 qcContinuousLength <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
  
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
    
   discontinuous <- joined %>%
-    dplyr::filter((SpringbrookLengthFlag == ">50 m" & DiscontinuousSpringbrookLengthFlagId == "2") | (SpringbrookLengthFlag == "Measured" & DiscontinuousSpringbrookLengthFlagId == "2" & (SpringbrookLength_m > DiscontinuousSpringbrookLength_m)))
+    dplyr::filter((SpringbrookLengthFlag == ">50 m" & DiscontinuousSpringbrookLengthFlag == "Measured") | (SpringbrookLengthFlag == "Measured" & DiscontinuousSpringbrookLengthFlag == "Measured" & (SpringbrookLength_m > DiscontinuousSpringbrookLength_m)))
 
   return(discontinuous)  
 }
 
-# Function NYI: Summary table of discharge categories: dry, wet soil, <10 m, 10-50 m, >50 m
 
-FlowCategories <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+#' Summary table of discharge categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
  
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
@@ -161,8 +273,60 @@ FlowCategories <- function(conn, path.to.data, park, site, field.season, data.so
   return(categorized)
 }
 
-# Function NYI: Summary bar plot of flow categories for annual springs
 
+#' Summary table of discharge categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+FlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  
+  sampleframe <- visit %>%
+    select(SiteCode, VisitDate, SampleFrame)
+  
+  categorized <- joined %>%
+    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
+    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::mutate(FlowCategory = ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | (SpringbrookType != "D" & SpringbrookLengthFlag == ">50m")), "> 50 m",
+                                        ifelse(FlowCondition == "dry", "Dry",
+                                               ifelse(FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)), "Wet Soil",
+                                                      ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | (SpringbrookType != "D" & SpringbrookLength_m > 0 & SpringbrookLength_m < 10)), "< 10 m",
+                                                             ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DicontinuousSpringbrookLength_m <= 50)) | (SpringbrookType != "D" & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50))), "10 - 50 m", NA)))))) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
+    dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
+    dplyr::summarize(Count = n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory)
+  
+  return(categorized)
+}
+
+
+#' Summary bar plot of flow categories for annual springs
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return ggplot bar plot
+#' @export
+#'
+#' @examples
 FlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   data <- DischargeCategories(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -187,8 +351,19 @@ FlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.seaso
 }
 
 
-# Function NYI: Summary bar plot of flow categories for 3-yr springs
-
+#' Summary bar plot of flow categories for 3-yr springs
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return ggplot bar plot
+#' @export
+#'
+#' @examples
 FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   data <- DischargeCategories(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -213,8 +388,19 @@ FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.se
 }
 
 
-# Function NYI: Summary heat map of flow categories for annual springs
-
+#' Summary heat map of flow categories for annual springs
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return ggplot heat map plot
+#' @export
+#'
+#' @examples
 FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -248,8 +434,19 @@ FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.se
 }
 
 
-# Function NYI: Summary heat map of flow categories for 3-yr springs
-
+#' Summary heat map of flow categories for 3-yr springs
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return ggplot heat map plot
+#' @export
+#'
+#' @examples
 FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -286,6 +483,19 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 }
 
 
-# Function NYI: Map of discharge categories for latest field season at each park
-
-# DischargeCategoriesMap
+#' Map of spring flow categories for latest field season at each park
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
+FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+}
