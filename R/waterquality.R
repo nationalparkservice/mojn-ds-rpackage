@@ -73,7 +73,7 @@ WqMedian <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @export
 #'
 qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.sanity.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
+  wq.sanity.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.sanity <- wq.sanity.predata %>%
     dplyr::filter(TempMedian > 30) %>%
@@ -123,7 +123,7 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #' @export
 #'
 qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.flags.predata <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
+  wq.flags.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.flags <- wq.flags.predata %>%
     dplyr::filter(TempFlag %in% c("I", "W", "C")) %>%
@@ -173,7 +173,7 @@ qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @export
 #'
 qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.cleaned.data <- QcWqMedian(conn, path.to.data, park, site, field.season, data.source)
+  wq.cleaned.data <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
   temp.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(TempFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
@@ -259,8 +259,7 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = TRUE) {
-  
+WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temp" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
@@ -277,12 +276,13 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
     x.lab = "Field Season",
     y.lab = "Temperature (C)"
   ) +
-    ggplot2::geom_boxplot()
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free")
 
   return(wq.plot.temp)
 }
 
-#' Generate box plots for specific conductance for each park and year. Includes annual and 3Yr springs only.
+#' Generate box plots for specific conductance for each park and year in units of uS/cm. Includes annual and 3Yr springs only.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -290,22 +290,71 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
 #'
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
 #'
-WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.spcond <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Specific Conductance (uS/cm)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.temp <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Specific Conductance (uS/cm)"
+  ) +
+    ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000), limits = c(200, 25000))
-
+  
   return(wq.plot.spcond)
+}
+
+#' Generate box plots for specific conductance for each park and year in units of mS/cm. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
+#'
+#' @return Box plots of specific conductance data for each park and field season.
+#' @export
+#'
+#' @examples
+WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.spcond.ms <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median / 1000,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Specific Conductance (mS/cm)"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
+  
+  return(wq.plot.spcond.ms)
 }
 
 #' Generate box plots for pH for each park and year. Includes annual and 3Yr springs only.
@@ -316,20 +365,31 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
 #'
 #' @return Box plots of pH data for each park and field season.
 #' @export
 #'
-WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.ph <- ggplot2::ggplot(subset(wq.plot, Parameter == "pH" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("pH") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.ph <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "pH", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "pH"
+  ) +
+    ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free")
-
+  
   return(wq.plot.ph)
 }
 
@@ -341,21 +401,32 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
 #'
 #' @return Box plots of dissolved oxygen (percent) data for each park and field season.
 #' @export
 #'
-WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.do.pct <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "%" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Dissolved Oxygen (%)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "DO" & Units == "%" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.do.pct <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Percent", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Dissolved Oxygen (%)"
+  ) +
+    ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::ylim(0, 100)
-
+  
   return(wq.plot.do.pct)
 }
 
@@ -367,20 +438,31 @@ WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
 #'
 #' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
 #' @export
 #'
-WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.do.mgl <- ggplot2::ggplot(subset(wq.plot, Parameter == "DO" & Units == "mg/L" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Dissolved Oxygen (mg/L)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "DO" & Units == "mg/L" & Park != "CAMO" & !is.na(Median)) %>%
+    GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.do.mgl <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Median,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Concentration", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Dissolved Oxygen (mg/L)"
+  ) +
+    ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free")
-
+  
   return(wq.plot.do.mgl)
 }
 
@@ -399,18 +481,9 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
 WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.plot.temp <- WqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
   wq.plot.ph <- WqPlotPH(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.spcond.ms <- WqPlotSpCondmS(conn, path.to.data, park, site, field.season, data.source)
   wq.plot.do.mgl <- WqPlotDOmgL(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-
-  wq.plot.spcond.ms <- ggplot2::ggplot(subset(wq.plot, Parameter == "SpCond" & !Park == "CAMO"), ggplot2::aes(x = FieldSeason, y = Median / 1000)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("") +
-    ggplot2::ylab("Specific Conductance (mS/cm)") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25), labels = c(0.2, 0.5, 1, 2, 5, 10, 25), limits = c(0.2, 25))
-
+  
   wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond.ms, wq.plot.ph, wq.plot.do.mgl, ncol = 1)
 
   return(wq.plot.grid)
