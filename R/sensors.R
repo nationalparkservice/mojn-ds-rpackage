@@ -205,8 +205,8 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
 #' @examples
 qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "database") {
  
-  visit <- ReadAndFilterData(conn, data.source = "database", data.name = "Visit")
-  attempts <- ReadAndFilterData(conn, data.source = "database", data.name = "SensorRetrievalAttempts")
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
+  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
   
   visit.x <- visit %>%
     select(Park, SiteCode, SiteName, SampleFrame) %>%

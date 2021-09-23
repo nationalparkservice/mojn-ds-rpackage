@@ -161,3 +161,33 @@ dpl <- visit.DPL %>%
  
   return(dpl) 
 }
+
+#' List of springs that have been given different classifications
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  
+  discrepancies <- visit %>%
+    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled") %>%
+    dplyr::arrange(SiteCode, VisitDate) %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SpringType) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, SpringType) %>%
+    dplyr::mutate(FieldSeasons = paste0(FieldSeason, collapse = ", ")) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-c("FieldSeason")) %>%
+    unique() %>%
+    dplyr::filter(duplicated(SiteCode) | duplicated(SiteCode, fromLast = TRUE))
+
+   return(discrepancies)
+}
