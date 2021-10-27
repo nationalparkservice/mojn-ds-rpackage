@@ -49,7 +49,7 @@ FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.sou
   return(status)
 }  
   
-# List of springs that have been given different flow modification types   
+# List of springs that have been given different flow modification status in different field seasons   
 qcFlowModDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
   
@@ -68,8 +68,8 @@ return(discrepancies)
 }
 
 
-# Function NYI: Table with percent of springs with active and historic flow modification
-qcFlowModPercent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+# Table with count and percent of springs with active and historic flow modification
+FlowModCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
@@ -111,70 +111,129 @@ qcFlowModPercent <- function(conn, path.to.data, park, site, field.season, data.
 return(percent)
 }
 
-# Function NYI: Bar plot with percent of springs with active and historic flow modification
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  percent <- qcFlowModPercent(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+
+# Bar plot with percent of springs with active and historic flow modification
+FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  percent <- FlowModPercent(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
 
   plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus))+
     geom_bar(stat = "identity")
     
-  
+  return(plot)
 }
 
-# Function NYI: Table with percent of springs with anthro and natural disturbance (specifically human use, livestock)
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+
+# Table with count and percent of springs with human use and livestock disturbance
+DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
   
+  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
+  sampleframe <- site %>%
+    select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
+    dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame")) %>%
+    unique()
+  
+  disturb <- sampleframe %>%
+    dplyr::left_join(disturbance, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::filter(VisitType %in% c("Primary", NA)) %>%
+    dplyr::select(-c(VisitType, DPL, Notes)) %>%
+    unique() %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Livestock) %>%
+    dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
+    dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
+    dplyr::group_by(Park, SiteCode, SiteName) %>%
+    dplyr::summarize(Livestock = sum(Livestock), HumanUse = sum(HumanUse)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
+    dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
+    dplyr::group_by(Park) %>%
+    dplyr::summarize(LivestockCount = sum(Livestock), HumanUseCount = sum(HumanUse), Total = n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(LivestockPercent = (LivestockCount/Total)*100, HumanUsePercent = (HumanUseCount/Total)*100)
+  
+  return(disturb)
 }
 
-# Function NYI: Bar plot with percent of springs with anthro and natural disturbance (specifically human use, livestock)
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+
+# Bar plot with percent of springs with human use
+HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  plot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
+    geom_bar(stat = "identity") +
+    scale_y_continuous(limits = c(0, 100))
+  
+  return(humanplot)
+}
+
+
+# Bar plot with percent of springs with livestock disturbance
+LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  plot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
+    geom_bar(stat = "identity") +
+    scale_y_continuous(limits = c(0, 100))
+  
+  return(livestockplot)
+}
+
+
+# Table with human use observations
+HumanUseObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
   
+  humanobs <- disturbance %>%
+    dplyr::filter(Livestock > 0) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes)
   
+  return(humanobs)
 }
 
-# Function NYI: Table with disturbance rankings 
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  
-  
-}
-
-# Function NYI: Box plot with disturbance rankings
-
-# Function NYI: Table with livestock observations
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  
-  
-}
-
-# Function NYI: Map of livestock observations
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  
-  
-}
-
-# Function NYI: Table with human use observations
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  
-  
-}
 
 # Function NYI: Map of human use observations
-qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  humanobs <- HumanUseObservations(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  return(humanmap)
+}
+
+
+# Table with livestock observations
+LivestockObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
+
+  livestockobs <- disturbance %>%
+    dplyr::filter(Livestock > 0) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes)
+  
+  return(livestockobs)
+}
+
+
+# Function NYI: Map of livestock observations
+LivestockMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  livestockobs <- HumanUseObservations(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  return(livestockmap)
+}
+
+
+# Function NYI: Table with disturbance rankings 
+DisturbanceRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
   
   
+  return(disturbrank)
+}
+
+
+# Function NYI: Box plot with disturbance rankings
+DisturbanceRankPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  
+  return(disturbrankplot)
 }

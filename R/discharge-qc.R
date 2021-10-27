@@ -46,12 +46,22 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
   discharge <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeFlowCondition")
   estimated <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeEstimated")
   median <- VolumetricMedian(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  
+  sampleframe <- visit %>%
+    select(SiteCode, VisitDate, SampleFrame)
   
   joined <- discharge %>%
     left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
     left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason")) %>%
+    left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
     dplyr::select(-Count) %>%
+    dplyr::relocate(SampleFrame, .after = FieldSeason) %>%
+    dplyr::relocate(VisitType, .after = SampleFrame) %>%
     dplyr::rename(VolDischarge_L_per_s = Discharge_L_per_s) %>%
+    dplyr::relocate(VolDischarge_L_per_s, .after = FlowCondition) %>%
+    dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
+    dplyr::relocate(DPL, .after = Notes) %>%
     dplyr::arrange(FieldSeason, SiteCode)
  
   return(joined)
@@ -101,11 +111,34 @@ qcSpringNotDryNoDischarge <- function(conn, path.to.data, park, site, field.seas
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
   nodischarge <- joined %>%
-    dplyr::filter(FlowCondition != "dry" & (DischargeClass_L_per_s == "0 L/s" | VolDischarge_L_per_s == 0)) %>%
+    dplyr::filter(FlowCondition != "dry" & ((DischargeClass_L_per_s == "0 L/s" | VolDischarge_L_per_s == 0))) %>%
     dplyr::arrange(FieldSeason, SiteCode)
   
   return(nodischarge)
 }  
+
+#' Volumetric or estimated discharge data are missing
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcDischargeMissing <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  dischargemissing <- joined %>%
+    dplyr::filter(is.na(VolDischarge_L_per_s) & is.na(DischargeClass_L_per_s)) %>%
+    dplyr::arrange(FieldSeason, SiteCode)
+  
+  return(dischargemissing)
+}
 
 
 #' Spring is not dry, springbrook dimensions = 0
@@ -250,13 +283,8 @@ qcContinuousLength <- function(conn, path.to.data, park, site, field.season, dat
 FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
  
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  
-  sampleframe <- visit %>%
-    select(SiteCode, VisitDate, SampleFrame)
   
   categorized <- joined %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::mutate(FlowCategory = ifelse(SpringbrookLengthFlag == ">50m", "> 50 m",
                                     ifelse(FlowCondition == "dry", "Dry",
@@ -290,19 +318,15 @@ FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.seaso
 FlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  
-  sampleframe <- visit %>%
-    select(SiteCode, VisitDate, SampleFrame)
   
   categorized <- joined %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
     dplyr::filter(VisitType == "Primary") %>%
-    dplyr::mutate(FlowCategory = ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | (SpringbrookType != "D" & SpringbrookLengthFlag == ">50m")), "> 50 m",
-                                        ifelse(FlowCondition == "dry", "Dry",
-                                               ifelse(FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)), "Wet Soil",
-                                                      ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | (SpringbrookType != "D" & SpringbrookLength_m > 0 & SpringbrookLength_m < 10)), "< 10 m",
-                                                             ifelse(((SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DicontinuousSpringbrookLength_m <= 50)) | (SpringbrookType != "D" & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50))), "10 - 50 m", NA)))))) %>%
+    dplyr::mutate(FlowCategory = case_when(FlowCondition == "dry" ~ "Dry",
+                                           FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                           TRUE ~ "NA")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
     dplyr::summarize(Count = n()) %>%
@@ -328,8 +352,7 @@ FlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.se
 #'
 #' @examples
 FlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  
-  data <- DischargeCategories(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  data <- FlowCategoriesDiscontinuous(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -365,8 +388,7 @@ FlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.seaso
 #'
 #' @examples
 FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  
-  data <- DischargeCategories(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  data <- FlowCategoriesDiscontinuous(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -402,21 +424,16 @@ FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.se
 #'
 #' @examples
 FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  
-  sampleframe <- visit %>%
-    select(SiteCode, VisitDate, SampleFrame)
-  
+
   data <- joined %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
     dplyr::filter(VisitType == "Primary") %>%
-    dplyr::mutate(FlowCategory = ifelse(SpringbrookLengthFlag == ">50m", "> 50 m",
-                                        ifelse(FlowCondition == "dry", "Dry",
-                                               ifelse(FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)), "Wet Soil",
-                                                      ifelse(SpringbrookLength_m > 0 & SpringbrookLength_m < 10, "< 10 m",
-                                                             ifelse(SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50), "10 - 50 m", NA))))))
+    dplyr::mutate(FlowCategory = case_when(FlowCondition == "dry" ~ "Dry",
+                                           FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                           TRUE ~ "NA"))
     
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -448,21 +465,16 @@ FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.se
 #'
 #' @examples
 FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  
-  sampleframe <- visit %>%
-    select(SiteCode, VisitDate, SampleFrame)
   
   data <- joined %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
     dplyr::filter(VisitType == "Primary") %>%
-    dplyr::mutate(FlowCategory = ifelse(SpringbrookLengthFlag == ">50m", "> 50 m",
-                                        ifelse(FlowCondition == "dry", "Dry",
-                                               ifelse(FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)), "Wet Soil",
-                                                      ifelse(SpringbrookLength_m > 0 & SpringbrookLength_m < 10, "< 10 m",
-                                                             ifelse(SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50), "10 - 50 m", NA)))))) %>%
+    dplyr::mutate(FlowCategory = case_when(FlowCondition == "dry" ~ "Dry",
+                                           FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                           (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                           TRUE ~ "NA")) %>%
     dplyr::mutate(Visit = ifelse((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018"), "First",
                             ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021"), "Second",
                                ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2024"), "Third", NA))))
@@ -497,5 +509,65 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #'
 #' @examples
 FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+}
+
+
+#' Box plot of springbrook lengths for annual springs at each park and field season
+#'
+#' @param conn 
+#' @param path.to.data 
+#' @param park 
+#' @param site 
+#' @param field.season 
+#' @param data.source 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+SpringbrookLengthsAnnualPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  discontinuous <- joined %>%
+    dplyr::mutate(SpringbrookLength_m = ifelse(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
+    dplyr::mutate(NewSpringbrookLength_m = if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
+    
+  plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
+    geom_boxplot() +
+    facet_grid(~Park, scale = "free", space = "free_x") +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(x = "Field Season",
+         y = "Springbrook Length (m)")
+  
+}
+
+
+#' Box plot of springbrook lengths for three-year springs at each park and field season
+#'
+#' @param conn 
+#' @param path.to.data 
+#' @param park 
+#' @param site 
+#' @param field.season 
+#' @param data.source 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  discontinuous <- joined %>%
+    dplyr::mutate(SpringbrookLength_m = ifelse(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
+    dplyr::mutate(NewSpringbrookLength_m = if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
+  
+  plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
+    geom_boxplot() +
+    facet_grid(~Park, scale = "free", space = "free_x") +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(x = "Field Season",
+         y = "Springbrook Length (m)")
   
 }
