@@ -48,15 +48,15 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' 
 qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completeness.plot <- QcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  completeness.plot <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   df <- completeness.plot %>%
     mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep=" - "))
 
-  ggplot(df, aes(fill=SampleStatus,x=Park,y=Count)) +
+  ggplot(df, aes(fill=SampleStatus,x=FieldSeason,y=Count)) +
     geom_bar(position="stack",stat="identity") +
     xlab("Park") +
     ylab("Number of Springs Monitored") + 
-    facet_grid(~FieldSeason,scales="free") +
+    facet_grid(~Park,scales="free") +
     theme(axis.text.x=element_text(angle=90)) +
     scale_y_continuous(breaks=seq(0,80,10))
   

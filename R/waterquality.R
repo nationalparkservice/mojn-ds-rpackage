@@ -466,6 +466,7 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
   return(wq.plot.do.mgl)
 }
 
+
 #' Generate grid of box plots for core water quality parameters for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.

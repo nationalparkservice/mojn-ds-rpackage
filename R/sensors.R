@@ -78,14 +78,23 @@ qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, d
 #' @importFrom magrittr %>% %<>%
 qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") {
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
-  attempts %<>%
-    filter(DeploymentVisitType == "Primary") %>%
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
+  
+  sampleframe <- visit %>%
+    select(SiteCode, SampleFrame)
+  
+  joined <- attempts %>%
+    left_join(sampleframe, by = c("SiteCode"))
+  
+  joined %<>%
+    # filter(DeploymentVisitType == "Primary") %>%
+    filter(SampleFrame == "Annual") %>%
     mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
-                                  if_else(SensorRetrieved == "Y", "Retrieved, download failed", "Lost")),
+                                  if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
            SensorResultOrder = if_else(DownloadResult == "Y", 1,
                                        if_else(SensorRetrieved == "Y", 2, 3)))
   
-  plt <- ggplot(attempts, aes(x = DeploymentFieldSeason, 
+  plt <- ggplot(joined, aes(x = DeploymentFieldSeason, 
                               y = reorder(SiteCode, desc(SiteCode)))) + 
     geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
     scale_fill_manual(values = c("green", "yellow", "red"), name = "Outcome")
