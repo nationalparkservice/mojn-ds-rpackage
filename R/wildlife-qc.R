@@ -15,7 +15,9 @@ qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.seas
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
-                  WildlifeType %in% c("No Data", NA))
+                  WildlifeType %in% c("No Data", NA)) %>%
+    dplyr::arrange(SiteCode, FieldSeason) %>%
+    dplyr::select(-c(VisitType, DPL))
   
   return(observed.notype)
 }
@@ -44,7 +46,9 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
                   Shelter != "Yes",
                   Foraging != "Yes",
                   Vocalization != "Yes",
-                  OtherEvidence != "Yes")
+                  OtherEvidence != "Yes") %>%
+    dplyr::arrange(SiteCode, FieldSeason) %>%
+    dplyr::select(-c(VisitType, DPL))
   
   return(observed.notype)
 }
