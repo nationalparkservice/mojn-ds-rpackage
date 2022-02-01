@@ -162,7 +162,7 @@ dpl <- visit.DPL %>%
   return(dpl) 
 }
 
-#' List of springs that have been given different classifications
+#' Return list of springs that have been given different classifications
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -190,4 +190,114 @@ qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.seas
     dplyr::filter(duplicated(SiteCode) | duplicated(SiteCode, fromLast = TRUE))
 
    return(discrepancies)
+}
+
+#' Return list of dates that each spring has been visited 
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+ 
+  visit.dates <- visit %>%
+    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
+    dplyr::mutate(VisitDate = as.POSIXct(VisitDate)) %>%
+    dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
+    dplyr::mutate(Day = as.integer(format(VisitDate, "%d"))) %>%
+    dplyr::mutate(Month = factor(Month, levels = c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"))) %>%
+    dplyr::arrange(Month, Day) %>%
+    dplyr::mutate(Date = paste(Month, Day, sep = " ")) %>%
+    dplyr::mutate(Date = paste0(Date, " (", FieldSeason, ")")) %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame, Date) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::mutate(VisitDates = paste0(Date, collapse = ", ")) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-Date) %>%
+    dplyr::arrange(SiteCode)
+  
+  return(visit.dates)
+}
+
+#' Plot timeline of dates that each spring has been visited 
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+qcVisitDatePlots <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  
+  visit.dates <- visit %>%
+    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
+    dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
+    dplyr::mutate(MonthNum = as.integer(format(VisitDate, "%m"))) %>%
+    dplyr::mutate(Day = as.integer(format(VisitDate, "%d"))) %>%
+    dplyr::mutate(Month = factor(Month, levels = c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"))) %>%
+    dplyr::mutate(Date = paste(Month, Day, sep = " ")) %>%
+    dplyr::mutate(Year = case_when(Month %in% c("Oct", "Nov", "Dec") ~ 2019,
+                                   TRUE ~ 2020)) %>%
+    dplyr::mutate(VisitDate = lubridate::ymd(paste(Year, Month, Day, sep ="-"))) %>%
+    dplyr::mutate(VisitDate = as.POSIXct(VisitDate)) %>%
+    dplyr::arrange(VisitDate) %>%
+    dplyr::filter(SiteCode != "JOTR_P_BLA0045")
+
+  positions <- c(0.5, -0.5, 1.0, -1.0, 1.25, -1.25, 1.5, -1.5) 
+  directions <- c(1, -1) 
+  
+  line_pos <- data.frame(
+    "VisitDate" = unique(visit.dates$VisitDate),
+    "position" = rep(positions, length.out = length(unique(visit.dates$VisitDate))),
+    "direction" = rep(directions, length.out = length(unique(visit.dates$VisitDate))))
+  
+  visit.dates <- merge(x = visit.dates, y = line_pos, by = "VisitDate", all = TRUE)
+  
+  month_date_range <- seq(as.POSIXct(strptime("2019-10-01 00:00:00", "%Y-%m-%d %H:%M:%S")), as.POSIXct(strptime("2020-09-30 00:00:00", "%Y-%m-%d %H:%M:%S")), by = 'month')
+  month_format <- format(month_date_range, '%b')
+  month_df <- data.frame(month_date_range, month_format)
+  
+  text_offset <- 0.1 
+
+  absolute_value <- (abs(visit.dates$position)) 
+  text_position <- absolute_value + text_offset
+  
+  visit.dates$text_position <- text_position * visit.dates$direction 
+  
+  timeline <- ggplot2::ggplot(visit.dates,
+                              aes(x = VisitDate, y = position, label = Date)) +
+    ggplot2::geom_hline(yintercept = 0, alpha = 0.5, linetype = "dashed") +
+    ggplot2::geom_segment(data = visit.dates, aes(y = position, yend = 0, xend = VisitDate), color = 'black', size = 0.2) +
+    ggplot2::geom_point(aes(y = position), size = 3) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(axis.line.y=element_blank(),
+                   axis.text.y=element_blank(),
+                   axis.title.x=element_blank(),
+                   axis.title.y=element_blank(),
+                   axis.ticks.y=element_blank(),
+                   axis.text.x =element_blank(),
+                   axis.ticks.x =element_blank(),
+                   axis.line.x =element_blank(),
+                   legend.position = "bottom") +
+    ggplot2::geom_text(data=month_df, aes(x=month_date_range, y = -0.1,label = month_format), size = 3.5, vjust = 0.5, color = 'black', angle = 90) +
+    ggplot2::geom_text(aes(y = text_position, label = FieldSeason), size = 3.5) +
+    ggplot2::facet_wrap(vars(SiteCode), ncol = 1)
+  
+  return(timeline)
 }
