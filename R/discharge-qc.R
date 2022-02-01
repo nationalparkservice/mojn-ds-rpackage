@@ -16,7 +16,7 @@ VolumetricMedian  <- function(conn, path.to.data, park, site, field.season, data
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
   
   calculated <- volumetric %>%
-    dplyr::mutate(Discharge_L_per_s = ((ContainerVolume_mL/1000)/FillTime_seconds)*(EstimatedCapture_percent/100))
+    dplyr::mutate(Discharge_L_per_s = ((ContainerVolume_mL/1000)/FillTime_seconds)*(100/EstimatedCapture_percent))
   
   summarized <- calculated %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -62,7 +62,8 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
     dplyr::relocate(VolDischarge_L_per_s, .after = FlowCondition) %>%
     dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
     dplyr::relocate(DPL, .after = Notes) %>%
-    dplyr::arrange(FieldSeason, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    dplyr::filter(Park == "JOTR", SiteCode != "JOTR_P_BLA0045")
  
   return(joined)
 }
@@ -321,6 +322,7 @@ FlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.se
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
+    dplyr::filter(SiteCode != "JOTR_P_BLA0045") %>%
     dplyr::mutate(FlowCategory = case_when(FlowCondition == "dry" ~ "Dry",
                                            FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
                                            (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
@@ -507,7 +509,6 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' @return leaflet map
 #' @export
 #'
-#' @examples
 FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
@@ -523,15 +524,18 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                                            (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
                                            (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
                                            TRUE ~ "NA")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
+    dplyr::filter(FlowCategory != "NA") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory, SpringbrookLength_m, DiscontinuousSpringbrookLength_m, VolDischarge_L_per_s, DischargeClass_L_per_s) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::left_join(coords, by = "SiteCode")
+    dplyr::left_join(coords, by = "SiteCode") %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
   
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  pal <- colorFactor(c("navy", "royalblue1", "lightskyblue", "gold", "red"),
-                     domain = flowcat$FlowCategory)
+  pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "lightskyblue", "gold", "red"),
+                              domain = flowcat$FlowCategory)
   
   # Make NPS map Attribution
   NPSAttrib <-
@@ -549,38 +553,65 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  flowmap <- leaflet::leaflet(flowcat) %>%
+  width <- 800
+  height <- 800
+  
+  sd <- crosstalk::SharedData$new(flowcat)
+  year_filter <- crosstalk::filter_slider("year",
+                                          "",
+                                          sd,
+                                          column = ~Year,
+                                          ticks = TRUE,
+                                          width = width,
+                                          step = 3,
+                                          sep = "",
+                                          pre = "WY",
+                                          post = NULL,
+                                          dragRange = TRUE)
+  
+  flowmap <- leaflet::leaflet(sd, height = height, width = width) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
     leaflet::addCircleMarkers(lng = ~Lon_WGS84,
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", flowcat$SiteName, "<br>",
                                              "Sample Frame: ", flowcat$SampleFrame, "<br>",
-                                             "Flow Category: ", flowcat$FlowCategory),
+                                             "Field Season: ", flowcat$FieldSeason, "<br>",
+                                             "Flow Category: ", flowcat$FlowCategory, "<br>",
+                                             "Estimated Discharge (L/s): ", flowcat$DischargeClass_L_per_s, "<br>",
+                                             "Volumetric Discharge (L/s): ", round(flowcat$VolDischarge_L_per_s, 3)),
                               radius = 6,
                               stroke = FALSE,
                               fillOpacity = 1,
                               color = ~pal(FlowCategory),
-                              group = "FieldSeason") %>%
+                              group = ~SampleFrame) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~FlowCategory,
+                       title = "Flow Category",
+                       opacity = 1,
+                       position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = c("FieldSeason"),
-                              options=leaflet::layersControlOptions(collapsed = TRUE))
+                              overlayGroups = ~SampleFrame,
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  return(flowmap)
+  flowcatmap <- crosstalk::bscols(list(year_filter,
+                                  flowmap))
   
+  return(flowcatmap)
 }
 
 
 #' Box plot of springbrook lengths for annual springs at each park and field season
 #'
-#' @param conn 
-#' @param path.to.data 
-#' @param park 
-#' @param site 
-#' @param field.season 
-#' @param data.source 
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
@@ -605,12 +636,12 @@ SpringbrookLengthsAnnualPlot <- function(conn, path.to.data, park, site, field.s
 
 #' Box plot of springbrook lengths for three-year springs at each park and field season
 #'
-#' @param conn 
-#' @param path.to.data 
-#' @param park 
-#' @param site 
-#' @param field.season 
-#' @param data.source 
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
