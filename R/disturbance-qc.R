@@ -1,4 +1,15 @@
-# Overall disturbance < any other disturbance category
+#' Overall disturbance is less than any other disturbance category
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
   
@@ -14,25 +25,48 @@ qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, d
                     (Overall < Wildlife & Wildlife != "NoData") |
                     (Overall < OtherNatural & OtherNatural != "NoData")) %>%
     dplyr::select(Park:Overall) %>%
-    dplyr::arrange(FieldSeason, Park, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode)
   
   return(overall)
 }
 
-# Flow modification exists, but no Human Use disturbance
+
+#' Flow modification exists, but no Human Use disturbance recorded
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
 
   nohuman <- disturbance %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, FlowModificationStatus) %>%
     dplyr::filter(HumanUse == "0" & stringr::str_detect(FlowModificationStatus, "Yes")) %>%
-    dplyr::arrange(FieldSeason, Park, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode)
     
   return(nohuman)
 }
 
 
-# List of springs with active or historic flow modification
+#' List of springs with active or historic flow modification
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
   
@@ -48,8 +82,20 @@ FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.sou
   
   return(status)
 }  
-  
-# List of springs that have been given different flow modification status in different field seasons   
+
+ 
+#' List of springs that have been given different flow modification status in different field seasons   
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 qcFlowModDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
   
@@ -68,7 +114,18 @@ return(discrepancies)
 }
 
 
-# Table with count and percent of springs with active and historic flow modification
+#' Table with count and percent of springs with active and historic flow modification
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 FlowModCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
@@ -112,9 +169,20 @@ return(percent)
 }
 
 
-# Bar plot with percent of springs with active and historic flow modification
+#' Bar plot with percent of springs with active and historic flow modification
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  percent <- FlowModPercent(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  percent <- FlowModCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
 
   plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus))+
     geom_bar(stat = "identity")
@@ -123,7 +191,18 @@ FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.sourc
 }
 
 
-# Table with count and percent of springs with human use and livestock disturbance
+#' Table with count and percent of springs with human use and livestock disturbance
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
   flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
@@ -158,11 +237,45 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
 }
 
 
-# Bar plot with percent of springs with human use
+#' Table with human use observations
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
+HumanUseObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  
+  humanobs <- disturbance %>%
+    dplyr::filter(HumanUse > 0) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes)
+  
+  return(humanobs)
+}
+
+
+#' Bar plot with percent of springs with human use
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
-  plot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
+  humanplot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
     geom_bar(stat = "identity") +
     scale_y_continuous(limits = c(0, 100))
   
@@ -170,42 +283,120 @@ HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.sour
 }
 
 
-# Bar plot with percent of springs with livestock disturbance
-LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  
-  plot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
-    geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 100))
-  
-  return(livestockplot)
-}
-
-
-# Table with human use observations
-HumanUseObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  
-  humanobs <- disturbance %>%
-    dplyr::filter(Livestock > 0) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes)
-  
-  return(humanobs)
-}
-
-
-# Function NYI: Map of human use observations
+#' Function NYI: Map of human use observations
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  humanobs <- HumanUseObservations(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  
+  coords <- site %>%
+    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  humandata <- disturbance %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
+    dplyr::mutate(Observed = case_when(HumanUse == "0" ~ "No",
+                                       HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
+                                       TRUE ~ "NA")) %>%
+    dplyr::filter(Observed == "Yes") %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
+  
+  humandata$Observed <- factor(humandata$Observed, levels = c("Yes"))
+  
+  pal <- leaflet::colorFactor(palette = c("red"),
+                              domain = humandata$Observed)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 800
+  height <- 800
+  
+  sd <- crosstalk::SharedData$new(humandata)
+  year_filter <- crosstalk::filter_slider("year",
+                                          "",
+                                          sd,
+                                          column = ~Year,
+                                          ticks = TRUE,
+                                          width = width,
+                                          step = 1,
+                                          sep = "",
+                                          pre = "WY",
+                                          post = NULL,
+                                          dragRange = TRUE)
+  
+  lsmap <- leaflet::leaflet(sd, width = width, height = height) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", humandata$SiteName, "<br>",
+                                             "Sample Frame: ", humandata$SampleFrame, "<br>",
+                                             "Human Disturbance Category: ", humandata$HumanUse, "<br>",
+                                             "Notes: ", humandata$Notes),
+                              radius = 6,
+                              stroke = FALSE,
+                              fillOpacity = 1,
+                              color = ~pal(Observed),
+                              group = ~Observed) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Observed,
+                       title = "Human Use Disturbance",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  humanmap <- crosstalk::bscols(list(year_filter,
+                                     lsmap))
   
   return(humanmap)
 }
 
 
-# Table with livestock observations
+#' Table with livestock observations
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
 LivestockObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-
+  
   livestockobs <- disturbance %>%
     dplyr::filter(Livestock > 0) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes)
@@ -214,26 +405,124 @@ LivestockObservations <- function(conn, path.to.data, park, site, field.season, 
 }
 
 
-# Function NYI: Map of livestock observations
+#' Bar plot with percent of springs with livestock disturbance
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return
+#' @export
+#'
+LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  livestockplot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
+    geom_bar(stat = "identity") +
+    scale_y_continuous(limits = c(0, 100))
+  
+  return(livestockplot)
+}
+
+
+#' Map of livestock disturbance observations
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
 LivestockMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  livestockobs <- HumanUseObservations(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  
+  coords <- site %>%
+    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  livestockdata <- disturbance %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
+    dplyr::mutate(Observed = case_when(Livestock == "0" ~ "No",
+                                       Livestock %in% c("1", "2", "3", "4") ~ "Yes",
+                                       TRUE ~ "NA")) %>%
+    dplyr::filter(Observed == "Yes") %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
+  
+  livestockdata$Observed <- factor(livestockdata$Observed, levels = c("Yes"))
+  
+  pal <- leaflet::colorFactor(palette = c("red"),
+                              domain = livestockdata$Observed)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 800
+  height <- 800
+  
+  sd <- crosstalk::SharedData$new(livestockdata)
+  year_filter <- crosstalk::filter_slider("year",
+                                          "",
+                                          sd,
+                                          column = ~Year,
+                                          ticks = TRUE,
+                                          width = width,
+                                          step = 1,
+                                          sep = "",
+                                          pre = "WY",
+                                          post = NULL,
+                                          dragRange = TRUE)
+  
+  lsmap <- leaflet::leaflet(sd, width = width, height = height) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", livestockdata$SiteName, "<br>",
+                                             "Sample Frame: ", livestockdata$SampleFrame, "<br>",
+                                             "Livestock Disturbance Category: ", livestockdata$Livestock, "<br>",
+                                             "Notes: ", livestockdata$Notes),
+                              radius = 6,
+                              stroke = FALSE,
+                              fillOpacity = 1,
+                              color = ~pal(Observed),
+                              group = ~Observed) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Observed,
+                       title = "Livestock Disturbance",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  livestockmap <- crosstalk::bscols(list(year_filter,
+                                    lsmap))
   
   return(livestockmap)
-}
-
-
-# Function NYI: Table with disturbance rankings 
-DisturbanceRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  
-  
-  return(disturbrank)
-}
-
-
-# Function NYI: Box plot with disturbance rankings
-DisturbanceRankPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  
-  return(disturbrankplot)
 }
