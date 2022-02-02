@@ -332,7 +332,6 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
 #'
-#' @examples
 WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
