@@ -25,5 +25,6 @@ Imports:
     testthat,
     tidyr,
     tidyverse,
-    magrittr
-RoxygenNote: 7.1.1
+    magrittr,
+    leaflet
+RoxygenNote: 7.1.2
