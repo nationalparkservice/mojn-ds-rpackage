@@ -63,7 +63,7 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
     dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
     dplyr::relocate(DPL, .after = Notes) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::filter(Park == "JOTR", SiteCode != "JOTR_P_BLA0045")
+    dplyr::filter(SiteCode != "JOTR_P_BLA0045")
  
   return(joined)
 }
@@ -563,7 +563,7 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                                           column = ~Year,
                                           ticks = TRUE,
                                           width = width,
-                                          step = 3,
+                                          step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
@@ -584,9 +584,11 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                                              "Estimated Discharge (L/s): ", flowcat$DischargeClass_L_per_s, "<br>",
                                              "Volumetric Discharge (L/s): ", round(flowcat$VolDischarge_L_per_s, 3)),
                               radius = 6,
-                              stroke = FALSE,
+                              stroke = TRUE,
+                              color = "black",
+                              weight = 1,
                               fillOpacity = 1,
-                              color = ~pal(FlowCategory),
+                              fillColor = ~pal(FlowCategory),
                               group = ~SampleFrame) %>%
     leaflet::addLegend(pal = pal,
                        values = ~FlowCategory,
