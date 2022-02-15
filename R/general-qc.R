@@ -301,3 +301,13 @@ qcVisitDatePlots <- function(conn, path.to.data, park, site, field.season, data.
   
   return(timeline)
 }
+
+qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+
+  notsampled <- visit %>%
+    dplyr::filter(MonitoringStatus != "Sampled") %>%
+    dplyr::select(-c("DPL", "SpringType"))
+  
+  return(notsampled)
+}
