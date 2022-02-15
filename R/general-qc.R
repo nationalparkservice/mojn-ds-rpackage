@@ -48,18 +48,19 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' 
 qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completeness.plot <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  df <- completeness.plot %>%
+  completeness <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  df <- completeness %>%
     mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep=" - "))
 
-  ggplot(df, aes(fill=SampleStatus,x=FieldSeason,y=Count)) +
-    geom_bar(position="stack",stat="identity") +
+  completeness.plot <- ggplot(df, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
+    geom_bar(position = "stack", stat = "identity") +
     xlab("Park") +
     ylab("Number of Springs Monitored") + 
-    facet_grid(~Park,scales="free") +
-    theme(axis.text.x=element_text(angle=90)) +
-    scale_y_continuous(breaks=seq(0,80,10))
-  
+    facet_grid(~Park, scales = "free", space = "free_x") +
+    theme(axis.text.x = element_text(angle = 90)) +
+    scale_y_continuous(breaks = seq(0,80,10))
+
+    return(completeness.plot)    
 }
 
 
@@ -223,7 +224,8 @@ qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.sourc
     dplyr::mutate(VisitDates = paste0(Date, collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::select(-Date) %>%
-    dplyr::arrange(SiteCode)
+    dplyr::arrange(SiteCode) %>%
+    unique()
   
   return(visit.dates)
 }
