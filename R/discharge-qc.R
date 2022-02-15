@@ -396,7 +396,7 @@ FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.se
   
   plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
     geom_bar(stat = "identity") +
-    facet_grid(~Park, scale = "free", space = "free_x") +
+    facet_grid(~Park, scales = "free", space = "free_x") +
     scale_fill_manual(values = c("Dry" = "red",
                                  "Wet Soil" = "gold",
                                  "< 10 m" = "lightskyblue",
@@ -447,7 +447,7 @@ FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.se
     labs(x = "Field Season",
          y = "Annual Spring") +
     theme(legend.position = "bottom") +
-    facet_grid(Park~., scale = "free", space = "free_y")
+    facet_grid(Park~., scales = "free", space = "free_y")
   
   return(heatmap)
 }
@@ -491,7 +491,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
     labs(x = "Revisit Cycle",
          y = "Three-Year Spring") +
     theme(legend.position = "bottom") +
-    facet_grid(Park~., scale = "free", space = "free_y")
+    facet_grid(Park~., scales = "free", space = "free_y")
   
   return(heatmap)
 }
@@ -628,7 +628,7 @@ SpringbrookLengthsAnnualPlot <- function(conn, path.to.data, park, site, field.s
     
   plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
     geom_boxplot() +
-    facet_grid(~Park, scale = "free", space = "free_x") +
+    facet_grid(~Park, scales = "free", space = "free_x") +
     theme(axis.text.x = element_text(angle = 90)) +
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
@@ -658,7 +658,7 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
   
   plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
     geom_boxplot() +
-    facet_grid(~Park, scale = "free", space = "free_x") +
+    facet_grid(~Park, scales = "free", space = "free_x") +
     theme(axis.text.x = element_text(angle = 90)) +
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
