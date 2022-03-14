@@ -599,10 +599,10 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                               overlayGroups = ~SampleFrame,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  flowcatmap <- crosstalk::bscols(list(year_filter,
-                                  flowmap))
+#  flowcatmap <- crosstalk::bscols(list(year_filter,
+#                                  flowmap))
   
-  return(flowcatmap)
+  return(flowmap)
 }
 
 
