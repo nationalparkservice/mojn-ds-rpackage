@@ -55,7 +55,7 @@ qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.
 }
 
 
-#' List of springs with active or historic flow modification
+#' List of springs with active or historical flow modification
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -229,7 +229,7 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
     dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
     dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
     dplyr::group_by(Park) %>%
-    dplyr::summarize(LivestockCount = sum(Livestock), HumanUseCount = sum(HumanUse), Total = n()) %>%
+    dplyr::summarize(LivestockCount = sum(Livestock, na.rm = TRUE), HumanUseCount = sum(HumanUse, na.rm = TRUE), Total = n()) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(LivestockPercent = (LivestockCount/Total)*100, HumanUsePercent = (HumanUseCount/Total)*100)
   

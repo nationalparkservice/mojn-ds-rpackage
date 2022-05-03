@@ -50,7 +50,7 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
     dplyr::arrange(SiteCode, FieldSeason) %>%
     dplyr::select(-c(VisitType, DPL))
   
-  return(observed.notype)
+  return(type.noevidence)
 }
 
 #' Table of springs with evidence of ungulate (sheep and deer) activity
