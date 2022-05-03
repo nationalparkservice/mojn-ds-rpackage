@@ -1,4 +1,4 @@
-#' Calculate median values for each water quality paramenter for each site visit.
+#' Calculate median values for each water quality parameter for each site visit.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.

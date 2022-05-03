@@ -35,7 +35,7 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 #' @return
 #' @export
 #'
-qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
   
   noveglife <- veg %>%
@@ -121,7 +121,7 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 #' @return
 #' @export
 #'
-LifeformsPresencePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
   
   veg.summary <- veg %>%
@@ -232,8 +232,8 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
                   LifeFormCategory = LifeForm)
   
   veg.types.barplot <- ggplot2::ggplot(veg.types,
-                                       aes(reorder_within(LifeFormCategory, Observations, Park), Observations)) +
-    scale_x_reordered() +
+                                       aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations)) +
+    tidytext::scale_x_reordered() +
     geom_col() +
     facet_grid(Park ~ ., scales = "free", space = "free") +
     coord_flip() +

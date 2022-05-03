@@ -268,7 +268,7 @@ qcContinuousLength <- function(conn, path.to.data, park, site, field.season, dat
 }
 
 
-#' Summary table of discharge categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#' Summary table of flow categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -303,7 +303,7 @@ FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.seaso
 }
 
 
-#' Summary table of discharge categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#' Summary table of flow categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -510,7 +510,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' @export
 #'
 FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  discharge <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%

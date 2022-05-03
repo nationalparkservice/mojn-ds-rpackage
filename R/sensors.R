@@ -118,7 +118,7 @@ qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, 
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
   
   problems <- attempts %>%
-    dplyr::filter(SensorRetrieved == "Y", SensorProblem != "None")
+    dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing")))
   
   return(problems)
   
@@ -223,7 +223,7 @@ qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "datab
     unique()
   
   attempts.x <- attempts %>%
-    filter(RetrievalFieldSeason == "2021") %>%
+    filter(RetrievalFieldSeason == "2022") %>%
     select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
   
   discrepancies <- visit.x %>%
