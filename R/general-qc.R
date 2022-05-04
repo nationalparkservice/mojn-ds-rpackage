@@ -163,6 +163,7 @@ dpl <- visit.DPL %>%
   return(dpl) 
 }
 
+
 #' Return list of springs that have been given different classifications
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
@@ -192,6 +193,7 @@ qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.seas
 
    return(discrepancies)
 }
+
 
 #' Return list of dates that each spring has been visited 
 #'
@@ -229,6 +231,7 @@ qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   return(visit.dates)
 }
+
 
 #' Apply some standard formatting to a ggplot object
 #'
@@ -357,6 +360,7 @@ FormatPlot <- function(data, x_col, y_col, facet_col, n_col_facet = 2, facet_sca
   return(p)
 }
 
+
 #' Generate timeline of dates that each spring has been visited
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
@@ -439,7 +443,6 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
   return(plt)
   
 }
-
 
 
 #' Return list of springs that were not sampled during a field season when they were intended to be monitored
