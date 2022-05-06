@@ -106,9 +106,6 @@ qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, dat
     return(completeness.plot)    
 }
 
-p <- ggplotly(qcCompletenessPlot(conn))
-
-
 
 #' Return list of site visits that have any data categorized as "Raw" or "Provisional"
 #'
