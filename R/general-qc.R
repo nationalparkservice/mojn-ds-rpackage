@@ -14,23 +14,61 @@
 qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   completeness <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  df <- completeness %>%
-    dplyr::group_by(Park, FieldSeason, SampleFrame, VisitType, MonitoringStatus) %>%
-    dplyr::summarize(Count = dplyr::n()) %>%
-    dplyr::filter(SampleFrame %in% c("Annual","3Yr") & VisitType == "Primary" & !MonitoringStatus %in% c("Not sampled - No spring found","Not sampled - Inaccessible")) %>%
-    dplyr::mutate(Percent = ifelse(Park == "DEVA" & SampleFrame == "3Yr", Count/60*100,
-                       ifelse(Park == "DEVA" & SampleFrame == "Annual", Count/20*100,
-                         ifelse(Park %in% c("JOTR", "LAKE", "MOJA", "PARA") & SampleFrame == "Annual", Count/10*100,
-                           ifelse(Park %in% c("MOJA", "PARA") & SampleFrame == "3Yr", Count/35*100,
-                             ifelse(Park == "JOTR" & SampleFrame == "3Yr", Count/25*100,
-                               ifelse(Park == "LAKE" & SampleFrame == "3Yr", Count/30*100, NA
-                                 ))))))) %>%
-    dplyr::mutate(Percent = round(Percent, 3))
+  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
-  return(df %>%
-    dplyr::arrange(Park,FieldSeason,desc(SampleFrame)) %>%
+  df1 <- site %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
+                  SiteStatus == "T-S") %>%
+    dplyr::select(Park,
+                  SiteCode,
+                  SiteName,
+                  SampleFrame)
+  
+  
+  df2 <- completeness %>%
+    dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  VisitType == "Primary",
+                  MonitoringStatus == "Sampled") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
+    dplyr::group_by(Park, FieldSeason) %>%
+    dplyr::mutate(Triennial = case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
+                                        Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
+                                        Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
+                                        Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
+                                        TRUE ~ "N")) %>%
+    # dplyr::filter(Triennial == "Y") %>%
     dplyr::ungroup() %>%
-    dplyr::select(Park, FieldSeason, SampleFrame, MonitoringStatus, Count, Percent))
+    dplyr::select(Park, FieldSeason, SampleFrame) %>%
+    unique()
+  
+  expected <- df1 %>%
+    dplyr::left_join(df2)
+  
+  
+  samplestatus <- completeness %>%
+    dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  VisitType == "Primary",
+                  MonitoringStatus == "Sampled") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
+    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason")) %>%
+    dplyr::mutate(MonitoringStatus = case_when(is.na(MonitoringStatus) ~ "Not Sampled",
+                                               TRUE ~ MonitoringStatus)) %>%
+    dplyr::group_by(Park, FieldSeason, SampleFrame, MonitoringStatus) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::mutate(Percent = dplyr::case_when(Park == "DEVA" & SampleFrame == "3Yr" ~ Count/60*100,
+                                             Park == "DEVA" & SampleFrame == "Annual" ~ Count/20*100,
+                                             Park %in% c("JOTR", "LAKE", "MOJA", "PARA") & SampleFrame == "Annual" ~ Count/10*100,
+                                             Park %in% c("MOJA", "PARA") & SampleFrame == "3Yr" ~ Count/35*100,
+                                             Park == "JOTR" & SampleFrame == "3Yr" ~ Count/25*100,
+                                             Park == "LAKE" & SampleFrame == "3Yr" ~ Count/33*100,
+                                             Park == "CAMO" & SampleFrame == "3Yr" ~ Count/2*100,
+                                             TRUE ~ as.double(NA))) %>%
+    dplyr::mutate(Percent = round(Percent, 3)) %>%
+    dplyr::arrange(Park, FieldSeason, desc(SampleFrame)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(Park, FieldSeason, SampleFrame, MonitoringStatus, Count, Percent)
+  
+  return(samplestatus)
 
 }
 
@@ -48,20 +86,28 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' 
 qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completeness <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  df <- completeness %>%
-    mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep=" - "))
+  completecount <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
 
-  completeness.plot <- ggplot(df, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
+  df2 <- completecount %>%
+        dplyr::mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep = " - ")) %>%
+        dplyr::filter(Park != "CAMO")
+
+  
+  
+  completeness.plot <- ggplot(df2, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
     geom_bar(position = "stack", stat = "identity") +
     xlab("Park") +
     ylab("Number of Springs Monitored") + 
-    facet_grid(~Park, scales = "free", space = "free_x") +
+    facet_grid(~Park, space = "free_x") +
     theme(axis.text.x = element_text(angle = 90)) +
-    scale_y_continuous(breaks = seq(0,80,10))
+    scale_y_continuous(breaks = seq(0, 80, 10)) +
+    scale_fill_manual(values = c("rosybrown2", "firebrick", "lightblue", "steelblue"))
 
     return(completeness.plot)    
 }
+
+p <- ggplotly(qcCompletenessPlot(conn))
+
 
 
 #' Return list of site visits that have any data categorized as "Raw" or "Provisional"
