@@ -55,7 +55,7 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
     left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
     left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason")) %>%
     left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
-    dplyr::select(-Count, DPL) %>%
+    dplyr::select(-Count, -DPL) %>%
     dplyr::relocate(SampleFrame, .after = FieldSeason) %>%
     dplyr::relocate(VisitType, .after = SampleFrame) %>%
     dplyr::rename(VolDischarge_L_per_s = Discharge_L_per_s) %>%
