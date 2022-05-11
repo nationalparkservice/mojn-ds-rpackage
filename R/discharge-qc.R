@@ -534,6 +534,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' Map of spring flow categories for latest field season at each park
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param interactive Optional. Choose "yes" or "no." Yes will allow the user to toggle between field seasons of data. No will show only the latest field season of data. If no argument is entered, function will default to "no" for greater accessibility.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -543,7 +544,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' @return leaflet map
 #' @export
 #'
-FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field.season, data.source = "database") {
   discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
@@ -565,6 +566,28 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
     dplyr::left_join(coords, by = "SiteCode") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
+  
+  if (!missing(interactive)) {
+      if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      } else {
+        if (!missing(field.season)) {
+          flowcat %<>%
+            dplyr::filter(FieldSeason == field.season)
+        } else {
+          flowcat %<>%
+            dplyr::filter(FieldSeason == max(FieldSeason))  
+        }
+      }
+  } else {      
+    if (!missing(field.season)) {
+        flowcat %<>%
+          dplyr::filter(FieldSeason == field.season)
+     } else {
+        flowcat %<>%
+          dplyr::filter(FieldSeason == max(FieldSeason))  
+     }
+  }
+
   
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -633,10 +656,21 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                               overlayGroups = ~SampleFrame,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-#  flowcatmap <- crosstalk::bscols(list(year_filter,
-#                                  flowmap))
-  
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      if(missing(field.season)) {
+        flowmap <- crosstalk::bscols(list(year_filter,
+                                     flowmap))
+      } else {
+      }  
+    } else {
+    }
+  } else {
+  }
+   
+     
   return(flowmap)
+  
 }
 
 
@@ -697,4 +731,32 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
   
+}
+
+
+test_function <- function(x, y) {
+  
+  if (!missing(y) & y > 0) {
+    sum <- x + y
+  } else {
+    sum <- x
+  }
+  
+  return(sum)
+}
+
+
+test_function <- function(x, y) {
+  
+  if (!missing(y)) {
+    if (y > 0) {
+      sum <- x + y
+    } else {
+      sum <- x
+    }
+  } else {
+    sum <- x
+  }
+  
+  return(sum)
 }
