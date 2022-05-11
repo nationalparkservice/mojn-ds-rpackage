@@ -87,7 +87,9 @@ qcSpringDryWater <- function(conn, path.to.data, park, site, field.season, data.
    
   dry <- joined %>%
     dplyr::filter(FlowCondition == "dry" & (DischargeClass_L_per_s != "0 L/s" | VolDischarge_L_per_s > 0 | SpringbrookLength_m > 0 | SpringbrookWidth_m > 0)) %>%
-    dplyr::arrange(FieldSeason, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+
    
   return(dry)               
 }
@@ -169,7 +171,7 @@ qcSpringNotDryNoWater <- function(conn, path.to.data, park, site, field.season, 
     dplyr::arrange(FieldSeason, SiteCode)
   
   nowater <- rbind(nodischarge, nobrook) %>%
-    dplyr::arrange(SiteCode, FieldSeason) %>%
+    dplyr::arrange(FieldSeason, SiteCode) %>%
     unique() %>%
     dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
   
@@ -196,7 +198,9 @@ qcDischargeMissing <- function(conn, path.to.data, park, site, field.season, dat
   
   dischargemissing <- joined %>%
     dplyr::filter(is.na(VolDischarge_L_per_s) & is.na(DischargeClass_L_per_s)) %>%
-    dplyr::arrange(FieldSeason, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    dplyr::select(-SpringbrookLengthFlag, -SpringbrookLength_m, -SpringbrookWidth_m, -SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+  
   
   return(dischargemissing)
 }
