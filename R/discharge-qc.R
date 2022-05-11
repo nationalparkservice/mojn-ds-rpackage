@@ -432,7 +432,7 @@ FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.se
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
+  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
     geom_bar(stat = "identity") +
     facet_grid(~Park, scales = "free", space = "free_x") +
     scale_fill_manual(values = c("Dry" = "red",
@@ -521,7 +521,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr"), aes(x = Visit, 
+  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = Visit, 
                                                                            y = reorder(SiteCode, desc(SiteCode)),
                                                                            fill = FlowCategory)) + 
     geom_tile(color = "white") + 
