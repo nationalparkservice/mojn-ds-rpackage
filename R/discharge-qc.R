@@ -171,7 +171,7 @@ qcSpringNotDryNoWater <- function(conn, path.to.data, park, site, field.season, 
   nowater <- rbind(nodischarge, nobrook) %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
     unique() %>%
-    dplyr::select(-DPL, -SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
   
   return(nowater)
   
