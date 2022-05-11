@@ -544,7 +544,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' @export
 #'
 FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  discharge <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
