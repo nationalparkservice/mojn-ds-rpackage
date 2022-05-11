@@ -61,7 +61,6 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
     dplyr::rename(VolDischarge_L_per_s = Discharge_L_per_s) %>%
     dplyr::relocate(VolDischarge_L_per_s, .after = FlowCondition) %>%
     dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
-    dplyr::relocate(DPL, .after = Notes) %>%
     dplyr::mutate(VolDischarge_L_per_s = round(VolDischarge_L_per_s, 2)) %>%
     dplyr::arrange(FieldSeason, SiteCode)
  
