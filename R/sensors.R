@@ -60,7 +60,9 @@ qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, d
     dplyr::full_join(downloaded, by = c("Park", "DeploymentFieldSeason")) %>%
     tidyr::replace_na(list(Retrieved = 0, Downloaded = 0)) %>%
     dplyr::select(Park, DeploymentFieldSeason, Deployed, NoRetrievalAttempted, RetrievalAttempted, Retrieved, Downloaded) %>%
-    dplyr::arrange(Park, DeploymentFieldSeason)
+    dplyr::arrange(Park, DeploymentFieldSeason) %>%
+    dplyr::mutate(Percent_Retrieved = round(Retrieved/RetrievalAttempted*100, 1),
+                  Percent_Downloaded = round(Downloaded/Retrieved*100, 1))
 
   return(summary)
 }
@@ -97,7 +99,7 @@ qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") 
   plt <- ggplot(joined, aes(x = DeploymentFieldSeason, 
                               y = reorder(SiteCode, desc(SiteCode)))) + 
     geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
-    scale_fill_manual(values = c("green", "yellow", "red"), name = "Outcome")
+    scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome")
   
   return(plt)
 }
@@ -223,7 +225,7 @@ qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "datab
     unique()
   
   attempts.x <- attempts %>%
-    filter(RetrievalFieldSeason == "2022") %>%
+    filter(DeploymentFieldSeason == max(DeploymentFieldSeason)) %>%
     select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
   
   discrepancies <- visit.x %>%
