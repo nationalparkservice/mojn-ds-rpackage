@@ -224,7 +224,8 @@ qcVolumetricMissing <- function(conn, path.to.data, park, site, field.season, da
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
   
   missing <- volumetric %>%
-    dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent))
+    dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent)) %>%
+    dplyr::select(-VisitType, -DPL)
   
   return(missing)
 }  
