@@ -189,7 +189,11 @@ FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
     geom_bar(stat = "identity") +
-    scale_fill_manual(values = c("gray", "seagreen", "gold", "firebrick"), name = "Flow Modification")
+    scale_fill_manual(values = c("No data" = "gray",
+                                 "None" = "seagreen",
+                                 "Yes - All inactive" = "gold",
+                                 "Yes - One or more active" = "firebrick"),
+                      name = "Flow Modification")
     
   return(plot)
 }
