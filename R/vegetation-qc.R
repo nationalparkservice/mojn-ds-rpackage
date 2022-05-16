@@ -150,6 +150,8 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
   
+  veg %<>% dplyr::filter(Park != "CAMO")
+  
   veg.sums <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -224,6 +226,8 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
 MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
 
+  veg %<>% dplyr::filter(Park != "CAMO")
+  
   veg.types <- veg %>%
     dplyr::filter(VisitType == "Primary",
                   !is.na(LifeForm)) %>%
