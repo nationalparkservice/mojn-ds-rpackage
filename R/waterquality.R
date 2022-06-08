@@ -260,15 +260,18 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
+
 WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temp" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.temp <- FormatPlot(
-    data = wq.plot,
+    data = wq.plot.tempdata,
     x.col = FieldSeason,
     y.col = Median,
+    ymin = 0,
+    ymax = 55,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
@@ -372,13 +375,14 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #'
 
+
 WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
-    data = wq.plot,
+    data = wq.plot.phdata,
     x.col = FieldSeason,
     y.col = Median,
     facet.col = Park,
