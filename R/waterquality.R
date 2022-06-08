@@ -275,7 +275,8 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
     plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
-    y.lab = "Temperature (C)"
+    y.lab = "Temperature (C)",
+    n.col.facet = 5
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free")
@@ -370,6 +371,7 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
 #' @return Box plots of pH data for each park and field season.
 #' @export
 #'
+
 WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "pH" & Park != "CAMO" & !is.na(Median)) %>%
