@@ -1,5 +1,7 @@
 context("Reading from database and csv")
 
+skip_if_not(dir.exists('M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv'), message = "Skipped - no VPN connection")
+
 # Write temporary csv files
 conn <- OpenDatabaseConnection()
 dir <- "temp_test-csv"
@@ -15,7 +17,7 @@ for (d.name in data.names) {
     CloseDatabaseConnection(c)
     csv <- ReadAndFilterData(path.to.data = dir, data.source = "local", data.name = d.name)
 
-    expect_mapequal(db, csv)
+    expect_dataframe_equal(db, csv)
   })
 }
 

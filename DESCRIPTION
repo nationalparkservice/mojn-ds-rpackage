@@ -24,5 +24,7 @@ Imports:
     stringr,
     testthat,
     tidyr,
-    tidyverse
-RoxygenNote: 7.1.0
+    tidyverse,
+    magrittr,
+    leaflet
+RoxygenNote: 7.1.2

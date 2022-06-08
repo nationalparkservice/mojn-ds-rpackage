@@ -7,8 +7,6 @@
 #' @return A database connection pool object
 #' @export
 #'
-#' @importFrom magrittr %>% %<>%
-#'
 #' @examples
 #' \dontrun{
 #' conn <- OpenDatabaseConnection()
@@ -197,11 +195,15 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
   } else if (data.source == "database") {
     filtered.data <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data.name)) %>%
       dplyr::collect() %>%
-      dplyr::mutate_if(is.character, trimws)
+      dplyr::mutate_if(is.character, stringr::str_trim) %>%
+      dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v]+", replacement = ";  ") %>%
+      dplyr::mutate_if(is.character, dplyr::na_if, "")
   } else if (data.source == "local") {
     filtered.data <- readr::read_csv(file.path(path.to.data, paste0(data.name, ".csv")), na = "", col_types = col.spec[[data.name]])
   }
 
+  class(filtered.data) <- c("tbl_df", "tbl", "data.frame")  # R 4.0 fix: makes sure that filtered.data is the same class regardless of where it was read from
+  
   if (!missing(park)) {
     filtered.data %<>%
       dplyr::filter(Park == park)
@@ -333,4 +335,189 @@ GetSiteName <- function(conn, path.to.data, site.code, data.source = "database")
     dplyr::filter(SiteCode == site.code)
 
   return(site$SiteName)
+}
+
+#' Compute sample size by spring and field season
+#'
+#' @param data A data frame of data for which sample sizes will be calculated. To group by Park, SiteCode, and/or FieldSeason, be sure to include those columns.
+#' @param ... Columns to group by.
+#' @param pop Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.
+#' 
+#' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
+#'
+GetSampleSizes <- function(data, ..., pop = FALSE) {
+  
+  # Check for valid input
+  if (nrow(data) == 0) {
+    stop("The dataframe provided contains no data")
+  }
+  
+  # Calculate sample size
+  sample.size <- data %>%
+    dplyr::group_by(...) %>%
+    dplyr::summarise(SampleSize = dplyr::n()) %>%
+    dplyr::mutate(SampleSizeLabel = paste0("n = ", SampleSize)) %>%
+    dplyr::ungroup()
+  
+  if (pop) {
+    sample.size$SampleSizeLabel <- toupper(sample.size$SampleSizeLabel)
+  }
+  
+  sample.size <- dplyr::left_join(data, sample.size)
+  
+  return(sample.size)
+}
+
+#' Apply some standard formatting to a ggplot object.
+#'
+#' @param plot.title The title of the plot.
+#' @param sub.title Optional custom plot subtitle.
+#' @param x.lab X axis label.
+#' @param y.lab Y axis label.
+#' @param rotate.x.labs Boolean indicating whether to rotate x axis labels 90 degrees.
+#' @param ymax Optional maximum y limit.
+#' @param ymin Optional minimum y limit.
+#' @param xmax Optional maximum x limit.
+#' @param xmin Optional minimum x limit.
+#' @param data Data frame containing the data to be plotted.
+#' @param x.col Column name of independent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col. 
+#' @param y.col Column name of dependent variable. If plot type only requires one variable (e.g. histogram), use only one of x.col or y.col.
+#' @param facet.col Column to facet on. If this results in only one facet, it will be used as a subtitle instead.
+#' @param n.col.facet Number of columns of facet grid.
+#' @param sample.size.col Column containing sample size labels.
+#' @param sample.size.loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
+#' @param facet.as.subtitle If only one facet, use facet name as subtitle? Defaults to TRUE.
+#' @param transform.x Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.
+#' @param transform.y Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.
+#'
+#' @return A ggplot object.
+#' 
+#' @export
+#'
+FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.size.col, sample.size.loc, plot.title = '', sub.title = '', facet.as.subtitle = TRUE, x.lab = '', y.lab = '', rotate.x.labs = FALSE, ymax, ymin, xmax, xmin, transform.x, transform.y) {
+  
+  x.col <- dplyr::enquo(x.col)
+  facet.col <- dplyr::enquo(facet.col)
+  sample.size.col <- dplyr::enquo(sample.size.col)
+  
+  # Add sample size information to either x axis labels or facet/subtitle
+  if (!missing(sample.size.col) & !missing(sample.size.loc)) {
+    if (sample.size.loc == 'xaxis') {
+      data %<>% dplyr::mutate(!!x.col := paste0(!!x.col, '\n', !!sample.size.col))
+    } else if (sample.size.loc == 'plot' & !missing(facet.col)) {
+      data %<>% dplyr::mutate(!!facet.col := paste0(!!facet.col, ' (', !!sample.size.col, ')'))
+    } else {
+      facet.col <- sample.size.col
+    }
+  }
+  
+  # Allow for 1 or 2 variables
+  if (!missing(y.col) & !missing(x.col)) {
+    y.col <- dplyr::enquo(y.col)
+    p <- ggplot2::ggplot(data, ggplot2::aes(x = !!x.col, y = !!y.col))
+  } else if (!missing(x.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!x.col))
+  } else if (!missing(y.col)) {
+    p <- ggplot2::ggplot(data, ggplot2::aes(!!y.col))
+  }
+  
+  
+  # Create facets if >1 event group, otherwise create subtitle
+  if (!missing(facet.col)) {
+    facets <- unique(dplyr::select(data, !!facet.col))
+    if (nrow(facets) > 1) {
+      p <- p + ggplot2::facet_wrap(ggplot2::vars(!!facet.col), ncol = n.col.facet, scales = 'free')
+    } else if (sub.title == '' & facet.as.subtitle) {
+      sub.title <- facets
+    }
+  }
+  
+  # Add title and subtitle if not blank
+  if (!missing(plot.title) & plot.title != '') {
+    p <- p + ggplot2::labs(title = plot.title)
+  }
+  if (!missing(sub.title) & sub.title != '') {
+    p <- p + ggplot2::labs(subtitle = sub.title)
+  }
+  
+  # Add x and y axis titles if not blank
+  if (x.lab != "") {
+    p <- p + ggplot2::xlab(x.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.x = ggplot2::element_blank())
+  }
+  
+  if (y.lab != "") {
+    p <- p + ggplot2::ylab(y.lab)
+  } else {
+    p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+  }
+  
+  # Rotate x labels 90 degrees if rotate.x.labs is TRUE
+  if (!missing(rotate.x.labs)) {
+    p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1))
+  }
+  
+  # Set ymin and ymax if provided
+  if (!missing(ymin) & !missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
+  } else if (!missing(ymax)) {
+    p <- p + ggplot2::expand_limits(y = ymax)
+  } else if (!missing(ymin)) {
+    p <- p + ggplot2::expand_limits(y = ymin)
+  }
+  
+  # Set xmin and xmax if provided
+  if (!missing(xmin) & !missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
+  } else if (!missing(xmax)) {
+    p <- p + ggplot2::expand_limits(x = xmax)
+  } else if (!missing(xmin)) {
+    p <- p + ggplot2::expand_limits(x = xmin)
+  }
+  
+  # Tranform x axis, if transformation specified
+  if (!missing(transform.x)) {
+    if (transform.x == 'log10') {
+      p <- p + ggplot2::scale_x_log10()
+    } else if (transform.x == 'sqrt') {
+      p <- p + ggplot2::scale_x_sqrt()
+    } else if (transform.x == 'reverse') {
+      p <- p + ggplot2::scale_x_reverse()
+    } else {
+      stop(paste0("The x transformation specified, '", transform.x, "' is not a valid option."))
+    }
+  }
+  
+  # Transform y axis, if transformation specified
+  if (!missing(transform.y)) {
+    if (transform.y == 'log10') {
+      p <- p + ggplot2::scale_y_log10()
+    } else if (transform.y == 'sqrt') {
+      p <- p + ggplot2::scale_y_sqrt()
+    } else if (transform.y == 'reverse') {
+      p <- p + ggplot2::scale_y_reverse()
+    } else {
+      stop(paste0("The y transformation specified, '", transform.y, "' is not a valid option."))
+    }
+  }
+  
+  return(p)
+}
+
+#' Test for dataframe equivalence
+#'
+#' @param result Actual data frame
+#' @param expected Expected data frame
+#' @param ignore_col_order Ignore order of columns in dataframe? Defaults to FALSE.
+#' @param ignore_row_order Ignore order of rows in dataframe? Defaults to TRUE.
+#' @param convert Convert similar classes (factor to character, int to double)?
+#'
+#' @return If test passes, nothing. If it fails, description of failure.
+#' 
+#' @export
+#'
+expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
+  test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+  return(expect_true(test_result, label = test_result))
 }
