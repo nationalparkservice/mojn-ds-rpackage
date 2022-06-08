@@ -450,12 +450,17 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
                   max_tooltip = format(Max, "Median: %b %d")) %>%
     dplyr::ungroup()
 
-  plt <- FormatPlot(data = visit.dates,
-                    x_col = Event_mmdd,
-                    y_col = factor(SiteCode),
-                    plot_title = "Timeline of Spring Visits",
-                    x_lab = "Date",
-                    y_lab = "Spring Code") +
+  visit.dates.df <- as.data.frame(visit.dates)
+  
+  plt <- FormatPlot(data = visit.dates.df,
+                    x.col = Event_mmdd,
+                    y.col = factor(SiteCode),
+                    plot.title = "Timeline of Spring Visits",
+                    facet.col = Park,
+                    facet.as.subtitle = FALSE,
+                    n.col.facet = 1,
+                    x.lab = "Date",
+                    y.lab = "Spring Code") +
     suppressWarnings(ggplot2::geom_point(ggplot2::aes(color = FieldSeason,
                                                       text = paste0("Site Name: ", SiteName, "<br>",
                                                                    "Site Code: ", SiteCode, "<br>",
