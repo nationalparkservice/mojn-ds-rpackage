@@ -55,7 +55,7 @@ qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.
 }
 
 
-#' List of springs with active or historic flow modification
+#' List of springs with active or historical flow modification
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -163,7 +163,8 @@ FlowModCount <- function(conn, path.to.data, park, site, field.season, data.sour
     
  percent <- count %>%
     dplyr::left_join(total, by = "Park") %>%
-    dplyr::mutate(Percent = (Count / Total) * 100)
+    dplyr::mutate(Percent = round((Count / Total) * 100, 1)) %>%
+    dplyr::select(-Total)
 
 return(percent)
 }
@@ -184,8 +185,15 @@ return(percent)
 FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   percent <- FlowModCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
 
-  plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus))+
-    geom_bar(stat = "identity")
+  percent %<>% filter(Park != "CAMO")
+  
+  plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = c("No data" = "gray",
+                                 "None" = "seagreen",
+                                 "Yes - All inactive" = "gold",
+                                 "Yes - One or more active" = "firebrick"),
+                      name = "Flow Modification")
     
   return(plot)
 }
@@ -229,9 +237,10 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
     dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
     dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
     dplyr::group_by(Park) %>%
-    dplyr::summarize(LivestockCount = sum(Livestock), HumanUseCount = sum(HumanUse), Total = n()) %>%
+    dplyr::summarize(LivestockCount = sum(Livestock, na.rm = TRUE), HumanUseCount = sum(HumanUse, na.rm = TRUE), Total = n()) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(LivestockPercent = (LivestockCount/Total)*100, HumanUsePercent = (HumanUseCount/Total)*100)
+    dplyr::mutate(LivestockPercent = round((LivestockCount/Total)*100, 1), HumanUsePercent = round((HumanUseCount/Total)*100, 1)) %>%
+    dplyr::select(-Total)
   
   return(disturb)
 }

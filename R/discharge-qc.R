@@ -55,21 +55,20 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
     left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
     left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason")) %>%
     left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
-    dplyr::select(-Count) %>%
+    dplyr::select(-Count, -DPL) %>%
     dplyr::relocate(SampleFrame, .after = FieldSeason) %>%
     dplyr::relocate(VisitType, .after = SampleFrame) %>%
     dplyr::rename(VolDischarge_L_per_s = Discharge_L_per_s) %>%
     dplyr::relocate(VolDischarge_L_per_s, .after = FlowCondition) %>%
     dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
-    dplyr::relocate(DPL, .after = Notes) %>%
-    dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::filter(SiteCode != "JOTR_P_BLA0045")
+    dplyr::mutate(VolDischarge_L_per_s = round(VolDischarge_L_per_s, 2)) %>%
+    dplyr::arrange(FieldSeason, SiteCode)
  
   return(joined)
 }
 
 
-#' Spring is dry, estimated discharge >0 or volumetric discharge >0 or springbrook dimension > 0
+#' Spring is dry, estimated discharge > 0 or volumetric discharge > 0 or springbrook dimension > 0
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -82,13 +81,15 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
 #' @export
 #'
 #' @examples
-qcSpringDryDischarge <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcSpringDryWater <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
    
   dry <- joined %>%
     dplyr::filter(FlowCondition == "dry" & (DischargeClass_L_per_s != "0 L/s" | VolDischarge_L_per_s > 0 | SpringbrookLength_m > 0 | SpringbrookWidth_m > 0)) %>%
-    dplyr::arrange(FieldSeason, SiteCode)
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+
    
   return(dry)               
 }
@@ -118,29 +119,6 @@ qcSpringNotDryNoDischarge <- function(conn, path.to.data, park, site, field.seas
   return(nodischarge)
 }  
 
-#' Volumetric or estimated discharge data are missing
-#'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
-#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#'
-#' @return A tibble
-#' @export
-#'
-#' @examples
-qcDischargeMissing <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  
-  dischargemissing <- joined %>%
-    dplyr::filter(is.na(VolDischarge_L_per_s) & is.na(DischargeClass_L_per_s)) %>%
-    dplyr::arrange(FieldSeason, SiteCode)
-  
-  return(dischargemissing)
-}
-
 
 #' Spring is not dry, springbrook dimensions = 0
 #'
@@ -167,6 +145,66 @@ qcSpringNotDryNoSpringbrook <- function(conn, path.to.data, park, site, field.se
   
 }
 
+#' Spring is not dry, stimated discharge = 0 or volumetric discharge = 0 or springbrook dimensions = 0
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcSpringNotDryNoWater <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  nodischarge <- joined %>%
+    dplyr::filter(FlowCondition != "dry" & ((DischargeClass_L_per_s == "0 L/s" | VolDischarge_L_per_s == 0))) %>%
+    dplyr::arrange(FieldSeason, SiteCode)
+  
+  nobrook <- joined %>%
+    dplyr::filter(!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) %>%
+    dplyr::arrange(FieldSeason, SiteCode)
+  
+  nowater <- rbind(nodischarge, nobrook) %>%
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    unique() %>%
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+  
+  return(nowater)
+  
+}
+
+
+#' Volumetric or estimated discharge data are missing
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcDischargeMissing <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  dischargemissing <- joined %>%
+    dplyr::filter(is.na(VolDischarge_L_per_s) & is.na(DischargeClass_L_per_s)) %>%
+    dplyr::arrange(FieldSeason, SiteCode) %>%
+    dplyr::select(-SpringbrookLengthFlag, -SpringbrookLength_m, -SpringbrookWidth_m, -SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+  
+  
+  return(dischargemissing)
+}
+
 
 #' Volumetric method was used, but there is no container volume, percent of flow, or fill time recorded
 #'
@@ -186,7 +224,8 @@ qcVolumetricMissing <- function(conn, path.to.data, park, site, field.season, da
   volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
   
   missing <- volumetric %>%
-    dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent))
+    dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent)) %>%
+    dplyr::select(-VisitType, -DPL)
   
   return(missing)
 }  
@@ -268,7 +307,7 @@ qcContinuousLength <- function(conn, path.to.data, park, site, field.season, dat
 }
 
 
-#' Summary table of discharge categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#' Summary table of flow categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -303,7 +342,7 @@ FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.seaso
 }
 
 
-#' Summary table of discharge categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
+#' Summary table of flow categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -394,7 +433,7 @@ FlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.se
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
+  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
     geom_bar(stat = "identity") +
     facet_grid(~Park, scales = "free", space = "free_x") +
     scale_fill_manual(values = c("Dry" = "red",
@@ -483,7 +522,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr"), aes(x = Visit, 
+  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = Visit, 
                                                                            y = reorder(SiteCode, desc(SiteCode)),
                                                                            fill = FlowCategory)) + 
     geom_tile(color = "white") + 
@@ -500,6 +539,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' Map of spring flow categories for latest field season at each park
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param interactive Optional. Choose "yes" or "no." Yes will allow the user to toggle between field seasons of data. No will show only the latest field season of data. If no argument is entered, function will default to "no" for greater accessibility.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -509,7 +549,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #' @return leaflet map
 #' @export
 #'
-FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field.season, data.source = "database") {
   discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
@@ -531,6 +571,28 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
     dplyr::left_join(coords, by = "SiteCode") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
+  
+  if (!missing(interactive)) {
+      if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      } else {
+        if (!missing(field.season)) {
+          flowcat %<>%
+            dplyr::filter(FieldSeason == field.season)
+        } else {
+          flowcat %<>%
+            dplyr::filter(FieldSeason == max(FieldSeason))  
+        }
+      }
+  } else {      
+    if (!missing(field.season)) {
+        flowcat %<>%
+          dplyr::filter(FieldSeason == field.season)
+     } else {
+        flowcat %<>%
+          dplyr::filter(FieldSeason == max(FieldSeason))  
+     }
+  }
+
   
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -599,10 +661,21 @@ FlowCategoriesMap <- function(conn, path.to.data, park, site, field.season, data
                               overlayGroups = ~SampleFrame,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  flowcatmap <- crosstalk::bscols(list(year_filter,
-                                  flowmap))
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      if(missing(field.season)) {
+        flowmap <- crosstalk::bscols(list(year_filter,
+                                     flowmap))
+      } else {
+      }  
+    } else {
+    }
+  } else {
+  }
+   
+     
+  return(flowmap)
   
-  return(flowcatmap)
 }
 
 
@@ -663,4 +736,32 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
   
+}
+
+
+test_function <- function(x, y) {
+  
+  if (!missing(y) & y > 0) {
+    sum <- x + y
+  } else {
+    sum <- x
+  }
+  
+  return(sum)
+}
+
+
+test_function <- function(x, y) {
+  
+  if (!missing(y)) {
+    if (y > 0) {
+      sum <- x + y
+    } else {
+      sum <- x
+    }
+  } else {
+    sum <- x
+  }
+  
+  return(sum)
 }

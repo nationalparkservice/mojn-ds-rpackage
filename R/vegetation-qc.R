@@ -35,7 +35,7 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 #' @return
 #' @export
 #'
-qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
   
   noveglife <- veg %>%
@@ -121,7 +121,7 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 #' @return
 #' @export
 #'
-LifeformsPresencePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
   
   veg.summary <- veg %>%
@@ -149,6 +149,8 @@ LifeformsPresencePlot <- function(conn, path.to.data, park, site, field.season, 
 #'
 LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
+  
+  veg %<>% dplyr::filter(Park != "CAMO")
   
   veg.sums <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -224,6 +226,8 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
 MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
   veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
 
+  veg %<>% dplyr::filter(Park != "CAMO")
+  
   veg.types <- veg %>%
     dplyr::filter(VisitType == "Primary",
                   !is.na(LifeForm)) %>%
@@ -232,8 +236,8 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
                   LifeFormCategory = LifeForm)
   
   veg.types.barplot <- ggplot2::ggplot(veg.types,
-                                       aes(reorder_within(LifeFormCategory, Observations, Park), Observations)) +
-    scale_x_reordered() +
+                                       aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations)) +
+    tidytext::scale_x_reordered() +
     geom_col() +
     facet_grid(Park ~ ., scales = "free", space = "free") +
     coord_flip() +

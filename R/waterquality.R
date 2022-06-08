@@ -1,4 +1,4 @@
-#' Calculate median values for each water quality paramenter for each site visit.
+#' Calculate median values for each water quality parameter for each site visit.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -677,10 +677,10 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  wqdatamaptemp <- crosstalk::bscols(list(year_filter,
-                                     wqmaptemp))
+#  wqdatamaptemp <- crosstalk::bscols(list(year_filter,
+#                                     wqmaptemp))
   
-  return(wqdatamaptemp)
+  return(wqmaptemp)
   
 }
 
@@ -771,15 +771,14 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
                               fillColor = ~pal(Bin)) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Bin,
-                       title = "Temperature (C)",
+                       title = "Specific Conductance (uS/cm)",
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
-                                          wqmapspcond))
+#  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
+#                                          wqmapspcond))
   
-  return(wqdatamapspcond)
-  
+  return(wqmapspcond)
 }
