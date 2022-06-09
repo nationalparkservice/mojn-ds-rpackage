@@ -225,7 +225,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
     filtered.data %<>% dplyr::mutate(FieldSeason = as.character(FieldSeason))
   }
 
-  # Accomodate sensor data
+  # Accommodate sensor data
   if ("DeploymentFieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(DeploymentFieldSeason = as.character(DeploymentFieldSeason))
   }
