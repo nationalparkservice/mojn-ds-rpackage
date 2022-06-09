@@ -40,5 +40,10 @@ test_that("UngulatesEvidence returns expected number of rows and columns", {
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "IsWildlifeObserved", "WildlifeType", "DirectObservation", "Scat", "Tracks", "Shelter", "Foraging", "Vocalization", "OtherEvidence", "Notes")
 
   expect_equal(actual_cols, expected_cols)
+  
+  actual_type <- as.character(unique(UngulatesEvidence(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::select(WildlifeType)))
+  expected_type <- "Ungulate"
+  
+  expect_equal(actual_type, expected_type)
     
 })
