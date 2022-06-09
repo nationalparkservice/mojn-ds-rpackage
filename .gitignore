@@ -5,3 +5,4 @@ inst/doc
 *.RData
 test-data/
 temp-test-csv/
+tests/testthat/test_data/
