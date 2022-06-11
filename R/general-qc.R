@@ -455,7 +455,6 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
   plt <- FormatPlot(data = visit.dates.df,
                     x.col = Event_mmdd,
                     y.col = factor(SiteCode),
-                    plot.title = "Timeline of Spring Visits",
                     facet.col = Park,
                     facet.as.subtitle = FALSE,
                     n.col.facet = 1,
