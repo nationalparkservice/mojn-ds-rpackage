@@ -33,6 +33,8 @@ context("Completeness")
 #   expect_equal(nrow(result_CAMO), 0)
 # })
 
+# Remove temporary CSV files
+# unlink(dir, recursive = TRUE)
 
 test_that("qcCompleteness works as expected", {
   
@@ -106,6 +108,3 @@ test_that("qcNotSampled returns correct number of rows and columns", {
   expect_equal(actual_cols, expected_cols)
   
 })
-
-# Remove temporary CSV files
-# unlink(dir, recursive = TRUE)
