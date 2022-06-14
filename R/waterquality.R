@@ -237,7 +237,7 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
     dplyr::summarise(stats = list(quantile(Median, type = 6, na.rm = TRUE))) %>%
     tidyr::unnest_wider(stats) %>%
     dplyr::ungroup()
-
+  
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
   wq.stats[wq.stats$Parameter == "DO" & wq.stats$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
   wq.stats[wq.stats$Parameter == "SpCond", ] %<>% dplyr::mutate_if(is.double, ~ round(., 0))

@@ -737,31 +737,3 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
          y = "Springbrook Length (m)")
   
 }
-
-
-test_function <- function(x, y) {
-  
-  if (!missing(y) & y > 0) {
-    sum <- x + y
-  } else {
-    sum <- x
-  }
-  
-  return(sum)
-}
-
-
-test_function <- function(x, y) {
-  
-  if (!missing(y)) {
-    if (y > 0) {
-      sum <- x + y
-    } else {
-      sum <- x
-    }
-  } else {
-    sum <- x
-  }
-  
-  return(sum)
-}

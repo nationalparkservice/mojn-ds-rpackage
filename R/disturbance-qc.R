@@ -239,7 +239,10 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
     dplyr::group_by(Park) %>%
     dplyr::summarize(LivestockCount = sum(Livestock, na.rm = TRUE), HumanUseCount = sum(HumanUse, na.rm = TRUE), Total = n()) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(LivestockPercent = round((LivestockCount/Total)*100, 1), HumanUsePercent = round((HumanUseCount/Total)*100, 1)) %>%
+    dplyr::mutate(LivestockPercent = round((LivestockCount/Total)*100, 1),
+                  HumanUsePercent = round((HumanUseCount/Total)*100, 1)) %>%
+    dplyr::mutate(LivestockCount = as.integer(LivestockCount),
+                  HumanUseCount = as.integer(HumanUseCount))%>%
     dplyr::select(-Total)
   
   return(disturb)
