@@ -104,11 +104,9 @@ test_that("DisturbanceCount works as expected", {
   expect_equal(class(actual_int$LivestockCount), "integer")
   expect_equal(class(actual_int$HumanUseCount), "integer")
   
-  
   actual_dbl <- DisturbanceCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(typeof(actual_dbl$LivestockPercent), "double")
   expect_equal(typeof(actual_dbl$HumanUsePercent), "double")
-  
   
   actual_count <- DisturbanceCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA") %>% dplyr::select(LivestockCount, HumanUseCount)
   expected_count <- as_tibble_row(c(LivestockCount = as.integer(21), HumanUseCount = as.integer(32)))
