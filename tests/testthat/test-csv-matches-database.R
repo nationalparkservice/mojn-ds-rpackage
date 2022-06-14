@@ -1,10 +1,10 @@
 context("Reading from database and csv")
 
-skip_if_not(dir.exists('M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv'), message = "Skipped - no VPN connection")
+skip_if_not(file.exists('M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv'), message = "Skipped - no VPN connection")
 
 # Write temporary csv files
 conn <- OpenDatabaseConnection()
-dir <- "temp_test-csv"
+dir <- here::here("tests", "testthat", "temp-test-csv")
 SaveDataToCsv(conn, dir, create.folders = TRUE, overwrite = FALSE)
 CloseDatabaseConnection(conn)
 
