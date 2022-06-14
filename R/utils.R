@@ -1,4 +1,4 @@
-#' Open a Connection to the Desert Springs Database
+#' Open a connection to the Desert Springs Database
 #'
 #' @param use.mojn.default Connect to the live MOJN Desert Springs database? MOJN staff should use this option. Defaults to \code{TRUE}.
 #' @param drv DBI driver to use. Defaults to \code{odbc::odbc()}.
@@ -86,6 +86,7 @@ GetColSpec <- function() {
     DischargeFlowCondition = readr::cols(
       VisitDate = readr::col_date(),
       SpringbrookLength_m = readr::col_double(),
+      DiscontinuousSpringbrookLength_m = readr::col_double(),
       SpringbrookWidth_m = readr::col_double(),
       .default = readr::col_character()
     ),
@@ -289,7 +290,7 @@ SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite =
 
   # Write each analysis view in the database to csv
   for (view.name in analysis.views) {
-    df <- dplyr::tbl(conn, dbplyr::in_schema("analysis", view.name)) %>%
+    df <- ReadAndFilterData(conn, data.name = view.name) %>%
       dplyr::collect()
     readr::write_csv(df, file.path(dest.folder, paste0(view.name, ".csv")), na = "", append = FALSE, col_names = TRUE)
   }
