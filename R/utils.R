@@ -87,6 +87,7 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       SpringbrookLength_m = readr::col_double(),
       SpringbrookWidth_m = readr::col_double(),
+      DiscontinuousSpringbrookLength_m = readr::col_double(),
       .default = readr::col_character()
     ),
     DischargeVolumetric = readr::cols(
