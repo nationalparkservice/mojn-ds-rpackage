@@ -291,7 +291,6 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @return Box plots of water temperature data for each park and field season.
 #' @export
 #'
-
 WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temperature") %>%
