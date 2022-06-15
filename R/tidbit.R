@@ -13,7 +13,7 @@
 ProcessTidbiT <- function(path.to.data, data.source = "database") {
   
 # Import raw CSV file of HOBO TidbiT logger data.
-import <- read.csv("M:\MONITORING\DS_Water\Data\LoggerData\WY2021\Raw\xxxxxx.csv", header = TRUE, skip = 2, na.strings=c(""," "))
+import <- read.csv("M:\\MONITORING\\DS_Water\\Data\\LoggerData\\WY2021\\Raw\\xxxxxx.csv", header = TRUE, skip = 2, na.strings=c(""," "))
   
 # Fill NAs below each recorded "In" or "Out" value to match.
 export <- import %>%
@@ -58,7 +58,7 @@ export <- export %>%
     dplyr::relocate(Water.Binary, .after = Water.Detect)
   
 # Save processed HOBO TidbiT logger data to CSV file.
-write.csv(export, "M:\MONITORING\DS_Water\Data\LoggerData\WY2021\Processed\xxxxxx_processed.csv", row.names = FALSE)
+write.csv(export, "M:\\MONITORING\\DS_Water\\Data\\LoggerData\\WY2021\\Processed\\xxxxxx_processed.csv", row.names = FALSE)
   
 return(export)
 

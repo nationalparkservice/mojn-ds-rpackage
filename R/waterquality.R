@@ -267,7 +267,7 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.temp <- FormatPlot(
-    data = wq.plot.tempdata,
+    data = wq.plot,
     x.col = FieldSeason,
     y.col = Median,
     ymin = 0,
@@ -382,7 +382,7 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
-    data = wq.plot.phdata,
+    data = wq.plot,
     x.col = FieldSeason,
     y.col = Median,
     facet.col = Park,
