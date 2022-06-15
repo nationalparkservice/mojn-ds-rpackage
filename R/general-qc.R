@@ -142,49 +142,51 @@ visit.DPL <- visit %>%
 flowcondition.DPL <- flowcondition %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(FlowCondition = DPL) %>%
-  distinct()
+  dplyr::distinct()
 estimated.DPL <- estimated %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(EstimatedDischarge = DPL) %>%
-  distinct()
+  dplyr::distinct()
 volumetric.DPL <- volumetric %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(VolumetricDischarge = DPL) %>%
-  distinct()
+  dplyr::distinct()
 disturbance.DPL <- disturbance %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(Disturbance = DPL) %>%
-  distinct()
+  dplyr::distinct()
 flowmod.DPL <- flowmod %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(FlowModification = DPL) %>%
-  distinct()
+  dplyr::distinct()
 wildlife.DPL <- wildlife %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(Wildlife = DPL) %>%
-  distinct()
+  dplyr::distinct()
 riparian.DPL <- riparian %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Riparian = DPL)
+  dplyr::rename(Riparian = DPL) %>%
+  dplyr::distinct()
 invasives.DPL <- invasives %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Invasives = DPL)
+  dplyr::rename(Invasives = DPL) %>%
+  dplyr::distinct()
 temp.DPL <- temp %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(Temperature = DPL) %>%
-  distinct()
+  dplyr::distinct()
 ph.DPL <- ph %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(pH = DPL) %>%
-  distinct()
+  dplyr::distinct()
 spcond.DPL <- spcond %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(SpCond = DPL) %>%
-  distinct()
+  dplyr::distinct()
 do.DPL <- do %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
   dplyr::rename(DisOxygen = DPL) %>%
-  distinct()
+  dplyr::distinct()
 
 dpl <- visit.DPL %>%
   dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
@@ -509,7 +511,7 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 
   notsampled <- visit %>%
     dplyr::filter(MonitoringStatus != "Sampled") %>%
-    dplyr::select(-c("DPL", "SpringType"))
+    dplyr::select(-c("DPL", "SpringType", "Subunit"))
   
   return(notsampled)
 }
