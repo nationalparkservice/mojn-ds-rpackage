@@ -259,7 +259,7 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarize(stats = list(quantile(Value, type = 6, na.rm = TRUE)),
-                     Count = n()) %>%
+                     Count = dplyr::n()) %>%
     tidyr::unnest_wider(stats) %>%
     dplyr::ungroup() %>%
     dplyr::rename(Minimum = `0%`,

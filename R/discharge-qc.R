@@ -20,7 +20,7 @@ VolumetricMedian  <- function(conn, path.to.data, park, site, field.season, data
   
   summarized <- calculated %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s), Count = n()) %>%
+    dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s), Count = dplyr::n()) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
     dplyr::ungroup()
   
@@ -333,7 +333,7 @@ FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.seaso
                                             ifelse(SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50), "10 - 50 m", NA)))))) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::summarize(Count = n()) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory)
@@ -370,7 +370,7 @@ FlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.se
                                            TRUE ~ "NA")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::summarize(Count = n()) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory)

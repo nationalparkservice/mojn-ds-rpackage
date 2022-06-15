@@ -207,7 +207,7 @@ FullFlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, fiel
                                           TRUE ~ SampleFrame)) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::summarize(Count = n()) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory)

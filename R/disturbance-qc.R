@@ -153,7 +153,7 @@ FlowModCount <- function(conn, path.to.data, park, site, field.season, data.sour
     dplyr::arrange(SiteCode) %>%
     dplyr::select(-Rank) %>%
     dplyr::group_by(Park, FlowModificationStatus) %>%
-    dplyr::mutate(Count = n()) %>%
+    dplyr::mutate(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::select(-c(SiteCode, SiteName)) %>%
     unique()

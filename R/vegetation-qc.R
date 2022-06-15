@@ -92,7 +92,7 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, LifeForm, Rank) %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, Rank) %>%
-    dplyr::mutate(Count = n()) %>%
+    dplyr::mutate(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, Rank, Count) %>%
     dplyr::mutate(LifeForms = paste0(LifeForm, collapse = ", ")) %>%
