@@ -131,7 +131,7 @@ FlowModCount <- function(conn, path.to.data, park, site, field.season, data.sour
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   sampleframe <- site %>%
-    select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
     dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame")) %>%
     unique()
@@ -218,7 +218,7 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   sampleframe <- site %>%
-    select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
     dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame")) %>%
     unique()
@@ -237,7 +237,7 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
     dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
     dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
     dplyr::group_by(Park) %>%
-    dplyr::summarize(LivestockCount = sum(Livestock, na.rm = TRUE), HumanUseCount = sum(HumanUse, na.rm = TRUE), Total = n()) %>%
+    dplyr::summarize(LivestockCount = sum(Livestock, na.rm = TRUE), HumanUseCount = sum(HumanUse, na.rm = TRUE), Total = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(LivestockPercent = round((LivestockCount/Total)*100, 1),
                   HumanUsePercent = round((HumanUseCount/Total)*100, 1)) %>%
@@ -312,13 +312,13 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   humandata <- disturbance %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
-    dplyr::mutate(Observed = case_when(HumanUse == "0" ~ "No",
-                                       HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
-                                       TRUE ~ "NA")) %>%
+    dplyr::mutate(Observed = dplyr::case_when(HumanUse == "0" ~ "No",
+                                              HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
+                                              TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
@@ -458,13 +458,13 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   livestockdata <- disturbance %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
-    dplyr::mutate(Observed = case_when(Livestock == "0" ~ "No",
-                                       Livestock %in% c("1", "2", "3", "4") ~ "Yes",
-                                       TRUE ~ "NA")) %>%
+    dplyr::mutate(Observed = dplyr::case_when(Livestock == "0" ~ "No",
+                                              Livestock %in% c("1", "2", "3", "4") ~ "Yes",
+                                              TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%

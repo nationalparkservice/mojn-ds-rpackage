@@ -83,10 +83,10 @@ qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") 
   visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
   
   sampleframe <- visit %>%
-    select(SiteCode, SampleFrame)
+    dplyr::select(SiteCode, SampleFrame)
   
   joined <- attempts %>%
-    left_join(sampleframe, by = c("SiteCode"))
+    dplyr::left_join(sampleframe, by = c("SiteCode"))
   
   joined %<>%
     # filter(DeploymentVisitType == "Primary") %>%
@@ -177,11 +177,15 @@ qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, 
   missing <- deployed %>%
     dplyr::filter(FieldSeason != current.fs) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::select(-VisitType)
+    dplyr::select(-VisitType) %>%
+    dplyr::rename(DeploymentDate = VisitDate,
+                  DeploymentFieldSeason = FieldSeason) %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, FieldSeason, SensorNumber, SerialNumber, Notes)
   
   return(missing)
    
 }
+
 
 #' Sensors whose retrieval date is the same as their deployment date
 #'
@@ -206,35 +210,102 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
 }
 
 
-#' Springs with no sensor deployment data for latest field season
+#' Springs where a sensor was not deployed during a field season
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "database") {
+qcSensorsNotDeployed <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
  
   visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
   
-  visit.x <- visit %>%
-    select(Park, SiteCode, SiteName, SampleFrame) %>%
-    filter(SampleFrame == "Annual") %>%
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName) %>%
     unique()
   
-  attempts.x <- attempts %>%
-    filter(DeploymentFieldSeason == max(DeploymentFieldSeason)) %>%
-    select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
+  deployments_past <- attempts %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason)
   
-  discrepancies <- visit.x %>%
-    dplyr::left_join(attempts.x, by = c("Park", "SiteCode", "SiteName")) %>%
-    dplyr::filter(is.na(SensorRetrieved))
+  deployments_recent <- deployed %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::rename(DeploymentDate = VisitDate,
+                  DeploymentFieldSeason = FieldSeason)
   
-  return(discrepancies)
+  deployments <- rbind(deployments_past, deployments_recent)
+  
+  notdeployed <- annual_springs %>%
+    dplyr::full_join(deployments, by = c("Park", "SiteCode", "SiteName")) %>%
+    tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(annual_springs, by = "SiteCode") %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
+    dplyr::filter(!is.na(Park),
+                  is.na(DeploymentDate)) %>%
+    dplyr::filter(!(Park == "DEVA" & DeploymentFieldSeason %in% c("2016", "2017")),
+                  !(Park == "JOTR" & DeploymentFieldSeason == "2016")) %>%
+    dplyr::arrange(SiteCode, DeploymentFieldSeason)
+  
+  return(notdeployed)
+  
+}
+
+
+#' Springs where a sensor was not retrieved during a field season
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcSensorsNotRecovered <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  
+  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
+  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    unique()
+  
+  notretrieved <- attempts %>%
+    tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(all_springs, by = "SiteCode") %>%
+    dplyr::select(Park, SiteCode, SiteName, RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber, SampleFrame, SensorRetrieved) %>%
+    dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
+                  !(Park == "JOTR" & RetrievalFieldSeason == "2017")) %>%
+    dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved)) %>%
+    dplyr::filter(!(SampleFrame != "Annual" & is.na(RetrievalDate))) %>%
+    dplyr::select(-SensorRetrieved, -SampleFrame) %>%
+    dplyr::arrange(SiteCode, RetrievalFieldSeason)
+  
+  return(notretrieved)
+  
 }

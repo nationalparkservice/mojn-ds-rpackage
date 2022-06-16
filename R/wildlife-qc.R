@@ -94,16 +94,16 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   ungulatedata <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Observed = case_when(WildlifeType == "Ungulate" ~ "Yes",
-                                       is.na(WildlifeType) ~ "No",
-                                       TRUE ~ "No")) %>%
+    dplyr::mutate(Observed = dplyr::case_when(WildlifeType == "Ungulate" ~ "Yes",
+                                              is.na(WildlifeType) ~ "No",
+                                              TRUE ~ "No")) %>%
     dplyr::filter(Observed == "Yes")  %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)

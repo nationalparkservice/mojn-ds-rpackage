@@ -31,11 +31,11 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    dplyr::mutate(Triennial = case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
-                                        Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
-                                        Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
-                                        Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
-                                        TRUE ~ "N")) %>%
+    dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
+                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
+                                               Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
+                                               Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
+                                               TRUE ~ "N")) %>%
     # dplyr::filter(Triennial == "Y") %>%
     dplyr::ungroup() %>%
     dplyr::select(Park, FieldSeason, SampleFrame) %>%
@@ -51,8 +51,8 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
     dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason")) %>%
-    dplyr::mutate(MonitoringStatus = case_when(is.na(MonitoringStatus) ~ "Not Sampled",
-                                               TRUE ~ MonitoringStatus)) %>%
+    dplyr::mutate(MonitoringStatus = dplyr::case_when(is.na(MonitoringStatus) ~ "Not Sampled",
+                                                      TRUE ~ MonitoringStatus)) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, MonitoringStatus) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::mutate(Percent = dplyr::case_when(Park == "DEVA" & SampleFrame == "3Yr" ~ Count/60*100,
@@ -202,7 +202,7 @@ dpl <- visit.DPL %>%
   dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
   dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
   unique() %>%
-  dplyr::filter_all(any_vars(. %in% c("Raw", "Provisional"))) %>%
+  dplyr::filter_all(dplyr::any_vars(. %in% c("Raw", "Provisional"))) %>%
   dplyr::arrange(FieldSeason, Park, SiteCode)
  
   return(dpl) 
@@ -433,8 +433,8 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
     dplyr::mutate(Day = as.integer(format(VisitDate, "%d"))) %>%
     dplyr::mutate(Month = factor(Month, levels = c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"))) %>%
     dplyr::mutate(Date = paste(Month, Day, sep = " ")) %>%
-    dplyr::mutate(Year = case_when(Month %in% c("Oct", "Nov", "Dec") ~ 2019,
-                                   TRUE ~ 2020)) %>%
+    dplyr::mutate(Year = dplyr::case_when(Month %in% c("Oct", "Nov", "Dec") ~ 2019,
+                                          TRUE ~ 2020)) %>%
     dplyr::mutate(VisitMonthDay = lubridate::ymd(paste(Year, Month, Day, sep ="-")),
                   pt_tooltip = paste(Date, as.character(lubridate::year(VisitDate))),
                   Event_mmdd = as.Date(paste0(as.character(lubridate::month(VisitMonthDay)), '-', as.character(lubridate::day(VisitMonthDay)), '-', as.character(Year)), format = "%m-%d-%Y")) %>%
@@ -533,7 +533,7 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
 
   coords$SampleFrame <- factor(coords$SampleFrame, levels = c("Annual", "3Yr", "Over", "Inactive", "Rejected"))
   

@@ -292,16 +292,16 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   invasivesdata <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(PlantInfo = case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3") ~ ScientificName,
-                                        InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3")) & !(is.na(USDAPlantsCode)) ~ "Other",
-                                        InvasivesObserved == "N" ~ "None",
-                                        TRUE ~ "None")) %>%
+    dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3") ~ ScientificName,
+                                               InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3")) & !(is.na(USDAPlantsCode)) ~ "Other",
+                                               InvasivesObserved == "N" ~ "None",
+                                               TRUE ~ "None")) %>%
     dplyr::filter(PlantInfo != "None") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)

@@ -101,18 +101,18 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::filter(pHMedian > 10 | pHMedian < 6) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
     tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
-    dplyr::mutate(SanityNote = case_when(pHMedian > 10 ~ "pH > 10",
-                                               pHMedian < 6 ~ "pH < 6",
-                                               TRUE ~ "NA")) %>%
+    dplyr::mutate(SanityNote = dplyr::case_when(pHMedian > 10 ~ "pH > 10",
+                                                pHMedian < 6 ~ "pH < 6",
+                                                TRUE ~ "NA")) %>%
     dplyr::rename(Value = pHMedian, Flag = pHFlag, FlagNote = pHFlagNote)
 
   do.percent.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOMedian_Percent > 100 | DOMedian_Percent < 2) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_Percent, DOFlag, DOFlagNote) %>%
     tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
-    dplyr::mutate(SanityNote = case_when(DOMedian_Percent > 100 ~ "Dissolved oxygen > 100 %",
-                                          DOMedian_Percent < 2 ~ "Dissolved oxygen < 2 %",
-                                          TRUE ~ "NA")) %>%
+    dplyr::mutate(SanityNote = dplyr::case_when(DOMedian_Percent > 100 ~ "Dissolved oxygen > 100 %",
+                                                DOMedian_Percent < 2 ~ "Dissolved oxygen < 2 %",
+                                                TRUE ~ "NA")) %>%
     dplyr::rename(Value = DOMedian_Percent, Flag = DOFlag, FlagNote = DOFlagNote)
 
   do.mgl.sanity <- wq.sanity.predata %>%
@@ -537,7 +537,7 @@ WqMap <- function(conn, path.to.data, park, site, field.season, data.source = "d
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Sites")
   
   coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
@@ -630,7 +630,7 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
@@ -730,7 +730,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
