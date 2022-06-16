@@ -116,11 +116,11 @@ test_that("qcMissingSensors returns correct number of rows and columns", {
   expect_equal(actual_rows, 68)
   
   actual_cols <- colnames(qcMissingSensors(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("SensorNumber", "SerialNumber", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Park", "Notes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason", "DeploymentDate", "SensorNumber", "SerialNumber", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcMissingSensors(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(class(actual_date$VisitDate), "Date")
+  expect_equal(class(actual_date$DeploymentDate), "Date")
   
   actual_int <- qcMissingSensors(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_int$SensorNumber), "integer")

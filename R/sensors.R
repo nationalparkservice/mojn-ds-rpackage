@@ -180,7 +180,7 @@ qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, 
     dplyr::select(-VisitType) %>%
     dplyr::rename(DeploymentDate = VisitDate,
                   DeploymentFieldSeason = FieldSeason) %>%
-    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, FieldSeason, SensorNumber, SerialNumber, Notes)
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate, SensorNumber, SerialNumber, Notes)
   
   return(missing)
    
