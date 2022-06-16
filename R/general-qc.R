@@ -91,8 +91,6 @@ qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, dat
   df2 <- completecount %>%
         dplyr::mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep = " - ")) %>%
         dplyr::filter(Park != "CAMO")
-
-  
   
   completeness.plot <- ggplot(df2, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
     geom_bar(position = "stack", stat = "identity") +

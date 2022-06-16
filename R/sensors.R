@@ -90,19 +90,27 @@ qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") 
   
   joined %<>%
     # filter(DeploymentVisitType == "Primary") %>%
-    filter(SampleFrame == "Annual") %>%
-    mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
-                                  if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
-           SensorResultOrder = if_else(DownloadResult == "Y", 1,
-                                       if_else(SensorRetrieved == "Y", 2, 3)))
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::mutate(SensorResult = dplyr::if_else(DownloadResult == "Y", "Download successful",
+                                 dplyr::if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
+                  SensorResultOrder = dplyr::if_else(DownloadResult == "Y", 1,
+                                      dplyr::if_else(SensorRetrieved == "Y", 2, 3)))
   
-  plt <- ggplot(joined, aes(x = DeploymentFieldSeason, 
-                              y = reorder(SiteCode, desc(SiteCode)))) + 
-    geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
-    scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome")
+  plt <- ggplot2::ggplot(joined, aes(x = DeploymentFieldSeason, 
+                                     y = reorder(SiteCode, dplyr::desc(SiteCode)),
+                                     text = paste("Site Name: ", SiteName,
+                                                  "<br>Site Code:", SiteCode,
+                                                  "<br>Deployment Field Season:", DeploymentFieldSeason,
+                                                  "<br>Sensor Result:", SensorResult))) + 
+         geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
+         scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome") +
+         xlab("Deployment Field Season") +
+         ylab("Spring Site Code") +
+         theme(legend.position = "bottom")
   
   return(plt)
 }
+
 
 #' Problems with retrieved sensors
 #'

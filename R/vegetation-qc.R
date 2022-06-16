@@ -190,7 +190,9 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
     dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
     
   veg.barplot.all <- ggplot2::ggplot(veg.sums.all,
-                                 aes(x = LifeFormCount, y = Occurences)) +
+                                 aes(x = LifeFormCount, y = Occurences,
+                                     text = paste("Lifeform Count: ", LifeFormCount,
+                                                  "<br>Occurences:", Occurences))) +
     geom_bar(stat = "identity") +
     facet_grid(Park ~ .) +
     xlab("Number of Different Vegetation Life Form Categories") +
@@ -236,7 +238,9 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
                   LifeFormCategory = LifeForm)
   
   veg.types.barplot <- ggplot2::ggplot(veg.types,
-                                       aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations)) +
+                                       aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations,
+                                           text = paste("Lifeform Category: ", LifeFormCategory,
+                                                        "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
     geom_col() +
     facet_grid(Park ~ ., scales = "free", space = "free") +

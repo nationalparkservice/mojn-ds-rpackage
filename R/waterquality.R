@@ -300,19 +300,17 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    ymin = 0,
-    ymax = 55,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
-    y.lab = "Temperature (C)",
-    n.col.facet = 5
-  ) +
+    y.lab = "Temperature (C)"
+    ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
 
   return(wq.plot.temp)
 }
@@ -342,7 +340,7 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
     y.col = Value,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
@@ -350,7 +348,8 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000))
+    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.spcond)
 }
@@ -380,7 +379,7 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
     y.col = Value / 1000,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
@@ -388,7 +387,8 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), labels = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), limits = c(0.2, 100))
+    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), labels = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), limits = c(0.2, 100)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.spcond.ms)
 }
@@ -420,14 +420,15 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
     y.col = Value,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "pH", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
     y.lab = "pH"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.ph)
 }
@@ -457,7 +458,7 @@ WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sourc
     y.col = Value,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Percent", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
@@ -465,7 +466,8 @@ WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sourc
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::ylim(0, 100)
+    ggplot2::ylim(0, 100) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.do.pct)
 }
@@ -494,14 +496,15 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
     y.col = Value,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
+    sample.size.loc = "",
     plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Concentration", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
     y.lab = "Dissolved Oxygen (mg/L)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.do.mgl)
 }

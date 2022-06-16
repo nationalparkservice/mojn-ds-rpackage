@@ -479,8 +479,12 @@ FlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.se
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
   heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, 
-                                                                    y = reorder(SiteCode, desc(SiteCode)),
-                                                                    fill = FlowCategory)) + 
+                                                                           y = reorder(SiteCode, desc(SiteCode)),
+                                                                           fill = FlowCategory,
+                                                                           text = paste("Site Name: ", SiteName,
+                                                                                        "<br>Site Code:", SiteCode,
+                                                                                        "<br>Field Season:", FieldSeason,
+                                                                                        "<br>Flow Category:", FlowCategory))) + 
     geom_tile(color = "white") + 
     scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
     labs(x = "Field Season",
@@ -523,8 +527,12 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
   heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = Visit, 
-                                                                           y = reorder(SiteCode, desc(SiteCode)),
-                                                                           fill = FlowCategory)) + 
+                                                                                        y = reorder(SiteCode, desc(SiteCode)),
+                                                                                        fill = FlowCategory,
+                                                                                        text = paste("Site Name: ", SiteName,
+                                                                                                     "<br>Site Code:", SiteCode,
+                                                                                                     "<br>Field Season:", FieldSeason,
+                                                                                                     "<br>Flow Category:", FlowCategory))) + 
     geom_tile(color = "white") + 
     scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
     labs(x = "Revisit Cycle",
