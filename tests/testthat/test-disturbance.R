@@ -43,7 +43,7 @@ test_that("FlowModStatus works as expected", {
   expect_equal(class(actual_date$VisitDate), "Date")
   
   actual_flowmods <- FlowModStatus(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "MOJA_P_DOV0090", FieldSeason == "2019") %>% dplyr::select(FlowModificationStatus, FlowModificationTypes)
-  expected_flowmods <- as_tibble_row(c(FlowModificationStatus = as.character("Yes - One or more active"), FlowModificationTypes = as.character("Pipe, Qanat")))
+  expected_flowmods <- tibble::as_tibble_row(c(FlowModificationStatus = as.character("Yes - One or more active"), FlowModificationTypes = as.character("Pipe, Qanat")))
   expect_equal(actual_flowmods, expected_flowmods)
   
 })
@@ -59,7 +59,7 @@ test_that("qcFlowModDiscrepancies works as expected", {
   expect_equal(actual_cols, expected_cols)
   
   actual_fs <- qcFlowModDiscrepancies(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "MOJA_P_TAL0187", FlowModificationStatus == "None") %>% dplyr::select(FlowModificationStatus, FieldSeasons)
-  expected_fs <- as_tibble_row(c(FlowModificationStatus = as.character("None"), FieldSeasons = as.character("2016, 2019, 2020, 2021")))
+  expected_fs <- tibble::as_tibble_row(c(FlowModificationStatus = as.character("None"), FieldSeasons = as.character("2016, 2019, 2020, 2021")))
   expect_equal(actual_fs, expected_fs)
   
 })
@@ -81,11 +81,11 @@ test_that("FlowModCount works as expected", {
   expect_equal(typeof(actual_dbl$Percent), "double")
   
   actual_count <- FlowModCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA", FlowModificationStatus == "Yes - All inactive") %>% dplyr::select(Count)
-  expected_count <- as_tibble(as.integer(9)) %>% dplyr::rename(Count = value)
+  expected_count <- tibble::as_tibble(as.integer(9)) %>% dplyr::rename(Count = value)
   expect_equal(actual_count, expected_count)
   
   actual_percent <- FlowModCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA", FlowModificationStatus == "Yes - All inactive") %>% dplyr::select(Percent)
-  expected_percent <- as_tibble(as.double(9*100/45)) %>% dplyr::rename(Percent = value)
+  expected_percent <- tibble::as_tibble(as.double(9*100/45)) %>% dplyr::rename(Percent = value)
   expect_equal(actual_count, expected_count)
   
 })
@@ -109,11 +109,11 @@ test_that("DisturbanceCount works as expected", {
   expect_equal(typeof(actual_dbl$HumanUsePercent), "double")
   
   actual_count <- DisturbanceCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA") %>% dplyr::select(LivestockCount, HumanUseCount)
-  expected_count <- as_tibble_row(c(LivestockCount = as.integer(21), HumanUseCount = as.integer(32)))
+  expected_count <- tibble::as_tibble_row(c(LivestockCount = as.integer(21), HumanUseCount = as.integer(32)))
   expect_equal(actual_count, expected_count)
   
   actual_percent <- DisturbanceCount(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA") %>% dplyr::select(LivestockPercent, HumanUsePercent)
-  expected_percent <- as_tibble_row(c(LivestockPercent = round(as.double(21*100/45), 1), HumanUsePercent = round(as.double(32*100/45), 1)))
+  expected_percent <- tibble::as_tibble_row(c(LivestockPercent = round(as.double(21*100/45), 1), HumanUsePercent = round(as.double(32*100/45), 1)))
   expect_equal(actual_percent, expected_percent)
   
 })

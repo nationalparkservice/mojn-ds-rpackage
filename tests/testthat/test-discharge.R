@@ -15,14 +15,14 @@ test_that("VolumetricMedian works as expected", {
   actual_dbl <- VolumetricMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(typeof(actual_dbl$VisitDate), "double")
   
-  actual_discharge <- VolumetricMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_SAL0019", FieldSeason == "2016") %>% select(Discharge_L_per_s)
-  expected_discharge <- tibble(Discharge_L_per_s = as.double(4.968944))
+  actual_discharge <- VolumetricMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_SAL0019", FieldSeason == "2016") %>% dplyr::select(Discharge_L_per_s)
+  expected_discharge <- tibble::tibble(Discharge_L_per_s = as.double(4.968944))
   expect_equal(actual_discharge, expected_discharge, tolerance = 0.0001)
     
 })
 
 
-test_that("SpringDischarge", {
+test_that("SpringDischarge returns expected number of rows and columns", {
   
   actual_rows <- nrow(SpringDischarge(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 680)
@@ -43,7 +43,7 @@ test_that("SpringDischarge", {
 })
 
 
-test_that("qcSpringDryWater", {
+test_that("qcSpringDryWater returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcSpringDryWater(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 0)
@@ -63,7 +63,7 @@ test_that("qcSpringDryWater", {
 })
 
 
-test_that("qcSpringNotDryNoDischarge", {
+test_that("qcSpringNotDryNoDischarge returns expected number of rows and columns", {
 
   actual_rows <- nrow(qcSpringNotDryNoDischarge(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 6)
@@ -84,7 +84,7 @@ test_that("qcSpringNotDryNoDischarge", {
 })
 
 
-test_that("qcSpringNotDryNoSpringbrook", {
+test_that("qcSpringNotDryNoSpringbrook returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcSpringNotDryNoSpringbrook(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 15)
@@ -105,7 +105,7 @@ test_that("qcSpringNotDryNoSpringbrook", {
 })
 
 
-test_that("qcSpringNotDryNoWater", {
+test_that("qcSpringNotDryNoWater returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcSpringNotDryNoWater(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 20)
@@ -125,7 +125,7 @@ test_that("qcSpringNotDryNoWater", {
 })
 
 
-test_that("qcDischargeMissing", {
+test_that("qcDischargeMissing returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcDischargeMissing(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 218)
@@ -143,7 +143,7 @@ test_that("qcDischargeMissing", {
 })
 
 
-test_that("qcVolumetricMissing", {
+test_that("qcVolumetricMissing returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcVolumetricMissing(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 0)
@@ -165,7 +165,7 @@ test_that("qcVolumetricMissing", {
 })
 
 
-test_that("qcVolumetricFillEvents", {
+test_that("qcVolumetricFillEvents works as expected", {
 
   actual_rows <- nrow(qcVolumetricFillEvents(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 5)
@@ -190,7 +190,7 @@ test_that("qcVolumetricFillEvents", {
 })
 
 
-test_that("qcVolumetricTimes", {
+test_that("qcVolumetricTimes works as expected", {
   
   actual_rows <- nrow(qcVolumetricTimes(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 15)
@@ -206,13 +206,13 @@ test_that("qcVolumetricTimes", {
   expect_equal(typeof(actual_dbl$MedianFillTime_s), "double")
   
   actual_median <- qcVolumetricTimes(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LIM0080", FieldSeason == "2020") %>% dplyr::select(MedianFillTime_s)
-  expected_median <- tibble::tibble(MedianFillTime_s = as.double(3.02))
-  expect_equal(actual_count, expected_count)
+  expected_median <- tibble::tibble(MedianFillTime_s = as.double(3.015))
+  expect_equal(actual_median, expected_median)
   
 })
 
 
-test_that("qcContinuousLength", {
+test_that("qcContinuousLength returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcContinuousLength(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 0)
@@ -233,7 +233,7 @@ test_that("qcContinuousLength", {
 })
 
 
-test_that("FlowCategoriesContinuous", {
+test_that("FlowCategoriesContinuous works as expected", {
   
   actual_rows <- nrow(FlowCategoriesContinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 150)
@@ -243,10 +243,10 @@ test_that("FlowCategoriesContinuous", {
   expect_equal(actual_cols, expected_cols)
   
   actual_int <- FlowCategoriesContinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(class(actual_dbl$Count), "integer")
+  expect_equal(class(actual_int$Count), "integer")
   
-  actual_median <- FlowCategoriesContinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2021") %>% dplyr::select(SampleFrame, FlowCategory, Count)
-  expected_median <- tibble::tibble(SampleFrame = c("3Yr", "3Yr", "3Yr", "3Yr", "3Yr", "Annual", "Annual", "Annual", "Annual", "Annual"),
+  actual_count <- FlowCategoriesContinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2021") %>% dplyr::select(SampleFrame, FlowCategory, Count)
+  expected_count <- tibble::tibble(SampleFrame = c("3Yr", "3Yr", "3Yr", "3Yr", "3Yr", "Annual", "Annual", "Annual", "Annual", "Annual"),
                                     FlowCategory = c("< 10 m", "> 50 m", "10 - 50 m", "Dry", "Wet Soil", "< 10 m", "> 50 m", "10 - 50 m", "Dry", "Wet Soil"),
                                     Count = as.integer(c(7, 2, 5, 8, 3, 5, 4, 7, 3, 1)))
   expect_equal(actual_count, expected_count)
@@ -254,20 +254,20 @@ test_that("FlowCategoriesContinuous", {
 })
 
 
-test_that("FlowCategoriesDiscontinuous", {
+test_that("FlowCategoriesDiscontinuous works as expected", {
   
   actual_rows <- nrow(FlowCategoriesDiscontinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 154)
+  expect_equal(actual_rows, 153)
   
   actual_cols <- colnames(FlowCategoriesDiscontinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "FlowCategory", "Count")
   expect_equal(actual_cols, expected_cols)
   
   actual_int <- FlowCategoriesDiscontinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(class(actual_dbl$Count), "integer")
+  expect_equal(class(actual_int$Count), "integer")
   
-  actual_median <- FlowCategoriesDiscontinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2021") %>% dplyr::select(SampleFrame, FlowCategory, Count)
-  expected_median <- tibble::tibble(SampleFrame = c("3Yr", "3Yr", "3Yr", "3Yr", "3Yr", "Annual", "Annual", "Annual", "Annual", "Annual"),
+  actual_count <- FlowCategoriesDiscontinuous(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2021") %>% dplyr::select(SampleFrame, FlowCategory, Count)
+  expected_count <- tibble::tibble(SampleFrame = c("3Yr", "3Yr", "3Yr", "3Yr", "3Yr", "Annual", "Annual", "Annual", "Annual", "Annual"),
                                     FlowCategory = c("< 10 m", "> 50 m", "10 - 50 m", "Dry", "Wet Soil", "< 10 m", "> 50 m", "10 - 50 m", "Dry", "Wet Soil"),
                                     Count = as.integer(c(3, 8, 3, 8, 3, 5, 5, 6, 3, 1)))
   expect_equal(actual_count, expected_count)

@@ -52,11 +52,11 @@ test_that("qcCompleteness works as expected", {
   expect_equal(typeof(actual_dbl$Percent), "double")
   
   actual_count <- (qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Count))[1,]
-  expected_count <- as_tibble(as.integer(59)) %>% dplyr::rename(Count = value)
+  expected_count <- tibble::as_tibble(as.integer(59)) %>% dplyr::rename(Count = value)
   expect_equal(actual_count, expected_count)
   
   actual_percent <- (qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Percent))[1,]
-  expected_percent <- as_tibble(as.double(59*100/60)) %>% dplyr::rename(Percent = value)
+  expected_percent <- tibble::as_tibble(as.double(59*100/60)) %>% dplyr::rename(Percent = value)
   expect_equal(actual_count, expected_count)
   
 })
@@ -64,7 +64,7 @@ test_that("qcCompleteness works as expected", {
 
 test_that("qcDPLCheck returns correct number of rows and columns", {
 
-  actual_rows <- nrow(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% filter(FieldSeason == "2018"))
+  actual_rows <- nrow(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(FieldSeason == "2018"))
   expect_equal(actual_rows, 125)
   
   actual_cols <- colnames(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
@@ -79,7 +79,7 @@ test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns"
   actual_rows <- nrow(qcSpringTypeDiscrepancies(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 76)
   
-  actual_cols <- colnames(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcSpringTypeDiscrepancies(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "SiteCode", "SiteName", "SpringType", "FieldSeasons")
   expect_equal(actual_cols, expected_cols)
     
@@ -91,7 +91,7 @@ test_that("qcVisitDate returns correct number of rows and columns", {
   actual_rows <- nrow(qcVisitDate(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expect_equal(actual_rows, 246)
   
-  actual_cols <- colnames(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcVisitDate(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "SiteCode", "SiteName", "SampleFrame", "VisitDates")
   expect_equal(actual_cols, expected_cols)
   

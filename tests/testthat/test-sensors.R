@@ -61,11 +61,12 @@ test_that("qcSensorSummary works as expected", {
   expect_equal(unique(sapply(actual_dbl[, 3:9], typeof)), "double")
 
   actual_counts <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "JOTR", DeploymentFieldSeason == "2018") %>% dplyr::select(Deployed, Retrieved, Downloaded)
-  expected_counts <- as_tibble_row(c(Deployed = as.double(10), Retrieved = as.double(9), Downloaded = as.double(4)))
+  expected_counts <- tibble::as_tibble_row(c(Deployed = as.double(10), Retrieved = as.double(9), Downloaded = as.double(4)))
   expect_equal(actual_counts, expected_counts)
   
   actual_percents <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "JOTR", DeploymentFieldSeason == "2018") %>% dplyr::select(Percent_Retrieved, Percent_Downloaded)
-  expected_percents <- as_tibble_row(c(Percent_Retrieved = round(as.double(9*100/10), 1), Percent_Downloaded = round(as.double(4*100/9), 1)))
+  expected_percents <- tibble::as_tibble_row(c(Percent_Retrieved = round(as.double(9*100/10), 1),
+                                               Percent_Downloaded = round(as.double(4*100/9), 1)))
   expect_equal(actual_percents, expected_percents)
   
 })
@@ -119,7 +120,7 @@ test_that("qcMissingSensors returns correct number of rows and columns", {
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcMissingSensors(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(class(actual_date$VisitDate), "VisitDate")
+  expect_equal(class(actual_date$VisitDate), "Date")
   
   actual_int <- qcMissingSensors(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_int$SensorNumber), "integer")
@@ -133,7 +134,7 @@ test_that("qcSensorDates returns correct number of rows and columns", {
   expect_equal(actual_rows, 1)
   
   actual_cols <- colnames(qcSensorDates(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("SensorNumber", "SerialNumber", "DeploymentDate", "DeploymentFieldSeason", "RetrievalDate", "RetrievalFieldSeason", "SiteName", "SiteCode", "Park", "SensorRetrieved", "SensorProblem", "DownloadResult")
+  expected_cols <- c("SensorNumber", "SerialNumber", "DeploymentDate", "DeploymentFieldSeason", "RetrievalDate", "RetrievalFieldSeason", "SiteName", "SiteCode", "Park", "SensorRetrieved", "SensorProblem", "DownloadResult", "RetrievalVisitType", "DeploymentVisitType")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSensorDates(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
@@ -146,20 +147,46 @@ test_that("qcSensorDates returns correct number of rows and columns", {
 })
 
 
-test_that("qcSensorsNoData returns correct number of rows and columns", {
+test_that("qcSensorsNotDeployed returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcSensorsNoData(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 59)
+  actual_rows <- nrow(qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 13)
   
-  actual_cols <- colnames(qcSensorsNoData(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "SiteCode", "SiteName", "SampleFrame", "DeploymentDate", "DeploymentFieldSeason", "RetrievalDate", "RetrievalFieldSeason", "SensorNumber", "SensorRetrieved")
+  actual_cols <- colnames(qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason", "DeploymentDate")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcSensorsNoData(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_date$DeploymentDate), "Date")
+  
+  actual_deployment <- qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LIN0020") %>% dplyr::select(DeploymentFieldSeason, DeploymentDate)
+  expected_deployment <- tibble::tibble(DeploymentFieldSeason = c("2016", "2020"),
+                                        DeploymentDate = as.Date(c(NA, NA)))  
+  expect_equal(actual_deployment, expected_deployment)
+  
+})
+
+
+test_that("qcSensorsNotRecovered returns correct number of rows and columns", {
+  
+  actual_rows <- nrow(qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 102)
+  
+  actual_cols <- colnames(qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "RetrievalFieldSeason", "RetrievalDate", "SensorNumber", "SerialNumber")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_date$RetrievalDate), "Date")
   
-  actual_int <- qcSensorsNoData(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_int <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_int$SensorNumber), "integer")
+  
+  actual_retrieval <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_LCM0255") %>% dplyr::select(RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber)
+  expected_retrieval <- tibble::tibble(RetrievalFieldSeason = c("2019", "2020"),
+                                       RetrievalDate = as.Date(c(NA, "2020-01-21")),
+                                       SensorNumber = as.integer(c(NA, 238)),
+                                       SerialNumber = c(NA, "unknown"))  
+  expect_equal(actual_retrieval, expected_retrieval)
   
 })
