@@ -114,6 +114,11 @@ GetColSpec <- function() {
       Rank = readr::col_integer(),
       .default = readr::col_character()
     ),
+    SensorsAllDeployments = readr::cols(
+      SensorNumber = readr::col_integer(),
+      VisitDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
     SensorRetrievalAttempts = readr::cols(
       SensorNumber = readr::col_integer(),
       DeploymentDate = readr::col_date(),
