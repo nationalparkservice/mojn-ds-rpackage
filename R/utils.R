@@ -1,3 +1,66 @@
+#' @importFrom magrittr %>% %<>%
+
+pkg_globals <- new.env(parent = emptyenv())
+
+# Load data from global package environment
+get_data <- function(data_name) {
+  if (!missing(data_name)) {
+    if (!(data_name %in% names(GetColSpec()))) {
+      stop("Invalid data table name. Use names(desertsprings:::GetColSpec()) to see valid options for data_name.")
+    }
+    tryCatch({data <- get(data_name, pkg_globals)},
+             error = function(e) {
+               if (grepl(".*object.* not found.*", e$message, ignore.case = TRUE)) {
+                 stop(paste0("Could not find data. Did you remember to call LoadDesertSprings?\n\tOriginal error: ", e$message))
+               }
+               else {e}
+             })
+  } else {
+    tryCatch({
+      data <- lapply(names(GetColSpec()), get, pkg_globals)
+      names(data) <- names(GetColSpec())
+    },
+    error = function(e) {
+      if (grepl(".*object.* not found.*", e$message, ignore.case = TRUE)) {
+        stop(paste0("Could not find data. Did you remember to call LoadDesertSprings?\n\tOriginal error: ", e$message))
+      }
+      else {e}
+    }
+    )
+    
+  }
+  
+  return(data)
+}
+
+#' Clear cached data
+#'
+#' @param silent Silence feedback message?
+#'
+#' @return `TRUE` if cache was cleared, `FALSE` if no cache found
+#' @export
+#'
+ClearDesertSpringsCache <- function(silent = FALSE) {
+  cache_path <- normalizePath(paste0(rappdirs::user_cache_dir(appname = "desertsprings"), "/desertsprings_cache_data.rds"), mustWork = FALSE)
+  cache_expiration_path <- normalizePath(paste0(rappdirs::user_cache_dir(appname = "desertsprings"), "/desertsprings_cache_expiration.rds"), mustWork = FALSE)
+  cache_lastrefreshed_path <- normalizePath(paste0(rappdirs::user_cache_dir(appname = "desertsprings"), "/desertsprings_cache_lastrefreshed.rds"), mustWork = FALSE)
+  cache_exists <- file.exists(cache_path)
+  
+  if (cache_exists) {
+    unlink(cache_path)
+    unlink(cache_expiration_path)
+    unlink(cache_lastrefreshed_path)
+    if (!silent) {
+      message(paste("Cache cleared"))
+    }
+    return(TRUE)
+  } else {
+    message("No cache found")
+    return(FALSE)
+  }
+  
+}
+
 #' Open a connection to the Desert Springs Database
 #'
 #' @param use.mojn.default Connect to the live MOJN Desert Springs database? MOJN staff should use this option. Defaults to \code{TRUE}.
@@ -125,6 +188,11 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
+    SensorsAllDeployments = readr::cols(
+      SensorNumber = readr::col_integer(),
+      VisitDate = readr::col_date(),
+      .default = readr::col_character()
+    ),
     Site = readr::cols(
       GRTSOrder = readr::col_integer(),
       Lat_WGS84 = readr::col_double(),
@@ -173,6 +241,372 @@ GetColSpec <- function() {
   return(col.spec)
 }
 
+#' Read data from a folder of csv files
+#'
+#' @param data_path A path to a folder containing the data in csv format
+#'
+#' @return A list of tibbles
+#'
+ReadCSV <- function(data_path) {
+  data_path <- normalizePath(data_path)
+  col.spec <- GetColSpec()
+  is_zip <- grepl("\\.zip", data_path, ignore.case = TRUE)
+  
+  if(is_zip) {
+    file_list <- basename(unzip(data_path, list = TRUE)$Name)
+  } else {
+    file_list <- list.files(data_path)
+  }
+  # Make sure that files in folder are valid csv's
+  expected_files <- paste0(names(col.spec), ".csv")
+  if (!all(expected_files %in% file_list)) {
+    missing_files <- setdiff(expected_files, file_list)
+    missing_files <- paste(missing_files, collapse = "\n")
+    stop(paste0("The folder provided is missing required data. Missing files:\n", missing_files))
+  }
+  
+  # Read data
+  if (is_zip) {  # Unzip into a temporary directory to read files
+    temp_dir <- tempdir()
+    # Use this trycatch so that even if there's an error unzipping or reading, the temp dir will be deleted
+    tryCatch({
+      unzip(data_path, overwrite = TRUE, exdir = temp_dir, junkpaths = TRUE)
+      data <- lapply(names(col.spec), function(data_name){
+        file_path <- file.path(temp_dir, paste0(data_name, ".csv"))
+        df <- readr::read_csv(file = file_path, col_types = col.spec[[data_name]])
+        return(df)
+      })
+    },
+    finally = unlink(temp_dir, recursive = TRUE)
+    )
+  } else {  # Read files from data path
+    data <- lapply(names(col.spec), function(data_name){
+      file_path <- file.path(data_path, paste0(data_name, ".csv"))
+      df <- readr::read_csv(file = file_path, col_types = col.spec[[data_name]])
+      return(df)
+    })
+  }
+  
+  names(data) <- names(col.spec)
+  return(data)
+}
+
+#' Read data from the Desert Springs SQL database
+#'
+#' @param ... Optional arguments to be passed to `OpenDatabaseConnection()`
+#'
+#' @return A list of tibbles
+#'
+ReadSqlDatabase <- function(...) {
+  col.spec <- GetColSpec()
+  conn <- OpenDatabaseConnection(...)
+  data <- lapply(names(col.spec), function(data_name){
+    cat(data_name)
+    df <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data_name)) %>%
+      dplyr::collect()
+    return(df)
+  })
+  
+  names(data) <- names(col.spec)
+  CloseDatabaseConnection(conn)
+  return(data)
+}
+
+#' Read data from the Desert Springs AGOL feature layer.
+#'
+#' @return A list of tibbles
+#'
+ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
+  # Get a token with a headless account
+  token_resp <- POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
+                     body = list(username = rstudioapi::showPrompt("Username", "Please enter your AGOL username", default = "mojn_hydro"),
+                                 password = rstudioapi::askForPassword("Please enter your AGOL password"),
+                                 referer = 'https://irma.nps.gov',
+                                 f = 'json'),
+                     encode = "form")
+  agol_token <- fromJSON(content(token_resp, type="text", encoding = "UTF-8"))
+  
+  # Fetch each layer in the DS feature service
+  
+  # MOJN_DS_SpringVisit - visit-level data
+  visit <- GET(paste0(data_path, "/0/query"),
+                    query = list(where="1=1",
+                                 outFields="*",
+                                 f="JSON",
+                                 token=agol_token$token))
+  
+  visit <- fromJSON(content(visit, type = "text", encoding = "UTF-8"))
+  visit <- visit$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles")) %>%
+    mutate(DateTime = as.POSIXct(DateTime/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # Repeats - repeat photos
+  repeats <- GET(paste0(service_url, "/1/query"),
+                      query = list(where="1=1",
+                                   outFields="*",
+                                   f="JSON",
+                                   token=agol_token$token))
+  
+  repeats <- fromJSON(content(repeats, type = "text", encoding = "UTF-8"))
+  repeats <- cbind(repeats$features$attributes, repeats$features$geometry) %>%
+    mutate(wkid = repeats$spatialReference$wkid) %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # InvasivePlants - invasive plant data
+  invasives <- GET(paste0(service_url, "/2/query"),
+                        query = list(where="1=1",
+                                     outFields="*",
+                                     f="JSON",
+                                     token=agol_token$token))
+  
+  invasives <- fromJSON(content(invasives, type = "text", encoding = "UTF-8"))
+  invasives <- cbind(invasives$features$attributes, invasives$features$geometry) %>%
+    mutate(wkid = invasives$spatialReference$wkid) %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # Observers
+  observers <- GET(paste0(service_url, "/3/query"),
+                        query = list(where="1=1",
+                                     outFields="*",
+                                     f="JSON",
+                                     token=agol_token$token))
+  
+  observers <- fromJSON(content(observers, type = "text", encoding = "UTF-8"))
+  observers <- observers$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # SensorRetrieval
+  sensorRetrieval <- GET(paste0(service_url, "/4/query"),
+                              query = list(where="1=1",
+                                           outFields="*",
+                                           f="JSON",
+                                           token=agol_token$token))
+  
+  sensorRetrieval <- fromJSON(content(sensorRetrieval, type = "text", encoding = "UTF-8"))
+  sensorRetrieval <- sensorRetrieval$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # RepeatPhotos_Internal - repeat photos taken on internal device camera
+  repeatsInt <- GET(paste0(service_url, "/5/query"),
+                         query = list(where="1=1",
+                                      outFields="*",
+                                      f="JSON",
+                                      token=agol_token$token))
+  
+  repeatsInt <- fromJSON(content(repeatsInt, type = "text", encoding = "UTF-8"))
+  repeatsInt <- repeatsInt$features$attributes %>%
+    as_tibble()
+  
+  # RepeatPhotos_External - repeat photos taken on external camera
+  repeatsExt <- GET(paste0(service_url, "/6/query"),
+                         query = list(where="1=1",
+                                      outFields="*",
+                                      f="JSON",
+                                      token=agol_token$token))
+  
+  repeatsExt <- fromJSON(content(repeatsExt, type = "text", encoding = "UTF-8"))
+  repeatsExt <- repeatsExt$features$attributes %>%
+    as_tibble()
+  
+  # FillTime - volumetric discharge fill time
+  fillTime <- GET(paste0(service_url, "/7/query"),
+                       query = list(where="1=1",
+                                    outFields="*",
+                                    f="JSON",
+                                    token=agol_token$token))
+  
+  fillTime <- fromJSON(content(fillTime, type = "text", encoding = "UTF-8"))
+  fillTime <- fillTime$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # FlowModTypes - flow modifications observed
+  disturbanceFlowMod <- GET(paste0(service_url, "/8/query"),
+                                 query = list(where="1=1",
+                                              outFields="*",
+                                              f="JSON",
+                                              token=agol_token$token))
+  
+  disturbanceFlowMod <- fromJSON(content(disturbanceFlowMod, type = "text", encoding = "UTF-8"))
+  disturbanceFlowMod <- disturbanceFlowMod$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # WildlifeRepeat - wildlife observations
+  wildlife <- GET(paste0(service_url, "/9/query"),
+                       query = list(where="1=1",
+                                    outFields="*",
+                                    f="JSON",
+                                    token=agol_token$token))
+  
+  wildlife <- fromJSON(content(wildlife, type = "text", encoding = "UTF-8"))
+  wildlife <- wildlife$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # VegImageRepeat - riparian veg photo data
+  riparianVeg  <- GET(paste0(service_url, "/10/query"),
+                           query = list(where="1=1",
+                                        outFields="*",
+                                        f="JSON",
+                                        token=agol_token$token))
+  
+  riparianVeg  <- fromJSON(content(riparianVeg, type = "text", encoding = "UTF-8"))
+  riparianVeg  <- riparianVeg$features$attributes %>%
+    as_tibble() %>%
+    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
+  
+  # InternalCamera - riparian veg photos taken on internal device camera
+  riparianVegInt <- GET(paste0(service_url, "/11/query"),
+                             query = list(where="1=1",
+                                          outFields="*",
+                                          f="JSON",
+                                          token=agol_token$token))
+  
+  riparianVegInt <- fromJSON(content(riparianVegInt, type = "text", encoding = "UTF-8"))
+  riparianVegInt <- riparianVegInt$features$attributes %>%
+    as_tibble()
+  
+  # ExternalCameraFiles - riparian veg photos taken on external camera
+  riparianVegExt <- GET(paste0(service_url, "/12/query"),
+                             query = list(where="1=1",
+                                          outFields="*",
+                                          f="JSON",
+                                          token=agol_token$token))
+  
+  riparianVegExt <- fromJSON(content(riparianVegExt, type = "text", encoding = "UTF-8"))
+  riparianVegExt <- riparianVegExt$features$attributes %>%
+    as_tibble()
+  
+  # InvImageRepeat - invasive veg photos taken on internal device camera
+  invasivesInt <- GET(paste0(service_url, "/13/query"),
+                           query = list(where="1=1",
+                                        outFields="*",
+                                        f="JSON",
+                                        token=agol_token$token))
+  
+  invasivesInt <- fromJSON(content(invasivesInt, type = "text", encoding = "UTF-8"))
+  invasivesInt <- invasivesInt$features$attributes %>%
+    as_tibble()
+  
+  # ExternalCameraFilesInv - invasive veg photos taken on external camera
+  invasivesExt  <- GET(paste0(service_url, "/14/query"),
+                            query = list(where="1=1",
+                                         outFields="*",
+                                         f="JSON",
+                                         token=agol_token$token))
+  
+  invasivesExt  <- fromJSON(content(invasivesExt , type = "text", encoding = "UTF-8"))
+  invasivesExt  <- invasivesExt $features$attributes %>%
+    as_tibble()
+  
+  # AdditionalPhotos2 - info about additional photos
+  additionalPhotos<- GET(paste0(service_url, "/15/query"),
+                              query = list(where="1=1",
+                                           outFields="*",
+                                           f="JSON",
+                                           token=agol_token$token))
+  
+  additionalPhotos <- fromJSON(content(additionalPhotos, type = "text", encoding = "UTF-8"))
+  additionalPhotos <- additionalPhotos$features$attributes %>%
+    as_tibble()
+  
+  # AdditionalPhotoInternal - additional photos taken on internal camera
+  additionalPhotosInt<- GET(paste0(service_url, "/16/query"),
+                                 query = list(where="1=1",
+                                              outFields="*",
+                                              f="JSON",
+                                              token=agol_token$token))
+  
+  additionalPhotosInt <- fromJSON(content(additionalPhotosInt, type = "text", encoding = "UTF-8"))
+  additionalPhotosInt <- additionalPhotosInt$features$attributes %>%
+    as_tibble()
+  
+  # AddtionalPhotoExternal - additional photos taken on external camera
+  additionalPhotosExt<- GET(paste0(service_url, "/17/query"),
+                                 query = list(where="1=1",
+                                              outFields="*",
+                                              f="JSON",
+                                              token=agol_token$token))
+  
+  additionalPhotosExt <- fromJSON(content(additionalPhotosExt, type = "text", encoding = "UTF-8"))
+  additionalPhotosExt <- additionalPhotosExt$features$attributes %>%
+    as_tibble()
+  
+  
+  
+  return(data)
+}
+
+#' Load raw data into package environment
+#' @description Run this function before you do anything else.
+#'
+#' @param data_path A path or URL to the data. Accepted inputs:
+#' * a URL to the AGOL feature service containing the data
+#' * a folder containing the data in csv format
+#' * a .zip file containing the data in csv format
+#' * `"database"` (connect to the deprecated SQL server database)
+#' @param use_default_sql Use default SQL database? Ignored if `data_path != "database"`.
+#' @param sql_drv Driver to use to connect to database. Ignored if `data_path != "database"`.
+#' @param ... Additional arguments to OpenDatabaseConnection (ignored if `data_path != "database"`)
+#'
+#' @return Invisibly return a list containing all raw data
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' LoadDesertSprings()  # Read from AGOL
+#' LoadDesertSprings("database")  # Read from SQL db
+#' LoadDesertSprings("path/to/csv/folder")  # Read from folder of CSV's
+#' LoadDesertSprings("path/to/zipped/csvs.zip")  # Read from zip file of CSV's
+#' }
+#'
+LoadDesertSprings <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/service_815059c20fd448628dc23441f7a7c473/FeatureServer", ...) {
+  
+  # Figure out the format of the data
+  agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"
+  is_agol <- grepl(agol_regex, data_path)
+  is_db <- grepl("^database$", data_path, ignore.case = TRUE)
+  if (!is_agol & !is_db) {
+    # Standardize data path
+    data_path <- normalizePath(data_path, mustWork = TRUE)
+  }
+  is_zip <- grepl("\\.zip$", data_path, ignore.case = TRUE) && file.exists(data_path)
+  is_folder <- dir.exists(data_path)
+  
+  if (is_agol) {  # Read from AGOL feature layer
+    data <- ReadAGOL(data_path)  # TODO
+  } else if (is_db) {  # Read from SQL Server database
+    data <- ReadSqlDatabase(...)
+  } else if (is_zip | is_folder) {  # Read from folder of CSV's (may be zipped)
+    data <- ReadCSV(data_path)
+  } else {
+    stop(paste("Data path", data_path, "is invalid. See `?LoadDesertSprings` for more information."))
+  }
+
+  # Tidy up the data
+  data <- lapply(data, function(df) {
+    df %>%
+      dplyr::mutate_if(is.character, utf8::utf8_encode) %>%
+      dplyr::mutate_if(is.character, trimws, whitespace = "[\\h\\v]") %>%  # Trim leading and trailing whitespace
+      dplyr::mutate_if(is.character, dplyr::na_if, "") %>%  # Replace empty strings with NA
+      mutate_if(is.numeric, na_if, -9999) %>%  # Replace -9999 or -999 with NA
+      mutate_if(is.numeric, na_if, -999) %>%
+      dplyr::mutate_if(is.character, dplyr::na_if, "NA") %>%  # Replace "NA" strings with NA
+      dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v]+", replacement = ";  ")  # Replace newlines with semicolons - reading certain newlines into R can cause problems
+  })
+  
+  # Actually load the data into an environment for the package to use
+  tbl_names <- names(data)
+  lapply(tbl_names, function(n) {assign(n, data[[n]], envir = pkg_globals)})
+  
+  invisible(data)
+}
 
 #' Read desert springs data from database or .csv
 #'
