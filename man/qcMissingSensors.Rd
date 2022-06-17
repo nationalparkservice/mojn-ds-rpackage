@@ -2,7 +2,7 @@
 % Please edit documentation in R/sensors.R
 \name{qcMissingSensors}
 \alias{qcMissingSensors}
-\title{Sensors were deployed in previous field seasons and are still unaccounted for}
+\title{Sensors retrieved but missing, or sensors not retrieved and not missing}
 \usage{
 qcMissingSensors(
   conn,
@@ -27,5 +27,5 @@ qcMissingSensors(
 A tibble
 }
 \description{
-Sensors were deployed in previous field seasons and are still unaccounted for
+Sensors retrieved but missing, or sensors not retrieved and not missing
 }

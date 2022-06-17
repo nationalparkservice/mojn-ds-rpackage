@@ -7,3 +7,4 @@ test-data/
 temp-test-csv/
 tests/testthat/test_data/
 inventory.R
+vignettes/Annual Permit Report.Rmd
