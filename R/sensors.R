@@ -324,7 +324,11 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
 #'
 #' @examples
 qcUnknownSensorIDs <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  sensors <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorsAllDeployments")
+  sensors <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorsAllDeployments") %>%
+    dplyr::relocate(Park, .before = "SiteCode") %>%
+    dplyr::relocate(SensorNumber, .after = "FieldSeason") %>%
+    dplyr::relocate(SerialNumber, .after = "SensorNumber") %>%
+    dplyr::select(-VisitType)
 
   unknown <- sensors %>%
     dplyr::filter(SensorNumber < 0 | is.na(SensorNumber) | SerialNumber == "unknown" | is.na(SerialNumber))
