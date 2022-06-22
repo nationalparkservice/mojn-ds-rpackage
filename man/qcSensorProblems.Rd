@@ -2,7 +2,7 @@
 % Please edit documentation in R/sensors.R
 \name{qcSensorProblems}
 \alias{qcSensorProblems}
-\title{Problems with retrieved sensors}
+\title{Sensors were retrieved with problems or caveats}
 \usage{
 qcSensorProblems(
   conn,
@@ -27,5 +27,5 @@ qcSensorProblems(
 A tibble
 }
 \description{
-Problems with retrieved sensors
+Sensors were retrieved with problems or caveats
 }

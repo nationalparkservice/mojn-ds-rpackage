@@ -2,7 +2,7 @@
 % Please edit documentation in R/sensors.R
 \name{qcSensorsNotRecovered}
 \alias{qcSensorsNotRecovered}
-\title{Springs where a sensor was not retrieved during a field season}
+\title{Springs where a sensor was not recovered during a field season}
 \usage{
 qcSensorsNotRecovered(
   conn,
@@ -30,5 +30,5 @@ qcSensorsNotRecovered(
 A tibble
 }
 \description{
-Springs where a sensor was not retrieved during a field season
+Springs where a sensor was not recovered during a field season
 }
