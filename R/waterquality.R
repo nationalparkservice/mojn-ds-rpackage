@@ -825,3 +825,73 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   return(wqmapspcond)
 }
+
+#' Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen percent.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+ 
+  do <- ReadAndFilterData(conn = conn, data.source = "database", data.name = "CalibrationDO")
+  
+  do.check <- do %>%
+    dplyr::filter(99.5 > PostCalibrationReading_percent | 100.5 < PostCalibrationReading_percent) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, DOInstrument, PreCalibrationReading_percent, PostCalibrationReading_percent) %>%
+    dplyr::rename(PreCalDO_percent = PreCalibrationReading_percent,
+                  PostCalDO_percent = PostCalibrationReading_percent) %>%
+    dplyr::mutate(PreCalDO_percent = round(PreCalDO_percent, 1),
+                  PostCalDO_percent = round(PostCalDO_percent, 1)) %>%
+    unique() %>%
+    dplyr::arrange(SiteCode, FieldSeason)
+  
+  
+  return(do.check)
+   
+}
+
+#' Check specific conductance calibrations for the use of low conductivity standards at high conductivity springs.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return A tibble
+#' @export
+#'
+#' @examples
+qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  sc <- ReadAndFilterData(conn = conn, data.source = "database", data.name = "CalibrationSpCond")
+  
+  med <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
+  
+  sc.sel <- sc %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpCondInstrument, StandardValue_microS_per_cm)
+  
+  med.sc <- med %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, SpCondMedian) %>%
+    dplyr::filter(!is.na(SpCondMedian))
+  
+  sc.joined <- med.sc %>%
+    dplyr::left_join(sc.sel, by = c("Park", "SiteCode", "VisitDate", "FieldSeason")) %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::relocate(SpCondInstrument, .after = FieldSeason) %>%
+    dplyr::rename(SpCondStandard = StandardValue_microS_per_cm) %>%
+    dplyr::filter((SpCondMedian > 5000 & SpCondStandard < 5000) | (SpCondMedian > 25000 & SpCondStandard < 25000)) %>%
+    dplyr::arrange(SiteCode, FieldSeason)
+  
+  return(sc.joined)
+  
+}
