@@ -232,7 +232,10 @@ qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, 
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
     dplyr::relocate(DownloadResult, .after = SensorRetrieved) %>%
-    dplyr::select(-RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(problems)
   
@@ -256,7 +259,10 @@ qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season,
   
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
-    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(nodata)
    
@@ -305,7 +311,10 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
   attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
  
   error <- attempts %>%
-    dplyr::filter(DeploymentDate == RetrievalDate)
+    dplyr::filter(DeploymentDate == RetrievalDate) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(error)
   

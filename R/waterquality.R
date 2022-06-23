@@ -841,7 +841,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @examples
 qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
  
-  do <- ReadAndFilterData(conn = conn, data.source = "database", data.name = "CalibrationDO")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationDO")
   
   do.check <- do %>%
     dplyr::filter(99.5 > PostCalibrationReading_percent | 100.5 < PostCalibrationReading_percent) %>%
@@ -873,7 +873,7 @@ qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.so
 #' @examples
 qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  sc <- ReadAndFilterData(conn = conn, data.source = "database", data.name = "CalibrationSpCond")
+  sc <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source,  data.name = "CalibrationSpCond")
   
   med <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
   
@@ -881,7 +881,8 @@ qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, 
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpCondInstrument, StandardValue_microS_per_cm)
   
   med.sc <- med %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, SpCondMedian) %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, SpCondMedian_microS_per_cm) %>%
+    dplyr::rename(SpCondMedian = SpCondMedian_microS_per_cm) %>%
     dplyr::filter(!is.na(SpCondMedian))
   
   sc.joined <- med.sc %>%

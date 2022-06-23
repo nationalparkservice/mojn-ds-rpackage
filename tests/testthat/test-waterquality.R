@@ -301,3 +301,39 @@ test_that("WqStats works as expected", {
   expect_equal(actual_stats, expected_stats)
   
 })
+
+
+test_that("qcLocalDOCheck returns correct number of rows and columns", {
+  
+  actual_rows <- nrow(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 165)
+  
+  actual_cols <- colnames(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "DOInstrument", "PreCalDO_percent", "PostCalDO_percent")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_dbl <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
+  
+})
+
+
+test_that("qcSpCondStandardCheck works as expected", {
+  
+  actual_rows <- nrow(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 21)
+  
+  actual_cols <- colnames(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SpCondInstrument", "SpCondMedian", "SpCondStandard")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_dbl <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
+
+})
