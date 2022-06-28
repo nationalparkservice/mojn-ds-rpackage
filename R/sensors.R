@@ -150,19 +150,28 @@ qcSensorsNotDeployed <- function(conn, path.to.data, park, site, deployment.fiel
     dplyr::rename(DeploymentDate = VisitDate,
                   DeploymentFieldSeason = FieldSeason)
   
-  deployments <- rbind(deployments_past, deployments_recent)
+  deployments <- rbind(deployments_past, deployments_recent) %>%
+    unique()
+  
+  all_visits <- visit %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitDate) %>%
+    dplyr::rename(DeploymentFieldSeason = FieldSeason)
   
   notdeployed <- annual_springs %>%
     dplyr::full_join(deployments, by = c("Park", "SiteCode", "SiteName")) %>%
     tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
     dplyr::select(-Park, -SiteName) %>%
-    dplyr::left_join(annual_springs, by = "SiteCode") %>%
+    dplyr::left_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
     dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
     dplyr::filter(!is.na(Park),
                   is.na(DeploymentDate)) %>%
     dplyr::filter(!(Park == "DEVA" & DeploymentFieldSeason %in% c("2016", "2017")),
                   !(Park == "JOTR" & DeploymentFieldSeason == "2016")) %>%
-    dplyr::arrange(SiteCode, DeploymentFieldSeason)
+    dplyr::arrange(DeploymentFieldSeason, SiteCode) %>%
+    dplyr::left_join(all_visits, by = c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason")) %>%
+    dplyr::rename(FieldSeason = DeploymentFieldSeason) %>%
+    dplyr::relocate(VisitDate, .after = FieldSeason)
   
   return(notdeployed)
   
@@ -207,7 +216,9 @@ qcSensorsNotRecovered <- function(conn, path.to.data, park, site, deployment.fie
     dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved)) %>%
     dplyr::filter(!(SampleFrame != "Annual" & is.na(RetrievalDate))) %>%
     dplyr::select(-SensorRetrieved, -SampleFrame) %>%
-    dplyr::arrange(SiteCode, RetrievalFieldSeason)
+    dplyr::arrange(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::rename(FieldSeason = RetrievalFieldSeason,
+                  VisitDate = RetrievalDate)
   
   return(notrecovered)
   

@@ -107,4 +107,22 @@ test_that("qcNotSampled returns correct number of rows and columns", {
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "MonitoringStatus", "Notes")
   expect_equal(actual_cols, expected_cols)
   
+  actual_date <- qcNotSampled(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+})
+
+
+test_that("qcRepeatVisits returns correct number of rows and columns", {
+  
+  actual_rows <- nrow(qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 8)
+  
+  actual_cols <- colnames(qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "MonitoringStatus", "Notes")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
 })

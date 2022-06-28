@@ -153,14 +153,15 @@ test_that("qcSensorsNotDeployed returns correct number of rows and columns", {
   expect_equal(actual_rows, 13)
   
   actual_cols <- colnames(qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason", "DeploymentDate")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "FieldSeason", "VisitDate", "DeploymentDate")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
   expect_equal(class(actual_date$DeploymentDate), "Date")
   
-  actual_deployment <- qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LIN0020") %>% dplyr::select(DeploymentFieldSeason, DeploymentDate)
-  expected_deployment <- tibble::tibble(DeploymentFieldSeason = c("2016", "2020"),
+  actual_deployment <- qcSensorsNotDeployed(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LIN0020") %>% dplyr::select(FieldSeason, DeploymentDate)
+  expected_deployment <- tibble::tibble(FieldSeason = c("2016", "2020"),
                                         DeploymentDate = as.Date(c(NA, NA)))  
   expect_equal(actual_deployment, expected_deployment)
   
@@ -173,18 +174,18 @@ test_that("qcSensorsNotRecovered returns correct number of rows and columns", {
   expect_equal(actual_rows, 102)
   
   actual_cols <- colnames(qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "SiteCode", "SiteName", "RetrievalFieldSeason", "RetrievalDate", "SensorNumber", "SerialNumber", "Notes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "FieldSeason", "VisitDate", "SensorNumber", "SerialNumber", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(class(actual_date$RetrievalDate), "Date")
+  expect_equal(class(actual_date$VisitDate), "Date")
   
   actual_int <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
   expect_equal(class(actual_int$SensorNumber), "integer")
   
-  actual_retrieval <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_LCM0255") %>% dplyr::select(RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber)
-  expected_retrieval <- tibble::tibble(RetrievalFieldSeason = c("2019", "2020"),
-                                       RetrievalDate = as.Date(c(NA, "2020-01-21")),
+  actual_retrieval <- qcSensorsNotRecovered(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_LCM0255") %>% dplyr::select(FieldSeason, VisitDate, SensorNumber, SerialNumber)
+  expected_retrieval <- tibble::tibble(FieldSeason = c("2019", "2020"),
+                                       VisitDate = as.Date(c(NA, "2020-01-21")),
                                        SensorNumber = as.integer(c(NA, 238)),
                                        SerialNumber = c(NA, "unknown"))  
   expect_equal(actual_retrieval, expected_retrieval)
