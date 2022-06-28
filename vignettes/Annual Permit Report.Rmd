@@ -88,7 +88,7 @@ visits.park.data <- visits.park %>%
   dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
   unique() %>%
   dplyr::arrange(SampleFrame, SiteName) %>%
-  dplyr::filter(case_when(params$wateryear %in% c("2016", "2019", "2022", "2025", "2028") & params$park %in% c("LAKE", "MOJA") ~ SampleFrame %in% c("Annual", "3Yr"),
+  dplyr::filter(dplyr::case_when(params$wateryear %in% c("2016", "2019", "2022", "2025", "2028") & params$park %in% c("LAKE", "MOJA") ~ SampleFrame %in% c("Annual", "3Yr"),
                           params$wateryear %in% c("2017", "2020", "2023", "2026", "2029") & params$park %in% c("PARA", "JOTR") ~ SampleFrame %in% c("Annual", "3Yr"),
                           params$wateryear %in% c("2018", "2021", "2024", "2027", "2030") & params$park %in% c("DEVA") ~ SampleFrame %in% c("Annual", "3Yr"),
                           TRUE ~ SampleFrame == "Annual"))
@@ -129,9 +129,9 @@ sites.status <- rbind(visits.monitored, visits.merge)
 site <- desertsprings:::ReadAndFilterData(conn, park = params$park, data.source = "database", data.name = "Site")
   
 coords <- site %>%
-  select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
 
-sites.coords <- left_join(sites.status, coords, by = "SiteCode") %>%
+sites.coords <- dplyr::left_join(sites.status, coords, by = "SiteCode") %>%
   dplyr::mutate(Status = paste0(SampleFrame, ", ", Monitored))
 
 sites.coords$Status <- factor(sites.coords$Status, levels = c("Annual, monitored", "Annual, not monitored", "3Yr, monitored", "3Yr, not monitored", "Over, monitored"))
