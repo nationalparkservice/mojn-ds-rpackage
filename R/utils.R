@@ -166,6 +166,14 @@ GetColSpec <- function() {
     Wildlife = readr::cols(
       VisitDate = readr::col_date(),
       .default = readr::col_character()
+    ),
+    Photo = readr::cols(
+      VisitDate = readr::col_date(),
+      FieldSeason = readr::col_integer(),
+      DateTaken = readr::col_datetime(),
+      UtmX_m = readr::col_double(),
+      UtmY_m = readr::col_double(),
+      .default = readr::col_character()
     )
   )
 
