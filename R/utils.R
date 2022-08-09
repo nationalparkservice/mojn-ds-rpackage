@@ -76,7 +76,7 @@ ClearDesertSpringsCache <- function(silent = FALSE) {
 #' }
 OpenDatabaseConnection <- function(use.mojn.default = TRUE, drv = odbc::odbc(), ...) {
   if (use.mojn.default) {
-    params <- readr::read_csv("M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv") %>%
+    params <- readr::read_csv("M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv", col_types = "cccc") %>%
       as.list()
     params$drv <- drv
     my.pool <- do.call(pool::dbPool, params)
@@ -301,7 +301,6 @@ ReadSqlDatabase <- function(...) {
   col.spec <- GetColSpec()
   conn <- OpenDatabaseConnection(...)
   data <- lapply(names(col.spec), function(data_name){
-    cat(data_name)
     df <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data_name)) %>%
       dplyr::collect()
     return(df)
@@ -313,232 +312,14 @@ ReadSqlDatabase <- function(...) {
 }
 
 #' Read data from the Desert Springs AGOL feature layer.
-#'
+#' 
+#' @inheritParams FetchAGOLLayers
+#' 
 #' @return A list of tibbles
 #'
 ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
-  # Get a token with a headless account
-  token_resp <- POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
-                     body = list(username = rstudioapi::showPrompt("Username", "Please enter your AGOL username", default = "mojn_hydro"),
-                                 password = rstudioapi::askForPassword("Please enter your AGOL password"),
-                                 referer = 'https://irma.nps.gov',
-                                 f = 'json'),
-                     encode = "form")
-  agol_token <- fromJSON(content(token_resp, type="text", encoding = "UTF-8"))
-  
-  # Fetch each layer in the DS feature service
-  
-  # MOJN_DS_SpringVisit - visit-level data
-  visit <- GET(paste0(data_path, "/0/query"),
-                    query = list(where="1=1",
-                                 outFields="*",
-                                 f="JSON",
-                                 token=agol_token$token))
-  
-  visit <- fromJSON(content(visit, type = "text", encoding = "UTF-8"))
-  visit <- visit$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles")) %>%
-    mutate(DateTime = as.POSIXct(DateTime/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # Repeats - repeat photos
-  repeats <- GET(paste0(service_url, "/1/query"),
-                      query = list(where="1=1",
-                                   outFields="*",
-                                   f="JSON",
-                                   token=agol_token$token))
-  
-  repeats <- fromJSON(content(repeats, type = "text", encoding = "UTF-8"))
-  repeats <- cbind(repeats$features$attributes, repeats$features$geometry) %>%
-    mutate(wkid = repeats$spatialReference$wkid) %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # InvasivePlants - invasive plant data
-  invasives <- GET(paste0(service_url, "/2/query"),
-                        query = list(where="1=1",
-                                     outFields="*",
-                                     f="JSON",
-                                     token=agol_token$token))
-  
-  invasives <- fromJSON(content(invasives, type = "text", encoding = "UTF-8"))
-  invasives <- cbind(invasives$features$attributes, invasives$features$geometry) %>%
-    mutate(wkid = invasives$spatialReference$wkid) %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # Observers
-  observers <- GET(paste0(service_url, "/3/query"),
-                        query = list(where="1=1",
-                                     outFields="*",
-                                     f="JSON",
-                                     token=agol_token$token))
-  
-  observers <- fromJSON(content(observers, type = "text", encoding = "UTF-8"))
-  observers <- observers$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # SensorRetrieval
-  sensorRetrieval <- GET(paste0(service_url, "/4/query"),
-                              query = list(where="1=1",
-                                           outFields="*",
-                                           f="JSON",
-                                           token=agol_token$token))
-  
-  sensorRetrieval <- fromJSON(content(sensorRetrieval, type = "text", encoding = "UTF-8"))
-  sensorRetrieval <- sensorRetrieval$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # RepeatPhotos_Internal - repeat photos taken on internal device camera
-  repeatsInt <- GET(paste0(service_url, "/5/query"),
-                         query = list(where="1=1",
-                                      outFields="*",
-                                      f="JSON",
-                                      token=agol_token$token))
-  
-  repeatsInt <- fromJSON(content(repeatsInt, type = "text", encoding = "UTF-8"))
-  repeatsInt <- repeatsInt$features$attributes %>%
-    as_tibble()
-  
-  # RepeatPhotos_External - repeat photos taken on external camera
-  repeatsExt <- GET(paste0(service_url, "/6/query"),
-                         query = list(where="1=1",
-                                      outFields="*",
-                                      f="JSON",
-                                      token=agol_token$token))
-  
-  repeatsExt <- fromJSON(content(repeatsExt, type = "text", encoding = "UTF-8"))
-  repeatsExt <- repeatsExt$features$attributes %>%
-    as_tibble()
-  
-  # FillTime - volumetric discharge fill time
-  fillTime <- GET(paste0(service_url, "/7/query"),
-                       query = list(where="1=1",
-                                    outFields="*",
-                                    f="JSON",
-                                    token=agol_token$token))
-  
-  fillTime <- fromJSON(content(fillTime, type = "text", encoding = "UTF-8"))
-  fillTime <- fillTime$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # FlowModTypes - flow modifications observed
-  disturbanceFlowMod <- GET(paste0(service_url, "/8/query"),
-                                 query = list(where="1=1",
-                                              outFields="*",
-                                              f="JSON",
-                                              token=agol_token$token))
-  
-  disturbanceFlowMod <- fromJSON(content(disturbanceFlowMod, type = "text", encoding = "UTF-8"))
-  disturbanceFlowMod <- disturbanceFlowMod$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # WildlifeRepeat - wildlife observations
-  wildlife <- GET(paste0(service_url, "/9/query"),
-                       query = list(where="1=1",
-                                    outFields="*",
-                                    f="JSON",
-                                    token=agol_token$token))
-  
-  wildlife <- fromJSON(content(wildlife, type = "text", encoding = "UTF-8"))
-  wildlife <- wildlife$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # VegImageRepeat - riparian veg photo data
-  riparianVeg  <- GET(paste0(service_url, "/10/query"),
-                           query = list(where="1=1",
-                                        outFields="*",
-                                        f="JSON",
-                                        token=agol_token$token))
-  
-  riparianVeg  <- fromJSON(content(riparianVeg, type = "text", encoding = "UTF-8"))
-  riparianVeg  <- riparianVeg$features$attributes %>%
-    as_tibble() %>%
-    mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
-  
-  # InternalCamera - riparian veg photos taken on internal device camera
-  riparianVegInt <- GET(paste0(service_url, "/11/query"),
-                             query = list(where="1=1",
-                                          outFields="*",
-                                          f="JSON",
-                                          token=agol_token$token))
-  
-  riparianVegInt <- fromJSON(content(riparianVegInt, type = "text", encoding = "UTF-8"))
-  riparianVegInt <- riparianVegInt$features$attributes %>%
-    as_tibble()
-  
-  # ExternalCameraFiles - riparian veg photos taken on external camera
-  riparianVegExt <- GET(paste0(service_url, "/12/query"),
-                             query = list(where="1=1",
-                                          outFields="*",
-                                          f="JSON",
-                                          token=agol_token$token))
-  
-  riparianVegExt <- fromJSON(content(riparianVegExt, type = "text", encoding = "UTF-8"))
-  riparianVegExt <- riparianVegExt$features$attributes %>%
-    as_tibble()
-  
-  # InvImageRepeat - invasive veg photos taken on internal device camera
-  invasivesInt <- GET(paste0(service_url, "/13/query"),
-                           query = list(where="1=1",
-                                        outFields="*",
-                                        f="JSON",
-                                        token=agol_token$token))
-  
-  invasivesInt <- fromJSON(content(invasivesInt, type = "text", encoding = "UTF-8"))
-  invasivesInt <- invasivesInt$features$attributes %>%
-    as_tibble()
-  
-  # ExternalCameraFilesInv - invasive veg photos taken on external camera
-  invasivesExt  <- GET(paste0(service_url, "/14/query"),
-                            query = list(where="1=1",
-                                         outFields="*",
-                                         f="JSON",
-                                         token=agol_token$token))
-  
-  invasivesExt  <- fromJSON(content(invasivesExt , type = "text", encoding = "UTF-8"))
-  invasivesExt  <- invasivesExt $features$attributes %>%
-    as_tibble()
-  
-  # AdditionalPhotos2 - info about additional photos
-  additionalPhotos<- GET(paste0(service_url, "/15/query"),
-                              query = list(where="1=1",
-                                           outFields="*",
-                                           f="JSON",
-                                           token=agol_token$token))
-  
-  additionalPhotos <- fromJSON(content(additionalPhotos, type = "text", encoding = "UTF-8"))
-  additionalPhotos <- additionalPhotos$features$attributes %>%
-    as_tibble()
-  
-  # AdditionalPhotoInternal - additional photos taken on internal camera
-  additionalPhotosInt<- GET(paste0(service_url, "/16/query"),
-                                 query = list(where="1=1",
-                                              outFields="*",
-                                              f="JSON",
-                                              token=agol_token$token))
-  
-  additionalPhotosInt <- fromJSON(content(additionalPhotosInt, type = "text", encoding = "UTF-8"))
-  additionalPhotosInt <- additionalPhotosInt$features$attributes %>%
-    as_tibble()
-  
-  # AddtionalPhotoExternal - additional photos taken on external camera
-  additionalPhotosExt<- GET(paste0(service_url, "/17/query"),
-                                 query = list(where="1=1",
-                                              outFields="*",
-                                              f="JSON",
-                                              token=agol_token$token))
-  
-  additionalPhotosExt <- fromJSON(content(additionalPhotosExt, type = "text", encoding = "UTF-8"))
-  additionalPhotosExt <- additionalPhotosExt$features$attributes %>%
-    as_tibble()
-  
-  
+  agol_layers <- FetchAGOLLayers(data_path, agol_username, agol_password)
+  data <- WrangleAGOLData(agol_layers)
   
   return(data)
 }
@@ -595,8 +376,8 @@ LoadDesertSprings <- function(data_path = "https://services1.arcgis.com/fBc8EJBx
       dplyr::mutate_if(is.character, utf8::utf8_encode) %>%
       dplyr::mutate_if(is.character, trimws, whitespace = "[\\h\\v]") %>%  # Trim leading and trailing whitespace
       dplyr::mutate_if(is.character, dplyr::na_if, "") %>%  # Replace empty strings with NA
-      mutate_if(is.numeric, na_if, -9999) %>%  # Replace -9999 or -999 with NA
-      mutate_if(is.numeric, na_if, -999) %>%
+      dplyr::mutate_if(is.numeric, dplyr::na_if, -9999) %>%  # Replace -9999 or -999 with NA
+      dplyr::mutate_if(is.numeric, dplyr::na_if, -999) %>%
       dplyr::mutate_if(is.character, dplyr::na_if, "NA") %>%  # Replace "NA" strings with NA
       dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v]+", replacement = ";  ")  # Replace newlines with semicolons - reading certain newlines into R can cause problems
   })
