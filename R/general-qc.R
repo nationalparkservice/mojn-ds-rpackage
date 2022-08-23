@@ -511,7 +511,7 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 
   notsampled <- visit %>%
     dplyr::filter(MonitoringStatus != "Sampled") %>%
-    dplyr::select(-c("DPL", "SpringType", "Subunit"))
+    dplyr::select(-c("DPL", "SpringType"))
   
   return(notsampled)
 }
