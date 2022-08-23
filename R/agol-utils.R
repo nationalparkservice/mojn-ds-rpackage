@@ -209,7 +209,7 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitType,
                   MonitoringStatus,
                   SpringType,
-                  Notes = SpringComments,
+                  Notes,
                   DPL
     )
   
