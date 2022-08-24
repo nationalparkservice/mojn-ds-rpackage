@@ -378,7 +378,7 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   
   invasivesdata <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
-    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::inner_join(coords, by = c("SiteCode", "SiteName")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
                                                InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",
@@ -388,9 +388,11 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
-  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Tamarix ramosissima", "Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Polypogon monspeliensis", "Other"))
+  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Polypogon monspeliensis", "Tamarix ramosissima", "Other"))
   
-  pal <- leaflet::colorFactor(palette = c("chartreuse4", "gold", "cornflowerblue", "salmon", "darkorchid", "gray"),
+  invasivesdata %<>% dplyr::arrange(desc(PlantInfo))
+  
+  pal <- leaflet::colorFactor(palette = c("gold", "cornflowerblue", "salmon", "darkorchid", "chartreuse4", "gray"),
                               domain = invasivesdata$PlantInfo)
   
   # Make NPS map Attribution
@@ -456,7 +458,7 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   invasivesmap <- crosstalk::bscols(list(year_filter,
-                                    invmap))
+                                         invmap))
   
   return(invasivesmap)
 }

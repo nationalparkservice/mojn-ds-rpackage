@@ -381,8 +381,8 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 
   notsampled <- visit %>%
     dplyr::filter(MonitoringStatus != "Sampled") %>%
-    dplyr::select(-c("DPL", "SpringType"))
-  
+    dplyr::select(-any_of(c("DPL", "SpringType", "Subunit")))
+      
   return(notsampled)
 }
 
@@ -439,6 +439,8 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
 
   coords$SampleFrame <- factor(coords$SampleFrame, levels = c("Annual", "3Yr", "Over", "Inactive", "Rejected"))
   
+  coords  %<>% dplyr::arrange(desc(SampleFrame))
+  
   pal <- leaflet::colorFactor(palette = c("royalblue1", "red", "gold", "gray", "black"),
                               domain = coords$SampleFrame)
   
@@ -461,8 +463,8 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sitemap <- leaflet::leaflet(coords, height = height, width = width) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
