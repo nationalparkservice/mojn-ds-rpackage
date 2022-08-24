@@ -57,11 +57,18 @@ test_that("qcSensorSummary works as expected", {
   expected_cols <- c("Park", "DeploymentFieldSeason", "Deployed", "NoRetrievalAttempted", "RetrievalAttempted", "Retrieved", "Downloaded", "Percent_Retrieved", "Percent_Downloaded")
   expect_equal(actual_cols, expected_cols)
   
+  actual_int <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_int$Deployed), "integer")
+  expect_equal(class(actual_int$NoRetrievalAttempted), "integer")
+  expect_equal(class(actual_int$RetrievalAttempted), "integer")
+  expect_equal(class(actual_int$Retrieved), "integer")
+  expect_equal(class(actual_int$Downloaded), "integer")
+  
   actual_dbl <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
-  expect_equal(unique(sapply(actual_dbl[, 3:9], typeof)), "double")
+  expect_equal(unique(sapply(actual_dbl[, 8:9], typeof)), "double")
 
   actual_counts <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "JOTR", DeploymentFieldSeason == "2018") %>% dplyr::select(Deployed, Retrieved, Downloaded)
-  expected_counts <- tibble::as_tibble_row(c(Deployed = as.double(10), Retrieved = as.double(9), Downloaded = as.double(4)))
+  expected_counts <- tibble::as_tibble_row(c(Deployed = as.integer(10), Retrieved = as.integer(9), Downloaded = as.integer(4)))
   expect_equal(actual_counts, expected_counts)
   
   actual_percents <- qcSensorSummary(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "JOTR", DeploymentFieldSeason == "2018") %>% dplyr::select(Percent_Retrieved, Percent_Downloaded)
