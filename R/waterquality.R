@@ -804,7 +804,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
                               group = ~Bin) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Bin,
-                       title = "Specific Conductance (uS/cm))",
+                       title = "Specific Conductance (uS/cm)",
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
@@ -835,7 +835,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @examples
 WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   data <- desertsprings:::qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -937,7 +937,6 @@ WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = 
   return(wqdatamapph)
   
 }
-
 
 
 #' Map of dissolved oxygen concentration at springs with surface water

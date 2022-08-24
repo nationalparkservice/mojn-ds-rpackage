@@ -378,7 +378,7 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   
   invasivesdata <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
-    dplyr::inner_join(coords, by = c("SiteCode", "SiteName")) %>%
+    dplyr::inner_join(coords, by = c("SiteCode")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
                                                InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",
@@ -462,7 +462,3 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   
   return(invasivesmap)
 }
-
-
-#################### Functions for Desert Springs PowerPoint -- not for final data package
-
