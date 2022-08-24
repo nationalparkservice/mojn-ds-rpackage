@@ -276,134 +276,6 @@ qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.sourc
 }
 
 
-#' Apply some standard formatting to a ggplot object
-#'
-#' @param plot_title The title of the plot.
-#' @param sub_title Optional custom plot subtitle.
-#' @param x_lab X axis label.
-#' @param y_lab Y axis label.
-#' @param rotate_x_labs Boolean indicating whether to rotate x axis labels 90 degrees.
-#' @param ymax Optional maximum y limit.
-#' @param ymin Optional minimum y limit.
-#' @param xmax Optional maximum x limit.
-#' @param xmin Optional minimum x limit.
-#' @param data Data frame containing the data to be plotted.
-#' @param x_col Column name of independent variable. If plot type only requires one variable (e.g. histogram), use only one of x_col or y_col.
-#' @param y_col Column name of dependent variable. If plot type only requires one variable (e.g. histogram), use only one of x_col or y_col.
-#' @param facet_col Column to facet on. If this results in only one facet, it will be used as a subtitle instead.
-#' @param n_col_facet Number of columns of facet grid.
-#' @param facet_scales String indicating whether x and/or y scales should be fixed in a facetted plot.
-#' @param sample_size_col Column containing sample size labels.
-#' @param sample_size_loc Either 'xaxis' or 'plot'. 'xaxis' will add sample size to each x axis label. 'plot' will add sample size to the facet label (or subtitle, if only one facet).
-#' @param facet_as_subtitle If only one facet, use facet name as subtitle? Defaults to TRUE.
-#' @param transform_x Optional x axis transformation. One of 'log10', 'sqrt', or 'reverse'.
-#' @param transform_y Optional y axis transformation. One of 'log10', 'sqrt', or 'reverse'.
-#'
-#' @return A ggplot object
-#'
-#' @export
-#'
-FormatPlot <- function(data, x_col, y_col, facet_col, n_col_facet = 2, facet_scales = c("fixed", "free_x", "free_y", "free"), sample_size_col, sample_size_loc, plot_title = '', sub_title = '', facet_as_subtitle = TRUE, x_lab = '', y_lab = '', rotate_x_labs = FALSE, ymax, ymin, xmax, xmin, transform_x, transform_y) {
-  facet_scales <- match.arg(facet_scales)
-  # Add sample size information to either x axis labels or facet/subtitle
-  if (!missing(sample_size_col) && !missing(sample_size_loc)) {
-    sample_size_col <- dplyr::enquo(sample_size_col)
-    if (sample_size_loc == 'xaxis') {
-      data %<>% dplyr::mutate(!!x_col := paste0(!!x_col, '\n', !!sample_size_col))
-    } else if (sample_size_loc == 'plot' && !missing(facet_col)) {
-      data %<>% dplyr::mutate(!!dplyr::enquo(facet_col) := paste0(!!dplyr::enquo(facet_col), ' (', !!sample_size_col, ')'))
-    } else {
-      facet_col <- sample_size_col
-    }
-  }
-  # Allow for 1 or 2 variables
-  if (!missing(y_col) && !missing(x_col)) {
-    y_col <- dplyr::enquo(y_col)
-    x_col <- dplyr::enquo(x_col)
-    p <- ggplot2::ggplot(data, ggplot2::aes(x = !!x_col, y = !!y_col))
-  } else if (!missing(x_col)) {
-    x_col <- dplyr::enquo(x_col)
-    p <- ggplot2::ggplot(data, ggplot2::aes(!!x_col))
-  } else if (!missing(y_col)) {
-    y_col <- dplyr::enquo(y_col)
-    p <- ggplot2::ggplot(data, ggplot2::aes(!!y_col))
-  }
-  # Create facets if >1 event group, otherwise create subtitle
-  if (!missing(facet_col)) {
-    facet_col <- dplyr::enquo(facet_col)
-    facets <- unique(dplyr::select(data, !!facet_col))
-    if (nrow(facets) > 1) {
-      p <- p + ggplot2::facet_wrap(ggplot2::vars(!!facet_col), ncol = n_col_facet, scales = facet_scales)
-    } else if (sub_title == '' & facet_as_subtitle) {
-      sub_title <- facets
-    }
-  }
-  # Add title and subtitle if not blank
-  if (!missing(plot_title) && plot_title != "") {
-    p <- p + ggplot2::labs(title = plot_title)
-  }
-  if (!missing(sub_title) && sub_title != "") {
-    p <- p + ggplot2::labs(subtitle = sub_title)
-  }
-  # Add x and y axis titles if not blank
-  if (x_lab != "") {
-    p <- p + ggplot2::xlab(x_lab)
-  } else {
-    p <- p + ggplot2::theme(axis.title.x = ggplot2::element_blank())
-  }
-  if (y_lab != "") {
-    p <- p + ggplot2::ylab(y_lab)
-  } else {
-    p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
-  }
-  # Rotate x labels 90 degrees if rotate_x_labs is TRUE
-  if (!missing(rotate_x_labs)) {
-    p <- p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1))
-  }
-  # Set ymin and ymax if provided
-  if (!missing(ymin) && !missing(ymax)) {
-    p <- p + ggplot2::expand_limits(y = c(ymin, ymax))
-  } else if (!missing(ymax)) {
-    p <- p + ggplot2::expand_limits(y = ymax)
-  } else if (!missing(ymin)) {
-    p <- p + ggplot2::expand_limits(y = ymin)
-  }
-  # Set xmin and xmax if provided
-  if (!missing(xmin) && !missing(xmax)) {
-    p <- p + ggplot2::expand_limits(x = c(xmin, xmax))
-  } else if (!missing(xmax)) {
-    p <- p + ggplot2::expand_limits(x = xmax)
-  } else if (!missing(xmin)) {
-    p <- p + ggplot2::expand_limits(x = xmin)
-  }
-  # Tranform x axis, if transformation specified
-  if (!missing(transform_x)) {
-    if (transform_x == 'log10') {
-      p <- p + ggplot2::scale_x_log10()
-    } else if (transform_x == 'sqrt') {
-      p <- p + ggplot2::scale_x_sqrt()
-    } else if (transform_x == 'reverse') {
-      p <- p + ggplot2::scale_x_reverse()
-    } else {
-      stop(paste0("The x transformation specified, '", transform_x, "' is not a valid option."))
-    }
-  }
-  # Transform y axis, if transformation specified
-  if (!missing(transform_y)) {
-    if (transform_y == 'log10') {
-      p <- p + ggplot2::scale_y_log10()
-    } else if (transform_y == 'sqrt') {
-      p <- p + ggplot2::scale_y_sqrt()
-    } else if (transform_y == 'reverse') {
-      p <- p + ggplot2::scale_y_reverse()
-    } else {
-      stop(paste0("The y transformation specified, '", transform_y, "' is not a valid option."))
-    }
-  }
-  return(p)
-}
-
-
 #' Generate timeline of dates that each spring has been visited
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
@@ -509,7 +381,7 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 
   notsampled <- visit %>%
     dplyr::filter(MonitoringStatus != "Sampled") %>%
-    dplyr::select(-c("DPL", "SpringType", "Subunit"))
+    dplyr::select(-c("DPL", "SpringType"))
   
   return(notsampled)
 }
@@ -568,7 +440,7 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
                               domain = coords$SampleFrame)
   
   coords %<>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"))
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr", "Over", "Inactive"))
   
   # Make NPS map Attribution
   NPSAttrib <-
@@ -622,4 +494,3 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   return(sitemap)
   
 }
-
