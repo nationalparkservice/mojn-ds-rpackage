@@ -623,8 +623,8 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(flowcat)
   year_filter <- crosstalk::filter_slider("year",
@@ -653,7 +653,7 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
                                              "Flow Category: ", flowcat$FlowCategory, "<br>",
                                              "Estimated Discharge (L/s): ", flowcat$DischargeClass_L_per_s, "<br>",
                                              "Volumetric Discharge (L/s): ", round(flowcat$VolDischarge_L_per_s, 3)),
-                              radius = 6,
+                              radius = 5,
                               stroke = TRUE,
                               color = "black",
                               weight = 1,
@@ -745,3 +745,7 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
          y = "Springbrook Length (m)")
   
 }
+
+
+#################### Functions for Desert Springs PowerPoint -- not for final data package
+

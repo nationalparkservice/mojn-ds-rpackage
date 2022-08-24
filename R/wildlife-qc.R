@@ -129,8 +129,8 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(ungulatedata)
   year_filter <- crosstalk::filter_slider("year",
@@ -163,10 +163,12 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
                                              "Vocalization: ", ungulatedata$Vocalization, "<br>",
                                              "Other Evidence: ", ungulatedata$OtherEvidence, "<br>",
                                              "Notes: ", ungulatedata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(Observed),
+                              fillColor = ~pal(Observed),
                               group = ~Observed) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Observed,

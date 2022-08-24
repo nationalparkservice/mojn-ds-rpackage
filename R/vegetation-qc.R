@@ -188,6 +188,18 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
     dplyr::ungroup() %>%
     dplyr::arrange(Park, LifeFormCount) %>%
     dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
+  
+  veg.sums.lake <- veg %>%
+    dplyr::filter(VisitType == "Primary",
+                  Park == "LAKE") %>%
+    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::rename(LifeFormCount = n) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(Park, FieldSeason, LifeFormCount) %>%
+    dplyr::summarize(Occurences = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(Park, LifeFormCount) %>%
+    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
     
   veg.barplot.all <- ggplot2::ggplot(veg.sums.all,
                                  aes(x = LifeFormCount, y = Occurences,
@@ -250,11 +262,77 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
     xlab("Vegetation Life Form Category") +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))
   
+  
+  veg.types.year<- veg %>%
+    dplyr::filter(VisitType == "Primary",
+                  !is.na(LifeForm),
+                  Park == "LAKE",
+                  FieldSeason %in% c("2016", "2019", "2022")) %>%
+    dplyr::count(Park, FieldSeason, LifeForm) %>%
+    dplyr::rename(Observations = n,
+                  LifeFormCategory = LifeForm)
+  
+  veg.types.year.barplot <- ggplot2::ggplot(veg.types.year,
+                                       aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
+                                           y = Observations,
+                                           fill = FieldSeason,
+                                           text = paste("Lifeform Category: ", LifeFormCategory,
+                                                        "<br>Observations:", Observations))) +
+    tidytext::scale_x_reordered() +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    coord_flip() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+          axis.text.y = ggplot2::element_text(size = 20), #
+          axis.title.x = ggplot2::element_text(size = 24), #
+          axis.title.y = ggplot2::element_text(size = 24),
+          legend.text = ggplot2::element_text (size = 20),
+          legend.title = element_text(size = 20),
+          legend.position = "bottom") +
+    ylab("Number of Observations at Springs") +
+    xlab("Vegetation Life Form Category") +
+    scale_y_continuous(expand = expansion(mult = c(0, .1)))
+  
+  veg.types.year.barplot
+  
+  veg.types.med <- veg %>%
+    dplyr::filter(VisitType == "Primary",
+                  !is.na(LifeForm),
+                  Park == "LAKE",
+                  FieldSeason %in% c("2016", "2019", "2022")) %>%
+    dplyr::count(Park, FieldSeason, LifeForm) %>%
+    dplyr::rename(Observations = n,
+                  LifeFormCategory = LifeForm) %>%
+    dplyr::group_by(Park, LifeFormCategory) %>%
+    dplyr::summarize(Observations = median(Observations)) %>%
+    dplyr::ungroup()
+  
+  veg.types.med.barplot <- ggplot2::ggplot(veg.types.med,
+                                            aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
+                                                y = Observations,
+                                                text = paste("Lifeform Category: ", LifeFormCategory,
+                                                             "<br>Observations:", Observations))) +
+    tidytext::scale_x_reordered() +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    coord_flip() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+          axis.text.y = ggplot2::element_text(size = 20), #
+          axis.title.x = ggplot2::element_text(size = 24), #
+          axis.title.y = ggplot2::element_text(size = 24)) +
+    ylab("Number of Observations at Springs") +
+    xlab("Vegetation Life Form Category") +
+    scale_y_continuous(expand = expansion(mult = c(0, .1)))
+  
+  veg.types.med.barplot
+  
+  
+  
   return(veg.types.barplot)  
 }
 
 
-#' Table of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
+#' Table of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -271,14 +349,14 @@ InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.so
   
   targetinvasives <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode, ScientificName, InRiparianVegBuffer, Notes) %>%
-    dplyr::filter(USDAPlantsCode %in% c("PESE3", "PHDA4", "TARA", "WAFI")) %>%
+    dplyr::filter(USDAPlantsCode %in% c("PESE3", "PHDA4", "POMO5", "TARA", "WAFI")) %>%
     dplyr::arrange(SiteCode, FieldSeason)
   
   return(targetinvasives)
 }
 
 
-#' Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
+#' Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -302,17 +380,17 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3") ~ ScientificName,
-                                               InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3")) & !(is.na(USDAPlantsCode)) ~ "Other",
+    dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
+                                               InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",
                                                InvasivesObserved == "N" ~ "None",
                                                TRUE ~ "None")) %>%
     dplyr::filter(PlantInfo != "None") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
-  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Tamarix ramosissima", "Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Other"))
+  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Tamarix ramosissima", "Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Polypogon monspeliensis", "Other"))
   
-  pal <- leaflet::colorFactor(palette = c("chartreuse4", "gold", "cornflowerblue", "salmon", "gray"),
+  pal <- leaflet::colorFactor(palette = c("chartreuse4", "gold", "cornflowerblue", "salmon", "darkorchid", "gray"),
                               domain = invasivesdata$PlantInfo)
   
   # Make NPS map Attribution
@@ -331,8 +409,8 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(invasivesdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -361,10 +439,12 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
                                              "USDA Plants Code: ", invasivesdata$USDAPlantsCode, "<br>",
                                              "In Buffer: ", invasivesdata$InRiparianVegBuffer, "<br>",
                                              "Notes: ", invasivesdata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(PlantInfo),
+                              fillColor = ~pal(PlantInfo),
                               group = ~PlantInfo) %>%
     leaflet::addLegend(pal = pal,
                        values = ~PlantInfo,
@@ -380,3 +460,7 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   
   return(invasivesmap)
 }
+
+
+#################### Functions for Desert Springs PowerPoint -- not for final data package
+

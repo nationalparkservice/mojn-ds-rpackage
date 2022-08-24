@@ -229,8 +229,8 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
     dplyr::select(-c(VisitType, DPL, Notes)) %>%
     unique() %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Livestock) %>%
-    dplyr::mutate(HumanUse = ifelse(HumanUse > 0, 1, 0)) %>%
-    dplyr::mutate(Livestock = ifelse(Livestock > 0, 1, 0)) %>%
+    dplyr::mutate(HumanUse = ifelse(((HumanUse > 0) & !(HumanUse == "NoData")), 1, 0)) %>%
+    dplyr::mutate(Livestock = ifelse(((Livestock > 0) & !(Livestock == "NoData")), 1, 0)) %>%
     dplyr::group_by(Park, SiteCode, SiteName) %>%
     dplyr::summarize(Livestock = sum(Livestock), HumanUse = sum(HumanUse)) %>%
     dplyr::ungroup() %>%
@@ -346,8 +346,8 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(humandata)
   year_filter <- crosstalk::filter_slider("year",
@@ -372,12 +372,15 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", humandata$SiteName, "<br>",
                                              "Sample Frame: ", humandata$SampleFrame, "<br>",
+                                             "Water Year: ", humandata$FieldSeason, "<br>",
                                              "Human Disturbance Category: ", humandata$HumanUse, "<br>",
                                              "Notes: ", humandata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(Observed),
+                              fillColor = ~pal(Observed),
                               group = ~Observed) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Observed,
@@ -432,9 +435,13 @@ LivestockObservations <- function(conn, path.to.data, park, site, field.season, 
 LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
+  disturb %<>%
+    dplyr::filter(Park != "CAMO")
+  
   livestockplot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
     geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 100))
+    scale_y_continuous(limits = c(0, 100)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(livestockplot)
 }
@@ -455,7 +462,7 @@ LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @examples
 LivestockMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -492,8 +499,8 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(livestockdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -518,12 +525,15 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", livestockdata$SiteName, "<br>",
                                              "Sample Frame: ", livestockdata$SampleFrame, "<br>",
+                                             "Water Year: ", livestockdata$FieldSeason, "<br>",
                                              "Livestock Disturbance Category: ", livestockdata$Livestock, "<br>",
                                              "Notes: ", livestockdata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(Observed),
+                              fillColor = ~pal(Observed),
                               group = ~Observed) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Observed,
@@ -538,3 +548,24 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
   
   return(livestockmap)
 }
+
+
+#################### Functions for Desert Springs PowerPoint -- not for final data package
+
+LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  disturb %<>%
+    dplyr::filter(Park != "CAMO")
+  
+  livestockplot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
+    geom_bar(stat = "identity") +
+    scale_y_continuous(limits = c(0, 100)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+                   axis.text.y = ggplot2::element_text(size = 20), #
+                   axis.title.x = ggplot2::element_text(size = 24), #
+                   axis.title.y = ggplot2::element_text(size = 24)) #
+  
+  return(livestockplot)
+}
+
