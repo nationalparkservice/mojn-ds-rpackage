@@ -2,7 +2,7 @@
 % Please edit documentation in R/vegetation-qc.R
 \name{InvasivePlantsMap}
 \alias{InvasivePlantsMap}
-\title{Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations}
+\title{Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations}
 \usage{
 InvasivePlantsMap(
   conn,
@@ -30,5 +30,5 @@ InvasivePlantsMap(
 leaflet map
 }
 \description{
-Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
+Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 }

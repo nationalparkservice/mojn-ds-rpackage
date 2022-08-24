@@ -2,7 +2,7 @@
 % Please edit documentation in R/waterquality.R
 \name{WqPlotTemp}
 \alias{WqPlotTemp}
-\title{Generate box plots for water temperature for each park and year. Includes annual and 3Yr springs only.}
+\title{Generate box plots for water temperature for each park and 3-year cycle. Includes annual and 3Yr springs only.}
 \usage{
 WqPlotTemp(
   conn,
@@ -33,5 +33,5 @@ WqPlotTemp(
 Box plots of water temperature data for each park and field season.
 }
 \description{
-Generate box plots for water temperature for each park and year. Includes annual and 3Yr springs only.
+Generate box plots for water temperature for each park and 3-year cycle. Includes annual and 3Yr springs only.
 }
