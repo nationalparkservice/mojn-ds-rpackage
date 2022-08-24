@@ -604,6 +604,8 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
   
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
+  flowcat %<>% dplyr::arrange(desc(FlowCategory))
+  
   pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "lightskyblue", "gold", "red"),
                               domain = flowcat$FlowCategory)
   
@@ -680,7 +682,6 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
     }
   } else {
   }
-   
      
   return(flowmap)
   
