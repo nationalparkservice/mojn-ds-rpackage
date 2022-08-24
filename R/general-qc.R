@@ -432,7 +432,10 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
   site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
+    dplyr::mutate(SampleFrameRadius = dplyr::case_when(SampleFrame == "Annual" ~ 5,
+                                                       SampleFrame == "3Yr" ~ 5,
+                                                       TRUE ~ 3))
 
   coords$SampleFrame <- factor(coords$SampleFrame, levels = c("Annual", "3Yr", "Over", "Inactive", "Rejected"))
   
@@ -475,7 +478,7 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
                                              "Longitude (UTM): ", coords$Y_UTM_NAD83_11N, "<br>",
                                              "Latitude (Decimal Degrees): ", coords$Lat_WGS84, "<br>",
                                              "Longitude (Decimal Degrees): ", coords$Lon_WGS84),
-                              radius = 6,
+                              radius = ~SampleFrameRadius,
                               stroke = TRUE,
                               color = "black",
                               weight = 2,
