@@ -99,8 +99,8 @@ mon.tidy <- mon %>%
   dplyr::left_join(type, by = c("SiteCode", "VisitDate")) %>%
   dplyr::relocate(SpringType, .after = "VisitType") %>%
   dplyr::left_join(mon.app, by = "SiteCode") %>%
-  dplyr::select(-DPL) %>%
-  dplyr::filter(!(Park == "CAMO" & FieldSeason == "2017"))
+  dplyr::filter(!(Park == "CAMO" & FieldSeason == "2017")) %>%
+  dplyr::select(-SpringbrookNotes)
 
 wy22.app <- mon.tidy %>%
   dplyr::select(SiteCode, SiteName, SampleFrame, ElevationDEM_m)
@@ -393,6 +393,10 @@ FullFlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, f
 
 
 TempElevPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+
+  name <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/qSumB_SpringInventoryEvents_20220216.csv"
+  name2 <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/DSVisitRawData.csv"
+  
   inv <- readr::read_csv(name, show_col_types = FALSE)
   sites <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   wq <- WqMedian(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
@@ -407,34 +411,54 @@ TempElevPlot <- function(conn, path.to.data, park, site, field.season, data.sour
   
   wq.elev <- wq %>%
     dplyr::left_join(elev, by = "SiteCode") %>%
-    dplyr::filter(Park != "CAMO")
+    dplyr::filter(Park != "CAMO",
+                  SampleFrame %in% c("Annual", "3Yr"))
   
-  temp.elev.plot <- ggplot2::ggplot(wq.elev,
-                                    aes(x = TempMedian,
-                                    y = ElevationDEM_ft,
-                                    color = Park,
-                                    shape = Park
+  wq.elev.med <- wq.elev %>%
+    dplyr::group_by(Park, SiteCode, VisitType, SampleFrame, ElevationDEM_ft, ElevationDEM_m) %>%
+    dplyr::summarize(T_Med = median(TemperatureMedian_C, na.rm = TRUE),
+                     SpCond_Med = median(SpCondMedian_microS_per_cm, na.rm = TRUE),
+                     pH_Med = median(pHMedian, na.rm = TRUE),
+                     DO_Med = median(DOMedian_mg_per_L, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+  
+  temp.elev.plot <- ggplot2::ggplot(wq.elev.med,
+                                    aes(x = ElevationDEM_m,
+                                    y = T_Med,
+                                    # color = Park,
+                                    # shape = Park
                                     # label = SiteCode,
                                     # label2 = FieldSeason
                                     )) +
     geom_point(size = 4) +
-    geom_smooth(method = "lm"
-                # aes(fill = Park)
-                    ) +
+    # geom_smooth(method = "lm"
+                ## aes(fill = Park)
+    #                ) +
+    ggpmisc::stat_poly_line() +
+    ggpmisc::stat_poly_eq(aes(label =  paste(after_stat(eq.label),
+                                             after_stat(rr.label),
+                                             after_stat(n.label),
+                                             sep = '*", "*'))) +
     scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "bottom",
-          axis.text = element_text(size = 28, color = "black"),
-          axis.title = element_text(size = 28, face = "bold"),
-          legend.text = element_text(size = 28),
-          legend.title = element_text(size = 28, face = "bold"),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 20, color = "black"),
+          axis.text.y = element_text(size = 20, color = "black"),
+          axis.title = element_text(size = 24, face = "bold"),
+          legend.text = element_text(size = 24),
+          legend.title = element_text(size = 24, face = "bold"),
           axis.title.x = element_text(margin = margin (t = 10)),
           axis.title.y = element_text(margin = margin (r = 15)),
+          strip.text.x = ggplot2::element_text(size = 20),
           legend.key = element_blank()) +
-    labs(x = "Water Temperature (C)",
-         y = "Elevation of Spring (ft)") +
-    ylim(min = -500, 8000)
-
+    labs(y = "Water Temperature (C)",
+         x = "Elevation of Spring (m)") +
+    # xlim(min = -500, 8000) +
+    facet_grid(.~Park, scales = "free", space = "free_y")
+  
+  temp.elev.plot
+  
   return(temp.elev.plot)  
+
 }
 
 
@@ -453,35 +477,56 @@ SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.so
   
   wq.elev <- wq %>%
     dplyr::left_join(elev, by = "SiteCode") %>%
-    dplyr::filter(!(SiteCode == "LAKE_P_SAU0022" & FieldSeason == "2016")) %>%
-    dplyr::filter(Park != "CAMO")
+    dplyr::filter(Park != "CAMO",
+                  SampleFrame %in% c("Annual", "3Yr"))
   
-  spcond.elev.plot <- ggplot2::ggplot(wq.elev,
-                                      aes(x = SpCondMedian,
-                                          y = ElevationDEM_ft,
-                                          color = Park,
-                                          shape = Park
-                                          # label = paste(SiteCode, FieldSeason)
-                                          )) +
-    geom_point() +
-    geom_smooth(method = "lm") +
-    scale_x_log10(labels = comma) +
+  wq.elev.med <- wq.elev %>%
+    dplyr::group_by(Park, SiteCode, VisitType, SampleFrame, ElevationDEM_ft, ElevationDEM_m) %>%
+    dplyr::summarize(T_Med = median(TemperatureMedian_C, na.rm = TRUE),
+                     SpCond_Med = median(SpCondMedian_microS_per_cm, na.rm = TRUE),
+                     pH_Med = median(pHMedian, na.rm = TRUE),
+                     DO_Med = median(DOMedian_mg_per_L, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+  
+  spcond.elev.plot <- ggplot2::ggplot(wq.elev.med,
+                                    aes(x = ElevationDEM_m,
+                                        y = SpCond_Med,
+                                        # color = Park,
+                                        # shape = Park
+                                        # label = SiteCode,
+                                        # label2 = FieldSeason
+                                    )) +
     geom_point(size = 4) +
-    geom_smooth(method = "lm"
-                # aes(fill = Park)
-    ) +
+    # geom_smooth(method = "lm"
+    ## aes(fill = Park)
+    #                ) +
+    ggpmisc::stat_poly_line() +
+    ggpmisc::stat_poly_eq(aes(label =  paste(after_stat(eq.label),
+                                             after_stat(rr.label),
+                                             after_stat(n.label),
+                                             sep = '*", "*'))) +
+    # ggpmisc::stat_correlation(mapping = aes(label = paste(after_stat(p.value.label),
+    #                                                      after_stat(n.label),
+    #                                                      sep = '*"; "*'))) +
     scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "bottom",
-          axis.text = element_text(size = 28, color = "black"),
-          axis.title = element_text(size = 28, face = "bold"),
-          legend.text = element_text(size = 28),
-          legend.title = element_text(size = 28, face = "bold"),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 20, color = "black"),
+          axis.text.y = element_text(size = 20, color = "black"),
+          axis.title = element_text(size = 24, face = "bold"),
+          legend.text = element_text(size = 24),
+          legend.title = element_text(size = 24, face = "bold"),
           axis.title.x = element_text(margin = margin (t = 10)),
           axis.title.y = element_text(margin = margin (r = 15)),
+          strip.text.x = ggplot2::element_text(size = 20),
           legend.key = element_blank()) +
-    labs(x = "Specific Conductance (uS/cm)",
-         y = "Elevation of Spring (ft)") +
-    ylim(min = -500, 8000)
+    # scale_y_log10() +
+    labs(y = "Specific Conductance (uS/cm)",
+         x = "Elevation of Spring (m)") +
+    # ylim(min = 0, max = 10000) +
+    # xlim(min = -500, 8000) +
+    facet_grid(.~Park, scales = "free")
+  
+  spcond.elev.plot
   
   return(spcond.elev.plot)    
   
@@ -606,4 +651,59 @@ FullFlowCategoriesHeatMap <- function(conn, path.to.data, park, site, field.seas
     facet_grid(Park~., scales = "free", space = "free_y")
   
   return(heatmap)
+}
+
+FlowCatElevPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+ 
+  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  
+  flowcatelev <- joined %>%
+    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
+                                                  FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                                  TRUE ~ "NA")) %>%
+    dplyr::mutate(FlowCategory = dplyr::case_when(SiteCode == "PARA_P_COY0069" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "JOTR_P_EAS0160" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "JOTR_P_PIN0216" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "JOTR_P_QUE0109" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "MOJA_P_WIL0222" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "MOJA_P_BUD0021" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "MOJA_P_BUD0021" & FieldSeason == "2016" ~ "< 10 m",
+                                                  SiteCode == "MOJA_P_HOR0121" & FieldSeason == "2006" ~ "< 10 m",
+                                                  SiteCode == "LAKE_P_WHI0030" & FieldSeason == "2007" ~ "< 10 m",
+                                                  SiteCode == "LAKE_P_LOS0009" & FieldSeason == "2007" ~ "< 10 m",
+                                                  SiteCode == "LAKE_P_NEV0035" & FieldSeason == "2007" ~ "< 10 m",
+                                                  SiteCode == "LAKE_P_BLA0053" & FieldSeason == "2007" ~ "< 10 m",
+                                                  SiteCode == "LAKE_P_ARI0003" & FieldSeason == "2007" ~ "< 10 m",
+                                                  SiteCode == "DEVA_P_HOL0706" & FieldSeason == "2005" ~ "< 10 m",
+                                                  SiteCode == "DEVA_P_EAS0201" & FieldSeason == "2005" ~ "< 10 m",
+                                                  SiteCode == "DEVA_P_SED1050" & FieldSeason == "2005" ~ "< 10 m",
+                                                  SiteCode == "DEVA_P_MES0218" & FieldSeason == "2005" ~ "10 - 50 m",
+                                                  SiteCode == "DEVA_P_SAL0168" & FieldSeason == "2005" ~ "> 50 m",
+                                                  SiteCode == "DEVA_P_HUN0746" & FieldSeason == "2005" ~ "> 50 m",
+                                                  SiteCode == "DEVA_P_HUN0486" & FieldSeason == "2005" ~ "> 50 m",
+                                                  SiteCode == "DEVA_P_FLY0494" & FieldSeason == "2005" ~ "> 50 m",
+                                                  SiteCode == "DEVA_P_HAL0809" & FieldSeason == "2006" ~ "> 50 m",
+                                                  TRUE ~ FlowCategory)) %>%
+    dplyr::mutate(SampleFrame = dplyr::case_when(SiteCode == "MOJA_P_WHI0220" ~ "Over",
+                                                 SiteCode == "MOJA_P_CUT0081" ~ "Over",
+                                                 # SiteCode == "LAKE_P_ARI0003" ~ "Inactive",
+                                                 # SiteCode == "LAKE_P_NEV0035" ~ "Inactive",
+                                                 SiteCode == "JOTR_P_BLA0045" ~ "Inactive",
+                                                 TRUE ~ SampleFrame)) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory, ElevationDEM_m, ElevationDEM_ft) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
+                  Park != "CAMO",
+                  FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022")) %>%
+    dplyr::arrange(SiteCode, FieldSeason, SampleFrame, FlowCategory)
+  
+  flowcatelev$FlowCategory <- factor(flowcatelev$FlowCategory, levels = c("Dry", "Wet Soil", "< 10 m", "10 - 50 m", "> 50 m"))
+  
+  plot <- ggplot2::ggplot(flowcatelev, aes(x = FlowCategory, y = ElevationDEM_ft)) +
+    geom_boxplot() +
+    facet_grid(Park~.)
+   
 }
