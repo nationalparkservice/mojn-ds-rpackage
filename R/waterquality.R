@@ -8,7 +8,7 @@
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param data.name The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.
 #'
-#' @return A tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
+#' @return Tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
 #' @export
 #'
 WqMedian <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -77,7 +77,7 @@ WqMedian <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
 qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -139,7 +139,7 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
 qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -190,7 +190,7 @@ qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 #' @export
 #'
 qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -250,7 +250,7 @@ qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
+#' @return Tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 #' @export
 #'
 WqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -288,7 +288,7 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title Include plot title? Defaults to TRUE
 #'
-#' @return Box plots of water temperature data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
 WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
@@ -330,7 +330,7 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of specific conductance data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
 WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
@@ -372,7 +372,7 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of pH data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
 WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
@@ -413,7 +413,7 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
 WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
@@ -455,7 +455,7 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of dissolved oxygen (percent) data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
 WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
@@ -494,7 +494,7 @@ WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
+#' @return Grid of ggplot box plots
 #' @export
 #'
 WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -518,7 +518,7 @@ WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -551,7 +551,7 @@ qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -591,7 +591,7 @@ qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return a leaflet map
+#' @return leaflet map
 #' @export
 #'
 #' @examples
@@ -709,7 +709,7 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return a leaflet map
+#' @return leaflet map
 #' @export
 #'
 #' @examples
@@ -829,7 +829,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return a leaflet map
+#' @return leaflet map
 #' @export
 #'
 #' @examples
@@ -948,7 +948,7 @@ WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return a leaflet map
+#' @return leaflet map
 #' @export
 #'
 #' @examples

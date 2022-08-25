@@ -7,7 +7,7 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for 
+#' @return Tibble
 #' @export
 #'
 qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -32,7 +32,7 @@ qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.seas
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -62,7 +62,7 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {

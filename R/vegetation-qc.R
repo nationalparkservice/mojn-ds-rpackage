@@ -7,7 +7,7 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -32,7 +32,7 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -57,7 +57,7 @@ qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -82,7 +82,7 @@ qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -118,7 +118,8 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#' @return
+#'
+#' @return Tibble
 #' @export
 #'
 LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -144,7 +145,7 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot bar plot
 #' @export
 #'
 LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
@@ -234,7 +235,7 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot bar plot
 #' @export
 #'
 MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
@@ -341,7 +342,7 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.source = "database") {

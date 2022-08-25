@@ -7,7 +7,7 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -37,7 +37,7 @@ VolumetricMedian  <- function(conn, path.to.data, park, site, field.season, data
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -77,7 +77,7 @@ SpringDischarge <- function(conn, path.to.data, park, site, field.season, data.s
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -104,7 +104,7 @@ qcSpringDryWater <- function(conn, path.to.data, park, site, field.season, data.
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -129,7 +129,7 @@ qcSpringNotDryNoDischarge <- function(conn, path.to.data, park, site, field.seas
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -154,7 +154,7 @@ qcSpringNotDryNoSpringbrook <- function(conn, path.to.data, park, site, field.se
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -189,7 +189,7 @@ qcSpringNotDryNoWater <- function(conn, path.to.data, park, site, field.season, 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -215,7 +215,7 @@ qcDischargeMissing <- function(conn, path.to.data, park, site, field.season, dat
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -240,7 +240,7 @@ qcVolumetricMissing <- function(conn, path.to.data, park, site, field.season, da
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -264,7 +264,7 @@ qcVolumetricFillEvents <- function(conn, path.to.data, park, site, field.season,
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -292,7 +292,7 @@ qcVolumetricTimes <- function(conn, path.to.data, park, site, field.season, data
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -316,7 +316,7 @@ qcContinuousLength <- function(conn, path.to.data, park, site, field.season, dat
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -351,7 +351,7 @@ FlowCategoriesContinuous <- function(conn, path.to.data, park, site, field.seaso
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -661,14 +661,14 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
                               weight = 1,
                               fillOpacity = 1,
                               fillColor = ~pal(FlowCategory),
-                              group = ~SampleFrame) %>%
+                              group = ~FlowCategory) %>%
     leaflet::addLegend(pal = pal,
                        values = ~FlowCategory,
                        title = "Flow Category",
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~SampleFrame,
+                              overlayGroups = ~FlowCategory,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   if (!missing(interactive)) {

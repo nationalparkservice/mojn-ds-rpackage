@@ -7,10 +7,10 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
+#' @return Tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 #' @export
 #'
-#' @examples qcCompleteness(conn = conn, path.to.data = "", park = "DEVA", field.season = "2018", data.source = "")
+#' @examples qcCompleteness(conn = conn, path.to.data = "", park = "DEVA", field.season = "2018", data.source = "local")
 qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
   completeness <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
@@ -79,7 +79,7 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A stacked bar graph showing the count of annual and 3Yr springs monitored for each park and field season.
+#' @return ggplot stacked bar plot
 #' @export
 #' 
 #' @examples
@@ -113,7 +113,7 @@ qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, dat
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -215,7 +215,7 @@ dpl <- visit.DPL %>%
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -246,7 +246,7 @@ qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.seas
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -284,7 +284,7 @@ qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A ggplot object
+#' @return ggplot timeline
 #' @export
 #'
 #' @examples
@@ -372,7 +372,7 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -395,7 +395,7 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
@@ -423,7 +423,7 @@ qcRepeatVisits <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A leaflet map
+#' @return leaflet map
 #' @export
 #'
 #' @examples

@@ -7,7 +7,7 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -40,7 +40,7 @@ qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, d
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -64,7 +64,7 @@ qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -93,7 +93,7 @@ FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 qcFlowModDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -123,7 +123,7 @@ return(discrepancies)
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 FlowModCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -179,7 +179,7 @@ return(percent)
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot bar plot
 #' @export
 #'
 FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -208,7 +208,7 @@ FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -258,7 +258,7 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 HumanUseObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -281,7 +281,7 @@ HumanUseObservations <- function(conn, path.to.data, park, site, field.season, d
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot bar plot
 #' @export
 #'
 HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -295,7 +295,7 @@ HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.sour
 }
 
 
-#' Function NYI: Map of human use observations
+#' Map of human use observations
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -304,7 +304,7 @@ HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return leaflet map
 #' @export
 #'
 HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -326,6 +326,8 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
     dplyr::relocate(Year, .after = FieldSeason)
   
   humandata$Observed <- factor(humandata$Observed, levels = c("Yes"))
+  
+  humandata %<>% dplyr::arrange(FieldSeason)
   
   pal <- leaflet::colorFactor(palette = c("red"),
                               domain = humandata$Observed)
@@ -406,7 +408,7 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
 LivestockObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
@@ -429,7 +431,7 @@ LivestockObservations <- function(conn, path.to.data, park, site, field.season, 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot bar plot
 #' @export
 #'
 LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
