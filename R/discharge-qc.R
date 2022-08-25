@@ -559,7 +559,7 @@ FlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field
 #'
 FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field.season, data.source = "database") {
   discharge <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -604,7 +604,7 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
   
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  flowcat %<>% dplyr::arrange(desc(FlowCategory))
+  flowcat %<>% dplyr::arrange(FieldSeason, desc(FlowCategory))
   
   pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "lightskyblue", "gold", "red"),
                               domain = flowcat$FlowCategory)
@@ -697,7 +697,7 @@ FlowCategoriesMap <- function(conn, interactive, path.to.data, park, site, field
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot box plot
 #' @export
 #'
 #' @examples
@@ -705,15 +705,17 @@ SpringbrookLengthsAnnualPlot <- function(conn, path.to.data, park, site, field.s
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
   discontinuous <- joined %>%
-    dplyr::mutate(SpringbrookLength_m = ifelse(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
-    dplyr::mutate(NewSpringbrookLength_m = if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
+    dplyr::mutate(SpringbrookLength_m = dplyr::if_else(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
+    dplyr::mutate(NewSpringbrookLength_m = dplyr::if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
     
-  plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
+  plot <- ggplot2::ggplot(discontinuous %>% dplyr::filter(SampleFrame == "Annual"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
     geom_boxplot() +
     facet_grid(~Park, scales = "free", space = "free_x") +
     theme(axis.text.x = element_text(angle = 90)) +
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
+  
+  return(plot)
   
 }
 
@@ -727,7 +729,7 @@ SpringbrookLengthsAnnualPlot <- function(conn, path.to.data, park, site, field.s
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return ggplot box plot
 #' @export
 #'
 #' @examples
@@ -735,18 +737,16 @@ SpringbrookLengthsThreeYearPlot <- function(conn, path.to.data, park, site, fiel
   joined <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
   
   discontinuous <- joined %>%
-    dplyr::mutate(SpringbrookLength_m = ifelse(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
-    dplyr::mutate(NewSpringbrookLength_m = if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
+    dplyr::mutate(SpringbrookLength_m = dplyr::if_else(SpringbrookLengthFlag == ">50m", 50, SpringbrookLength_m)) %>%
+    dplyr::mutate(NewSpringbrookLength_m = dplyr::if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
   
-  plot <- ggplot2::ggplot(discontinuous %>% filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
+  plot <- ggplot2::ggplot(discontinuous %>% dplyr::filter(SampleFrame == "3Yr"), aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
     geom_boxplot() +
     facet_grid(~Park, scales = "free", space = "free_x") +
     theme(axis.text.x = element_text(angle = 90)) +
     labs(x = "Field Season",
          y = "Springbrook Length (m)")
   
+  return(plot)
+  
 }
-
-
-#################### Functions for Desert Springs PowerPoint -- not for final data package
-

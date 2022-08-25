@@ -480,6 +480,8 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
   
   livestockdata$Observed <- factor(livestockdata$Observed, levels = c("Yes"))
   
+  livestockdata %<>% dplyr::arrange(FieldSeason)
+  
   pal <- leaflet::colorFactor(palette = c("red"),
                               domain = livestockdata$Observed)
   

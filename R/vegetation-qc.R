@@ -390,7 +390,7 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   
   invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Polypogon monspeliensis", "Tamarix ramosissima", "Other"))
   
-  invasivesdata %<>% dplyr::arrange(desc(PlantInfo))
+  invasivesdata %<>% dplyr::arrange(FieldSeason, desc(PlantInfo))
   
   pal <- leaflet::colorFactor(palette = c("gold", "cornflowerblue", "salmon", "darkorchid", "chartreuse4", "gray"),
                               domain = invasivesdata$PlantInfo)

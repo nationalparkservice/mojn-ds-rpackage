@@ -624,7 +624,7 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"))
   
-  wqdata %<>% dplyr::arrange(Value)
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
   
   pal <- leaflet::colorFactor(palette = "RdYlBu",
                               domain = wqdata$Bin,
@@ -743,7 +743,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"))
   
-  wqdata %<>% dplyr::arrange(Value)
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
 
   pal <- leaflet::colorFactor(palette = "Reds",
                               domain = wqdata$Bin,
@@ -863,7 +863,7 @@ WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = 
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 6.5", "6.5 - 7", "7 - 7.5", "7.5 - 8", "8 - 8.5", "8.5 - 9", "> 9"))
   
-  wqdata %<>% dplyr::arrange(desc(Value))
+  wqdata %<>% dplyr::arrange(FieldSeason, desc(Value))
   
   pal <- leaflet::colorFactor(palette = c("#FDAE61", "#FFFFBF", "#E0F3F8", "#ABD9E9", "#71ADD1", "#4575B4", "#313695"),
                               domain = wqdata$Bin,
@@ -981,7 +981,7 @@ WqMapDO <- function(conn, path.to.data, park, site, field.season, data.source = 
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 2", "2 - 4", "4 - 6", "6 - 8", "8 - 10", "> 10"))
   
-  wqdata %<>% dplyr::arrange(Value)
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
   
   pal <- leaflet::colorFactor(palette = "Blues",
                               domain = wqdata$Bin,

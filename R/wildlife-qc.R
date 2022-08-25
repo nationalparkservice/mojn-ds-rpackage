@@ -110,6 +110,8 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
   
   ungulatedata$Observed <- factor(ungulatedata$Observed, levels = c("Yes"))
   
+  ungulatedata %<>% dplyr::arrange(FieldSeason)
+  
   pal <- leaflet::colorFactor(palette = c("red"),
                      domain = ungulatedata$Observed)
   
