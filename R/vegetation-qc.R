@@ -10,8 +10,17 @@
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcVegPresentNoLifeforms(conn)
+#'     qcVegPresentNoLifeforms(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVegPresentNoLifeforms(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     qcVegPresentNoLifeforms(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
   
   vegnolife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -35,8 +44,17 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcNoVegLifeformsPresent(conn)
+#'     qcNoVegLifeformsPresent(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcNoVegLifeformsPresent(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     qcNoVegLifeformsPresent(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
   
   noveglife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -60,8 +78,17 @@ qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcLifeformPresentNoRank(conn)
+#'     qcLifeformPresentNoRank(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcLifeformPresentNoRank(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     qcLifeformPresentNoRank(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
   
   lifenorank <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -85,8 +112,17 @@ qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcLifeformRankCheck(conn)
+#'     qcLifeformRankCheck(conn, site = "JOTR_P_NOR0083", field.season = "2021")
+#'     qcLifeformRankCheck(conn, park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
+#'     qcLifeformRankCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
   
   rankcheck <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -115,15 +151,22 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LifeformsPresence(conn)
+#'     LifeformsPresence(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     LifeformsPresence(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
   
   veg.summary <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -137,6 +180,7 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 }
 
 
+######################## FIX: SEPARATE YEARS
 #' Bar plot showing the distribution of the number of life form categories at springs by park
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
@@ -148,19 +192,33 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 #' @return ggplot bar plot
 #' @export
 #'
-LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LifeformsPerSpringPlot(conn)
+#'     LifeformsPerSpringPlot(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     LifeformsPerSpringPlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   veg %<>% dplyr::filter(Park != "CAMO")
+  site %<>% dplyr::select(SiteCode, SampleFrame)
   
   veg.sums <- veg %>%
-    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::filter(VisitType == "Primary",
+                  SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
     dplyr::rename(LifeFormCount = n) %>%
     dplyr::ungroup()
   
   veg.sums.all <- veg %>%
-    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::filter(VisitType == "Primary",
+                  SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
     dplyr::rename(LifeFormCount = n) %>%
     dplyr::ungroup() %>%
@@ -172,6 +230,24 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
   
   veg.stats.all <- veg.sums %>%
     dplyr::group_by(Park) %>%
+    dplyr::summarize(Mean = round(mean(LifeFormCount), 2),
+                     Median = round(median(LifeFormCount), 2))
+  
+  veg.sums.year <- veg %>%
+    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::filter(VisitType == "Primary",
+                  SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::rename(LifeFormCount = n) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(Park, FieldSeason, LifeFormCount) %>%
+    dplyr::summarize(Occurences = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(Park, FieldSeason, LifeFormCount) %>%
+    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
+  
+  veg.stats.year <- veg.sums %>%
+    dplyr::group_by(Park, FieldSeason) %>%
     dplyr::summarize(Mean = round(mean(LifeFormCount), 2),
                      Median = round(median(LifeFormCount), 2))
   
@@ -223,7 +299,22 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
     ylab("Number of Occurences (Latest Field Season with Data") +
     scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"))
   
-  return(veg.barplot.all)
+  veg.barplot.year <- ggplot2::ggplot(veg.sums.year,
+                                     aes(x = LifeFormCount, y = Occurences, fill = FieldSeason,
+                                         text = paste("Lifeform Count: ", LifeFormCount,
+                                                      "<br>Occurences:", Occurences))) +
+    geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
+    facet_grid(FieldSeason ~ Park) +
+    xlab("Number of Different Vegetation Life Form Categories") +
+    ylab("Number of Occurences (All Field Seasons)") +
+    scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
+    geom_vline(data = veg.stats.year, aes(xintercept = Mean, color = "Mean"), linetype = "longdash", size = 1) +
+    geom_vline(data = veg.stats.year, aes(xintercept = Median, color = "Median"), size = 1) +
+    scale_color_manual(name = "Stats", values = c(Median = "black", Mean = "red"))
+  
+  veg.barplot.year
+  
+  return(veg.barplot.year)
 }
 
 
@@ -238,10 +329,20 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
 #' @return ggplot bar plot
 #' @export
 #'
-MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
-
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     MostCommonLifeformsPlot(conn)
+#'     MostCommonLifeformsPlot(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     MostCommonLifeformsPlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+MostCommonLifeformsPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  veg <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  
   veg %<>% dplyr::filter(Park != "CAMO")
+  site %<>% dplyr::select(SiteCode, SampleFrame)
   
   veg.types <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -263,8 +364,9 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
     xlab("Vegetation Life Form Category") +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))
   
+  veg.types.barplot
   
-  veg.types.year<- veg %>%
+  veg.types.lake <- veg %>%
     dplyr::filter(VisitType == "Primary",
                   !is.na(LifeForm),
                   Park == "LAKE",
@@ -273,7 +375,7 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
     dplyr::rename(Observations = n,
                   LifeFormCategory = LifeForm)
   
-  veg.types.year.barplot <- ggplot2::ggplot(veg.types.year,
+  veg.types.lake.barplot <- ggplot2::ggplot(veg.types.lake,
                                        aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
                                            y = Observations,
                                            fill = FieldSeason,
@@ -294,7 +396,7 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
     xlab("Vegetation Life Form Category") +
     scale_y_continuous(expand = expansion(mult = c(0, .1)))
   
-  veg.types.year.barplot
+  veg.types.lake.barplot
   
   veg.types.med <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -327,9 +429,45 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
   
   veg.types.med.barplot
   
+  #####
   
+  veg.types.year <- veg %>%
+    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::filter(VisitType == "Primary",
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  !is.na(LifeForm),
+                  Park != "CAMO") %>%
+    dplyr::count(Park, FieldSeason, LifeForm) %>%
+    dplyr::rename(Observations = n,
+                  LifeFormCategory = LifeForm) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                            Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023", "2026"),
+                            Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024", "2027"),
+                            TRUE ~ !is.na(FieldSeason)))
   
-  return(veg.types.barplot)  
+  veg.types.year.barplot <- ggplot2::ggplot(veg.types.year,
+                                            aes(x = tidytext::reorder_within(x = LifeFormCategory,
+                                                                             by = Observations,
+                                                                             within = list(Park)),
+                                                y = Observations,
+                                                fill = FieldSeason,
+                                                text = paste("Lifeform Category: ", LifeFormCategory,
+                                                             "<br>Observations:", Observations))) +
+    tidytext::scale_x_reordered() +
+    geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
+    coord_flip() +
+    theme(panel.grid.major.y = element_blank(),
+          axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5),
+          legend.position = "bottom") +
+    ylab("Number of Observations at Springs") +
+    xlab("Vegetation Life Form Category") +
+    scale_y_continuous(expand = expansion(mult = c(0, .1))) +
+    facet_grid(Park~.,
+               scales = "free")
+  
+  veg.types.year.barplot
+  
+  return(veg.types.year.barplot)  
 }
 
 
@@ -345,8 +483,17 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     InvasivePlants(conn)
+#'     InvasivePlants(conn, site = "LAKE_P_HOR0042", field.season = "2020")
+#'     InvasivePlants(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     InvasivePlants(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Invasives")
+  invasives <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Invasives")
   
   targetinvasives <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode, ScientificName, InRiparianVegBuffer, Notes) %>%
@@ -370,9 +517,17 @@ InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     InvasivePlantsMap(conn)
+#'     InvasivePlantsMap(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     InvasivePlantsMap(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     InvasivePlantsMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Invasives")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  invasives <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Invasives")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

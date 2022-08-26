@@ -10,11 +10,19 @@
 #' @return Tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 #' @export
 #'
-#' @examples qcCompleteness(conn = conn, path.to.data = "", park = "DEVA", field.season = "2018", data.source = "local")
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcCompleteness(conn)
+#'     qcCompleteness(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcCompleteness(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcCompleteness(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completeness <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  completeness <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   df1 <- site %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
@@ -75,7 +83,6 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
@@ -83,9 +90,16 @@ qcCompleteness <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #' 
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcCompletenessPlot(conn)
+#'     qcCompletenessPlot(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcCompletenessPlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
 
-  completecount <- qcCompleteness(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  completecount <- qcCompleteness(conn, path.to.data, park, site, field.season, data.source)
 
   df2 <- completecount %>%
         dplyr::mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep = " - ")) %>%
@@ -117,21 +131,29 @@ qcCompletenessPlot <- function(conn, path.to.data, park, site, field.season, dat
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcDPLCheck(conn)
+#'     qcDPLCheck(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcDPLCheck(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcDPLCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcDPLCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
-  flowcondition <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DischargeFlowCondition")
-  estimated <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DischargeEstimated")
-  volumetric <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DischargeVolumetric")
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  invasives <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Invasives")
-  riparian <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
-  temp <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "WaterQualityTemperature")
-  ph <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "WaterQualitypH")
-  spcond <-ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "WaterQualitySpCond")
-  do <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "WaterQualityDO")
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit")
+  flowcondition <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DischargeFlowCondition")
+  estimated <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DischargeEstimated")
+  volumetric <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DischargeVolumetric")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification")
+  invasives <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Invasives")
+  riparian <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
+  temp <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityTemperature")
+  ph <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitypH")
+  spcond <-ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitySpCond")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityDO")
 
 visit.DPL <- visit %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, VisitType, DPL) %>%
@@ -219,8 +241,16 @@ dpl <- visit.DPL %>%
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSpringTypeDiscrepancies(conn)
+#'     qcSpringTypeDiscrepancies(conn, site = "LAKE_P_GET0066")
+#'     qcSpringTypeDiscrepancies(conn, park = "DEVA", field.season = c("2018", "2021"))
+#'     qcSpringTypeDiscrepancies(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit") 
   
   discrepancies <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled") %>%
@@ -250,8 +280,16 @@ qcSpringTypeDiscrepancies <- function(conn, path.to.data, park, site, field.seas
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcVisitDate(conn)
+#'     qcVisitDate(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVisitDate(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcVisitDate(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit") 
  
   visit.dates <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
@@ -288,8 +326,16 @@ qcVisitDate <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcVisitDateTimelines(conn)
+#'     qcVisitDateTimelines(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVisitDateTimelines(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcVisitDateTimelines(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit") 
 
   grouping_vars <- c("Park", "FieldSeason", "SiteCode") # Set grouping vars here so that we can add the facet column if needed
   median_grouping_vars <- c("Park", "SiteName", "SiteCode")
@@ -375,8 +421,17 @@ qcVisitDateTimelines <- function(conn, path.to.data, park, site, field.season, d
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcNotSampled(conn)
+#'     qcNotSampled(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcNotSampled(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcNotSampled(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit") 
 
   notsampled <- visit %>%
     dplyr::filter(MonitoringStatus != "Sampled") %>%
@@ -399,8 +454,16 @@ qcNotSampled <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcRepeatVisits <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit") 
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit") 
   
   repeats <- visit %>%
     dplyr::group_by(SiteCode, FieldSeason) %>%
@@ -420,31 +483,38 @@ qcRepeatVisits <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return leaflet map
 #' @export
 #'
 #' @examples
-LocationMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LocationMap(conn)
+#'     LocationMap(conn, site = "LAKE_P_GET0066")
+#'     LocationMap(conn, park = c("DEVA", "MOJA"))
+#'     LocationMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+LocationMap <- function(conn, path.to.data, park, site, data.source = "database") {
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
-    dplyr::mutate(SampleFrameRadius = dplyr::case_when(SampleFrame == "Annual" ~ 5,
-                                                       SampleFrame == "3Yr" ~ 5,
+    dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" ~ "Annual",
+                                                       SampleFrame == "3Yr" ~ "3Yr",
+                                                       TRUE ~ "Other")) %>%
+    dplyr::mutate(SampleFrameRadius = dplyr::case_when(SampleFrameSimple == "Annual" ~ 5,
+                                                       SampleFrameSimple == "3Yr" ~ 5,
                                                        TRUE ~ 3))
 
-  coords$SampleFrame <- factor(coords$SampleFrame, levels = c("Annual", "3Yr", "Over", "Inactive", "Rejected"))
+  coords$SampleFrameSimple <- factor(coords$SampleFrameSimple, levels = c("Annual", "3Yr", "Other"))
   
-  coords  %<>% dplyr::arrange(desc(SampleFrame))
+  coords  %<>% dplyr::arrange(desc(SampleFrameSimple))
   
-  pal <- leaflet::colorFactor(palette = c("royalblue1", "red", "gold", "gray", "black"),
-                              domain = coords$SampleFrame)
-  
-  coords %<>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr", "Over", "Inactive"))
+  pal <- leaflet::colorFactor(palette = c("royalblue1", "red", "gold"),
+                              domain = coords$SampleFrameSimple)
   
   # Make NPS map Attribution
   NPSAttrib <-
@@ -484,15 +554,15 @@ LocationMap <- function(conn, path.to.data, park, site, field.season, data.sourc
                               color = "black",
                               weight = 2,
                               fillOpacity = 0.8,
-                              fillColor = ~pal(SampleFrame),
-                              group = ~SampleFrame) %>%
+                              fillColor = ~pal(SampleFrameSimple),
+                              group = ~SampleFrameSimple) %>%
     leaflet::addLegend(pal = pal,
-                       values = ~SampleFrame,
+                       values = ~SampleFrameSimple,
                        title = "Sample Frame",
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~SampleFrame,
+                              overlayGroups = ~SampleFrameSimple,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   return(sitemap)

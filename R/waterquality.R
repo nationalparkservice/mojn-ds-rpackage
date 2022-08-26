@@ -11,13 +11,22 @@
 #' @return Tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMedian(conn)
+#'     WqMedian(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMedian(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqMedian(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMedian <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  temp <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityTemperature")
-  spcond <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitySpCond")
-  ph <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitypH")
-  do <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityDO")
+  temp <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityTemperature")
+  spcond <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitySpCond")
+  ph <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitypH")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityDO")
 
-  wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  wq.visits <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit")
 
   temp.med <- temp %>%
     dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
@@ -80,6 +89,15 @@ WqMedian <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqSanity(conn)
+#'     qcWqSanity(conn, site = "LAKE_P_HOT0065", field.season = "2019")
+#'     qcWqSanity(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqSanity(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.sanity.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -142,6 +160,15 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqFlags(conn)
+#'     qcWqFlags(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWqFlags(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqFlags(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.flags.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -193,6 +220,15 @@ qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqLong(conn)
+#'     qcWqLong(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWqLong(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqLong(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.cleaned.data <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -246,13 +282,20 @@ qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqStats(conn)
+#'     WqStats(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqStats(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.stats.predata <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
@@ -283,7 +326,6 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title Include plot title? Defaults to TRUE
@@ -291,6 +333,14 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotTemp(conn)
+#'     WqPlotTemp(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotTemp(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temperature") %>%
@@ -325,7 +375,6 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
@@ -333,6 +382,14 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
 #' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotSpCond(conn)
+#'     WqPlotSpCond(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotSpCond(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "SpCond") %>%
@@ -367,7 +424,6 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
@@ -375,6 +431,14 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotPH(conn)
+#'     WqPlotPH(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotPH(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "pH") %>%
@@ -408,7 +472,6 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
@@ -416,6 +479,14 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotDOmgL(conn)
+#'     WqPlotDOmgL(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotDOmgL(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "DO",
@@ -450,7 +521,6 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
@@ -458,6 +528,14 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotDOPct(conn)
+#'     WqPlotDOPct(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotDOPct(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "DO" & Units == "%") %>%
@@ -490,13 +568,20 @@ WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Grid of ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotGrid(conn)
+#'     WqPlotGrid(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotGrid(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.plot.temp <- WqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
   wq.plot.ph <- WqPlotPH(conn, path.to.data, park, site, field.season, data.source)
@@ -522,6 +607,14 @@ WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcLocalDOCheck(conn)
+#'     qcLocalDOCheck(conn, site = "PARA_P_COY0069")
+#'     qcLocalDOCheck(conn, park = c("LAKE", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     qcLocalDOCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationDO")
@@ -555,6 +648,14 @@ qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.so
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSpCondStandardCheck(conn)
+#'     qcSpCondStandardCheck(conn, site = "LAKE_P_GET0066")
+#'     qcSpCondStandardCheck(conn, park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#'     qcSpCondStandardCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
   sc <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source,  data.name = "CalibrationSpCond")
@@ -595,9 +696,17 @@ qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, 
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapTemp(conn)
+#'     WqMapTemp(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapTemp(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapTemp(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- desertsprings:::qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -713,9 +822,17 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapSpCond(conn)
+#'     WqMapSpCond(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapSpCond(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapSpCond(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- desertsprings:::qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -833,9 +950,17 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapPH(conn)
+#'     WqMapPH(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapPH(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapPH(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- desertsprings:::qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -952,9 +1077,17 @@ WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = 
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapDO(conn)
+#'     WqMapDO(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapDO(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapDO(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapDO <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- desertsprings:::qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1062,7 +1195,7 @@ WqMapDO <- function(conn, path.to.data, park, site, field.season, data.source = 
 
 WqMapTempX <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1165,7 +1298,7 @@ WqMapTempX <- function(conn, path.to.data, park, site, field.season, data.source
 
 WqMapSpCondX <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

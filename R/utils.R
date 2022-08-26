@@ -212,7 +212,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
   
   if (!missing(park)) {
     filtered.data %<>%
-      dplyr::filter(Park == park)
+      dplyr::filter(Park %in% park) # Changed to allow filtering of multiple parks
     if (nrow(filtered.data) == 0) {
       warning(paste0(data.name, ": Data are not available for the park specified"))
     }

@@ -10,8 +10,17 @@
 #' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWildlifeObservedNoTypes(conn)
+#'     qcWildlifeObservedNoTypes(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoTypes(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWildlifeObservedNoTypes(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -35,8 +44,17 @@ qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.seas
 #' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWildlifeObservedNoEvidence(conn)
+#'     qcWildlifeObservedNoEvidence(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoEvidence(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#'     qcWildlifeObservedNoEvidence(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   type.noevidence <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -65,8 +83,17 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
 #' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     UngulatesEvidence(conn)
+#'     UngulatesEvidence(conn, site = "LAKE_P_COR0023", field.season = "2020")
+#'     UngulatesEvidence(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#'     UngulatesEvidence(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
@@ -89,9 +116,18 @@ UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data
 #' @return leaflet map
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     UngulatesMap(conn)
+#'     UngulatesMap(conn, site = "LAKE_P_COR0023")
+#'     UngulatesMap(conn, park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
+#'     UngulatesMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -157,6 +193,7 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", ungulatedata$SiteName, "<br>",
                                              "Sample Frame: ", ungulatedata$SampleFrame, "<br>",
+                                             "Field Season: ", ungulatedata$FieldSeason, "<br>",
                                              "Direct Observation: ", ungulatedata$DirectObservation, "<br>",
                                              "Scat: ", ungulatedata$Scat, "<br>",
                                              "Tracks: ", ungulatedata$Tracks, "<br>",

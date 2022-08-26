@@ -10,8 +10,17 @@
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcOverallDisturbance(conn)
+#'     qcOverallDisturbance(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcOverallDisturbance(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#'     qcOverallDisturbance(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
   
   overall <- disturbance %>%
     dplyr::filter((Overall < Roads & Roads != "NoData") |
@@ -43,8 +52,17 @@ qcOverallDisturbance <- function(conn, path.to.data, park, site, field.season, d
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcFlowModNoHuman(conn)
+#'     qcFlowModNoHuman(conn, site = "LAKE_P_WIL0061", field.season = "2016")
+#'     qcFlowModNoHuman(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcFlowModNoHuman(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
 
   nohuman <- disturbance %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, FlowModificationStatus) %>%
@@ -67,8 +85,17 @@ qcFlowModNoHuman <- function(conn, path.to.data, park, site, field.season, data.
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     FlowModStatus(conn)
+#'     FlowModStatus(conn, site = "DEVA_P_ARR0137", field.season = "2019")
+#'     FlowModStatus(conn, park = c("JOTR", "LAKE"), field.season = c("2017", "2018", "2021"))
+#'     FlowModStatus(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification")
   
   status <- flowmod %>%
     dplyr::filter(stringr::str_detect(FlowModificationStatus, "Yes")) %>%
@@ -90,14 +117,22 @@ FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcFlowModDiscrepancies(conn)
+#'     qcFlowModDiscrepancies(conn, site = "DEVA_P_WAU0880")
+#'     qcFlowModDiscrepancies(conn, park = c("DEVA", "JOTR"))
+#'     qcFlowModDiscrepancies(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcFlowModDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.name = "DisturbanceFlowModification") 
   
   discrepancies <- flowmod %>%
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
@@ -119,16 +154,22 @@ return(discrepancies)
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     FlowModCount(conn)
+#'     FlowModCount(conn, park = c("DEVA", "JOTR"))
+#'     FlowModCount(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 FlowModCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification") 
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  flowmod <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification") 
+  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   sampleframe <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
@@ -175,17 +216,23 @@ return(percent)
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return ggplot bar plot
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     FlowModPlot(conn)
+#'     FlowModPlot(conn, park = c("DEVA", "JOTR"))
+#'     FlowModPlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  percent <- FlowModCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  percent <- FlowModCount(conn, path.to.data, park, site, field.season, data.source)
 
-  percent %<>% filter(Park != "CAMO")
+  percent %<>% dplyr::filter(Park != "CAMO")
   
   plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
     geom_bar(stat = "identity") +
@@ -204,18 +251,23 @@ FlowModPlot <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     DisturbanceCount(conn)
+#'     DisturbanceCount(conn, park = c("DEVA", "JOTR"))
+#'     DisturbanceCount(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "DisturbanceFlowModification")
-  
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   sampleframe <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
@@ -261,11 +313,21 @@ DisturbanceCount <- function(conn, path.to.data, park, site, field.season, data.
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     HumanUseObservations(conn)
+#'     HumanUseObservations(conn, site = "LAKE_P_DRI0002", field.season = "2019")
+#'     HumanUseObservations(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     HumanUseObservations(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 HumanUseObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
   
   humanobs <- disturbance %>%
-    dplyr::filter(HumanUse > 0) %>%
+    dplyr::filter(HumanUse > 0,
+                  HumanUse != "NoData") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes)
   
   return(humanobs)
@@ -277,15 +339,21 @@ HumanUseObservations <- function(conn, path.to.data, park, site, field.season, d
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return ggplot bar plot
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     HumanUsePlot(conn)
+#'     HumanUsePlot(conn, park = c("DEVA", "JOTR"))
+#'     HumanUsePlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  disturb <- DisturbanceCount(conn, path.to.data, park, site, field.season, data.source)
   
   humanplot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
     geom_bar(stat = "identity") +
@@ -307,9 +375,18 @@ HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.sour
 #' @return leaflet map
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     HumanUseMap(conn)
+#'     HumanUseMap(conn, site = "LAKE_P_DRI0002", field.season = "2019")
+#'     HumanUseMap(conn, park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
+#'     HumanUseMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -411,11 +488,21 @@ HumanUseMap <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @return Tibble
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LivestockObservations(conn)
+#'     LivestockObservations(conn, site = "MOJA_P_WIL0224", field.season = "2019")
+#'     LivestockObservations(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     LivestockObservations(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 LivestockObservations <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
   
   livestockobs <- disturbance %>%
-    dplyr::filter(Livestock > 0) %>%
+    dplyr::filter(Livestock > 0,
+                  Livestock != "NoData") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes)
   
   return(livestockobs)
@@ -427,15 +514,21 @@ LivestockObservations <- function(conn, path.to.data, park, site, field.season, 
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return ggplot bar plot
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LivestockPlot(conn)
+#'     LivestockPlot(conn, park = c("DEVA", "JOTR"))
+#'     LivestockPlot(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  disturb <- DisturbanceCount(conn, path.to.data, park, site, field.season, data.source)
   
   disturb %<>%
     dplyr::filter(Park != "CAMO")
@@ -462,9 +555,17 @@ LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.sou
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     LivestockMap(conn)
+#'     LivestockMap(conn, site = "MOJA_P_WIL0224", field.season = "2019")
+#'     LivestockMap(conn, park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
+#'     LivestockMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 LivestockMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturbance <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Disturbance")
-  site <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
+  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -557,7 +658,7 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
 #################### Functions for Desert Springs PowerPoint -- not for final data package
 
 LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  disturb <- DisturbanceCount(conn = conn, path.to.data =  path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  disturb <- DisturbanceCount(conn, path.to.data, park, site, field.season, data.source)
   
   disturb %<>%
     dplyr::filter(Park != "CAMO")
@@ -572,4 +673,3 @@ LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.sou
   
   return(livestockplot)
 }
-
