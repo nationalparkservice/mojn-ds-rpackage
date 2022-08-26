@@ -29,8 +29,18 @@ WqMedian(
 \item{data.name}{The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.}
 }
 \value{
-A tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
+Tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
 }
 \description{
 Calculate median values for each water quality parameter for each site visit.
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    WqMedian(conn)
+    WqMedian(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    WqMedian(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    WqMedian(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

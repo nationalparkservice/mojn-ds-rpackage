@@ -27,8 +27,18 @@ qcDPLCheck(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble
+Tibble
 }
 \description{
 Return list of site visits that have any data categorized as "Raw" or "Provisional"
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcDPLCheck(conn)
+    qcDPLCheck(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    qcDPLCheck(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+    qcDPLCheck(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

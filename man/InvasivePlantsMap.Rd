@@ -32,3 +32,13 @@ leaflet map
 \description{
 Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 }
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    InvasivePlantsMap(conn)
+    InvasivePlantsMap(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    InvasivePlantsMap(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+    InvasivePlantsMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}

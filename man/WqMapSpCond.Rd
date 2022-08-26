@@ -27,8 +27,18 @@ WqMapSpCond(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-a leaflet map
+leaflet map
 }
 \description{
 Map of specific conductance at springs with surface water
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    WqMapSpCond(conn)
+    WqMapSpCond(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    WqMapSpCond(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+    WqMapSpCond(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

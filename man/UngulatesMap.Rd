@@ -32,3 +32,13 @@ leaflet map
 \description{
 Map of springs with evidence of ungulate (sheep and deer) activity
 }
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    UngulatesMap(conn)
+    UngulatesMap(conn, site = "LAKE_P_COR0023")
+    UngulatesMap(conn, park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
+    UngulatesMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}

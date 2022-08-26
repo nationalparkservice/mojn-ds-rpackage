@@ -20,12 +20,20 @@ FlowModCount(
 
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
-
-\item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
+}
+\value{
+Tibble
 }
 \description{
 Table with count and percent of springs with active and historic flow modification
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    FlowModCount(conn)
+    FlowModCount(conn, park = c("DEVA", "JOTR"))
+    FlowModCount(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

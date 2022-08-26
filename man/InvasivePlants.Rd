@@ -26,6 +26,19 @@ InvasivePlants(
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
+\value{
+Tibble
+}
 \description{
 Table of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    InvasivePlants(conn)
+    InvasivePlants(conn, site = "LAKE_P_HOR0042", field.season = "2020")
+    InvasivePlants(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+    InvasivePlants(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

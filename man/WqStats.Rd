@@ -13,15 +13,22 @@ WqStats(conn, path.to.data, park, site, field.season, data.source = "database")
 
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
-
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
+Tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 }
 \description{
 Calculate quartile values for each water quality parameter for each park and year. Includes annual and 3Yr springs only.
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    WqStats(conn)
+    WqStats(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    WqStats(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }
