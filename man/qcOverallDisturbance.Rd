@@ -26,6 +26,19 @@ qcOverallDisturbance(
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
+\value{
+Tibble
+}
 \description{
 Overall disturbance is less than any other disturbance category
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcOverallDisturbance(conn)
+    qcOverallDisturbance(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    qcOverallDisturbance(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+    qcOverallDisturbance(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }
