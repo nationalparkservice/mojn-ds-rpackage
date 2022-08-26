@@ -32,3 +32,13 @@ ggplot heat map plot
 \description{
 Summary heat map of flow categories for 3-yr springs
 }
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    FlowCategoriesThreeYearHeatMap(conn)
+    FlowCategoriesThreeYearHeatMap(conn, site = "PARA_P_WHI0054", field.season = "2020")
+    FlowCategoriesThreeYearHeatMap(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    FlowCategoriesThreeYearHeatMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
