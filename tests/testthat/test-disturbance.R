@@ -122,7 +122,7 @@ test_that("DisturbanceCount works as expected", {
 test_that("HumanUseObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(HumanUseObservations(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 297)
+  expect_equal(actual_rows, 293)
   
   actual_cols <- colnames(HumanUseObservations(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "HumanUse", "Notes")
@@ -137,7 +137,7 @@ test_that("HumanUseObservations returns correct number of rows and columns", {
 test_that("LivestockObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(LivestockObservations(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 124)
+  expect_equal(actual_rows, 123)
   
   actual_cols <- colnames(LivestockObservations(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Livestock", "Notes")
