@@ -132,7 +132,7 @@ FlowModStatus <- function(conn, path.to.data, park, site, field.season, data.sou
 #'     CloseDatabaseConnection(conn)
 #' }
 qcFlowModDiscrepancies <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.name = "DisturbanceFlowModification") 
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification") 
   
   discrepancies <- flowmod %>%
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
@@ -168,8 +168,8 @@ return(discrepancies)
 #'     CloseDatabaseConnection(conn)
 #' }
 FlowModCount <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  flowmod <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification") 
-  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  flowmod <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "DisturbanceFlowModification") 
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   sampleframe <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
@@ -565,7 +565,7 @@ LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.sou
 #' }
 LivestockMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturbance <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Disturbance")
-  site <- desertsprings:::ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
