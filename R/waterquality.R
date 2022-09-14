@@ -683,6 +683,75 @@ qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, 
 }
 
 
+#' Check that instruments were calibrated within 1 day of site visit
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcCalibrationTimes(conn)
+#'     qcCalibrationTimes(conn, site = "LAKE_P_GET0066")
+#'     qcCalibrationTimes(conn, park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#'     qcCalibrationTimes(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcCalibrationTimes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  ph <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationpH")
+  sc <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationSpCond")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationDO")
+
+  ph_data <- ph %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, pHInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = pHInstrument) %>%
+    dplyr::mutate(Parameter = "pH")
+    
+  sc_data <- sc %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, SpCondInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = SpCondInstrument) %>%
+    dplyr::mutate(Parameter = "SpCond") 
+  
+  do_data <- do %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, DOInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = DOInstrument) %>%
+    dplyr::mutate(Parameter = "DO")
+  
+  cal_data <- dplyr::bind_rows(ph_data, sc_data, do_data) %>%
+    dplyr::mutate(VisitDateTime = as.POSIXct(paste(VisitDate, VisitTime), format="%Y-%m-%d %H:%M:%S"),
+                  CalibrationDateTime = as.POSIXct(paste(CalibrationDate, CalibrationTime), format="%Y-%m-%d %H:%M:%S")) %>%
+    dplyr::relocate(VisitDateTime, .after = "FieldSeason") %>%
+    dplyr::relocate(CalibrationDateTime, .after = "VisitTime") %>%
+    dplyr::select(-c("VisitTime", "CalibrationTime")) %>%
+    dplyr::mutate(Flag = dplyr::case_when(VisitDate != CalibrationDate ~ "date",
+                                          (VisitDate == CalibrationDate) & (VisitDateTime < CalibrationDateTime) ~ "time",
+                                          TRUE ~ NA_character_)) %>%
+    dplyr::filter(!is.na(Flag)) %>%
+    dplyr::mutate(DaysBefore = difftime(VisitDate, CalibrationDate, units = "days")) %>%
+    unique()
+  
+  all_data <- dplyr::bind_rows(ph_data, sc_data, do_data) %>%
+    dplyr::mutate(VisitDateTime = as.POSIXct(paste(VisitDate, VisitTime), format="%Y-%m-%d %H:%M:%S"),
+                  CalibrationDateTime = as.POSIXct(paste(CalibrationDate, CalibrationTime), format="%Y-%m-%d %H:%M:%S")) %>%
+    dplyr::relocate(VisitDateTime, .after = "FieldSeason") %>%
+    dplyr::relocate(CalibrationDateTime, .after = "VisitTime") %>%
+    dplyr::select(-c("VisitTime", "CalibrationTime")) %>%
+    unique()
+  
+  return(cal_data)
+}
+
+
 #' Map of water temperature at springs with surface water
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
