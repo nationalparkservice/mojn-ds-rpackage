@@ -355,6 +355,9 @@ HumanUseObservations <- function(conn, path.to.data, park, site, field.season, d
 HumanUsePlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturb <- DisturbanceCount(conn, path.to.data, park, site, field.season, data.source)
   
+  disturb  %<>%
+    dplyr::filter(Park != "CAMO")
+  
   humanplot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
     geom_bar(stat = "identity") +
     scale_y_continuous(limits = c(0, 100))
@@ -657,7 +660,7 @@ LivestockMap <- function(conn, path.to.data, park, site, field.season, data.sour
 
 #################### Functions for Desert Springs PowerPoint -- not for final data package
 
-LivestockPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+LivestockPlotX <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   disturb <- DisturbanceCount(conn, path.to.data, park, site, field.season, data.source)
   
   disturb %<>%

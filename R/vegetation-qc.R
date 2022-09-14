@@ -325,9 +325,9 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
                                      aes(x = LifeFormCount,
                                          y = Occurences,
                                          fill = Visit,
-                                         text = paste("Lifeform Count: ", LifeFormCount, "<br>",
-                                                      "Occurences: ", Occurences, "<br>",
-                                                      "Field Season: ", FieldSeason))) +
+                                         text = paste0("Lifeform Count: ", LifeFormCount, "<br>",
+                                                       "Occurences: ", Occurences, "<br>",
+                                                       "Field Season: ", FieldSeason))) +
     geom_bar(stat = "identity",
              position = position_dodge(preserve = "single")) +
     facet_grid(Visit ~ Park) +
@@ -343,11 +343,17 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
                aes(xintercept = Median,
                    color = "Median"),
                size = 1) +
-    scale_color_manual(name = "Stats",
+    # scale_fill_manual(name = "Revisit Cycle",
+    #                   values = c(First = "cornflowerblue",
+    #                              Second = "indianred")) +
+    scale_color_manual(# name = "Stats",
                        values = c(Median = "black",
                                   Mean = "red")) +
-    labs(fill = "Revisit Cycle") +
+    labs(fill = "Revisit Cycle",
+         color = "Stats") +
     theme(legend.position = "bottom")
+  
+  ggplotly(veg.barplot.year)
   
   return(veg.barplot.year)
 }
