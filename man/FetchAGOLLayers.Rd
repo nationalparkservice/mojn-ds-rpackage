@@ -4,12 +4,20 @@
 \alias{FetchAGOLLayers}
 \title{Read data from the Desert Springs AGOL feature layers.}
 \usage{
-FetchAGOLLayers(data_path, lookup_path, agol_username, agol_password)
+FetchAGOLLayers(
+  data_path,
+  lookup_path,
+  sites_path,
+  agol_username,
+  agol_password
+)
 }
 \arguments{
 \item{data_path}{URL to Desert Springs feature service on AGOL.}
 
 \item{lookup_path}{URL to feature service on AGOL containing Desert Springs lookup tables.}
+
+\item{sites_path}{URL to feature service on AGOL containing sites table}
 
 \item{agol_username}{Username of headless AGOL account with permissions to view the feature service.}
 

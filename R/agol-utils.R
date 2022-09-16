@@ -1,3 +1,12 @@
+#' View sensors with unkown ID/serial number
+#'
+#' @return Dataframe of sensors omitted from data due to missing serial numbers
+#' @export
+#'
+unk_sensors <- function() {
+  get("unk_sensors", envir = pkg_globals)
+}
+
 #' Wrangle AGOL data into a set of dataframes structured for use in this package.
 #'
 #' @param agol_layers The list of tibbles returned by `FetchAGOLLayers()`
@@ -66,7 +75,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_DisturbanceClass, name, Overall = label), by = c("OverallCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_Shared_YesNo, name, IsWildlifeObserved = label), by = c("Waswildlifeobserved" = "name")) %>%
     dplyr::mutate(VisitDate = lubridate::as_date(DateTime),
-                  FieldSeason = ifelse(lubridate::month(VisitDate) <= 10, lubridate::year(VisitDate), lubridate::year(VisitDate) + 1)) %>%
+                  FieldSeason = ifelse(lubridate::month(VisitDate) < 10, lubridate::year(VisitDate), lubridate::year(VisitDate) + 1)) %>%
     dplyr::rename(IsSensorRetrieved = SensorRetrieved,
                   IsVegetationObserved = WasRiparianVegetationObserved,
                   InvasivesObserved = WereInvasivesObserved,
@@ -165,7 +174,13 @@ WrangleAGOLData <- function(agol_layers) {
   riparian_visit <- visit %>%
     dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, IsVegetationObserved, MistletoePresent, `Woody >4m` = WoodyGT4m, `Woody 2-4m` = Woody2to4m, `Woody <2m` = WoodyLT2m, Forb, Rush, Grass, Reed, Sedge, Cattail, Bryophyte, `Non-Plant` = NonPlant, VisitType, DPL, Notes = RiparianVegetationNotes) %>%
     tidyr::pivot_longer(c(`Woody >4m`, `Woody 2-4m`, `Woody <2m`, Forb, Rush, Grass, Reed, Sedge, Cattail, Bryophyte, `Non-Plant`), names_to = "LifeForm", values_to = "Rank") %>%
-    dplyr::filter(Rank != 12)
+    dplyr::group_by(visitglobalid) %>%
+    dplyr::mutate(no_veg = all(is.na(Rank)),
+                  LifeForm = ifelse(no_veg, NA, LifeForm)) %>%
+    dplyr::ungroup() %>%
+    unique() %>%
+    dplyr::filter((!is.na(LifeForm) & (Rank != 12)) | (is.na(LifeForm) & is.na(Rank))) %>%
+    dplyr::select(-no_veg)
   
   data$Riparian <- riparian_visit %>%
     dplyr::left_join(riparian, by = c("visitglobalid", "LifeForm")) %>%
@@ -176,27 +191,65 @@ WrangleAGOLData <- function(agol_layers) {
   sensor_retrieval <- agol_layers$sensor_retrieval %>%
     dplyr::select(visitglobalid = parentglobalid, RetrievalTime, DownloadSuccessful, UploadSuccessful, Notes = SensorRetrieveNotes, SensorProblem, SensorIDRet)
   
-  sensor_deployment <- visit %>%
-    dplyr::filter(IsSensorSpring == "Y") %>%
-    dplyr::select(visitglobalid, DeploymentFieldSeason = FieldSeason, DeploymentDate = VisitDate, SiteCode, SensorDeployed, SensorDep, DeploymentTime, SensorDeployNote)
+  retrieval_visit <- visit %>%
+    dplyr::select(visitglobalid, IsSensorSpring, RetrievalFieldSeason = FieldSeason, SiteName, SiteCode, Park, RetrievalDate = VisitDate, RetrievalVisitType = VisitType, SensorRetrieved = IsSensorRetrieved)
   
-  data$SensorRetrievalAttempts <- visit %>%
+  sensor_deployment <- visit %>%
+    # dplyr::filter(IsSensorSpring == "Y") %>%
+    dplyr::select(visitglobalid, DeploymentFieldSeason = FieldSeason, DeploymentDate = VisitDate, SiteCode, DeploymentVisitType = VisitType, SensorDeployed, SensorDep, SensorIDDep, DeploymentTime, SensorDeployNote)
+  
+  # data$SensorRetrievalAttempts <- visit %>%
+  #   dplyr::filter(IsSensorSpring == "Y") %>%
+  #   dplyr::select(visitglobalid, RetrievalFieldSeason = FieldSeason, SiteName, SiteCode, Park, RetrievalDate = VisitDate, SensorRetrieved = IsSensorRetrieved) %>%
+  #   dplyr::left_join(sensor_retrieval, by = "visitglobalid") %>%
+  #   dplyr::left_join(sensor_deployment, by = c("SiteCode", "SensorIDRet" = "SensorIDDep")) %>%
+  #   dplyr::filter(DeploymentDate < RetrievalDate) %>%
+  #   # dplyr::mutate(time_since_dep = RetrievalDate - DeploymentDate) %>%
+  #   # dplyr::group_by(SensorIDRet, time_since_dep) %>%
+  #   # dplyr::filter(time_since_dep == min(time_since_dep)) %>%
+  #   dplyr::ungroup()
+  data$SensorRetrievalAttempts <- sensor_retrieval %>%
+    dplyr::inner_join(retrieval_visit, by = "visitglobalid") %>%
     dplyr::filter(IsSensorSpring == "Y") %>%
-    dplyr::select(visitglobalid, RetrievalFieldSeason = FieldSeason, SiteName, SiteCode, Park, RetrievalDate = VisitDate, SensorRetrieved = IsSensorRetrieved) %>%
-    dplyr::left_join(sensor_retrieval, by = "visitglobalid") %>%
-    dplyr::left_join(sensor_deployment, by = c("SiteCode", "SensorIDRet" = "SensorDep")) %>%
+    dplyr::inner_join(sensor_deployment, by = c("SiteCode", "SensorIDRet" = "SensorIDDep")) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
+    dplyr::rename(SensorNumber = label) %>%
     dplyr::filter(DeploymentDate < RetrievalDate) %>%
-    dplyr::mutate(time_since_dep = RetrievalDate - DeploymentDate) %>%
-    dplyr::group_by(SensorIDRet, time_since_dep) %>%
-    dplyr::filter(time_since_dep == min(time_since_dep)) %>%
-    dplyr::ungroup()
+    dplyr::select(SensorNumber, SerialNumber, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SiteName, SiteCode, Park, SensorRetrieved, SensorProblem, DownloadResult = DownloadSuccessful, RetrievalVisitType, DeploymentVisitType, Notes)
+  
+  unk_sensors <- data$SensorRetrievalAttempts %>% 
+    dplyr::filter(is.na(SerialNumber) | grepl("-9+", SerialNumber)) %>%
+    dplyr::select(SensorNumber, SerialNumber, DeploymentDate, RetrievalDate, SiteName, SiteCode, SensorRetrieved) %>%
+    unique()
+  
+  if(nrow(unk_sensors) > 0) {
+    warn <- paste("Omitted", nrow(unk_sensors), "sensor retrievals due to missing serial numbers. Call `unk_sensors()` to see a list of omitted sensors.")
+    assign("unk_sensors", unk_sensors, pkg_globals)
+    warning(warn)
+  }
+  
+  data$SensorRetrievalAttempts %<>% 
+    dplyr::filter(!is.na(SerialNumber) & !grepl("-9+", SerialNumber))
   
   # ----- SensorsCurrentlyDeployed -----
   
   # ----- SensorsAllDeployments -----
   
   # ----- Site -----
-  # TODO
+  data$Site <- agol_layers$sites %>%
+    dplyr::select(Park,
+                  Subunit,
+                  SiteCode,
+                  SiteName = sitename,
+                  GRTSDraw,
+                  GRTSOrder, 
+                  SiteStatus,
+                  SampleFrame, 
+                  SiteProtectedStatus,
+                  Lat_WGS84,
+                  Lon_WGS84,
+                  X_UTM_NAD83_11N, 
+                  Y_UTM_NAD83_11N)
   
   # ----- Visit -----
   data$Visit <- visit %>%
@@ -214,7 +267,35 @@ WrangleAGOLData <- function(agol_layers) {
     )
   
   # ----- VisitActivity -----
-  # data$VisitActivity <- data$Visit %>%
+  yn <- agol_layers$MOJN_Lookup_Shared_YesNo$label
+  names(yn) <- agol_layers$MOJN_Lookup_Shared_YesNo$name
+  wq_collected <- agol_layers$MOJN_Lookup_DS_WaterQualityDataCollected$label
+  names(wq_collected) <- agol_layers$MOJN_Lookup_DS_WaterQualityDataCollected$name
+  data$VisitActivity <- visit %>%
+    dplyr::select(Park,
+                  SiteCode,
+                  SiteName,
+                  VisitDate,
+                  FieldSeason,
+                  SpringType,
+                  FlowCondition, 
+                  WQDataCollected = WasWaterQualityDataCollected, 
+                  InvasivesObserved,
+                  RiparianObserved = IsVegetationObserved,
+                  MistletoePresent,
+                  WildlifeObserved = Waswildlifeobserved,
+                  SpringbrookLength_Class = SpringbrookLengthFlag,
+                  SpringbrookWidth_m,
+                  SpringbrookLength_m,
+                  SampleFrame,
+                  VisitType,
+                  MonitoringStatus,
+                  WaterQualityNotes = WQNotes) %>%
+    dplyr::mutate(WQDataCollected = wq_collected[WQDataCollected],
+                  InvasivesObserved = yn[InvasivesObserved],
+                  RiparianObserved = yn[RiparianObserved],
+                  MistletoePresent = yn[MistletoePresent],
+                  WildlifeObserved = yn[WildlifeObserved])
   
   
   # ----- WaterQualityDO -----
@@ -235,12 +316,13 @@ WrangleAGOLData <- function(agol_layers) {
 #'
 #' @param data_path URL to Desert Springs feature service on AGOL.
 #' @param lookup_path URL to feature service on AGOL containing Desert Springs lookup tables.
+#' @param sites_path URL to feature service on AGOL containing sites table
 #' @param agol_username Username of headless AGOL account with permissions to view the feature service.
 #' @param agol_password Password for headless AGOL account.
 #'
 #' @return A list of tibbles
 #'
-FetchAGOLLayers <- function(data_path, lookup_path, agol_username, agol_password) {
+FetchAGOLLayers <- function(data_path, lookup_path, sites_path, agol_username, agol_password) {
   # Get a token with a headless account
   token_resp <- httr::POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
                            body = list(username = agol_username,
@@ -251,6 +333,9 @@ FetchAGOLLayers <- function(data_path, lookup_path, agol_username, agol_password
   agol_token <- jsonlite::fromJSON(httr::content(token_resp, type="text", encoding = "UTF-8"))
   
   agol_layers <- list()
+  
+  # Fetch sites table
+  agol_layers$sites <- fetchAllRecords(sites_path, 0, token = agol_token$token)
   
   # Fetch lookup tables from lookup feature service
   lookup_names <- httr::GET(paste0(lookup_path, "/layers"),
@@ -264,14 +349,7 @@ FetchAGOLLayers <- function(data_path, lookup_path, agol_username, agol_password
     dplyr::filter(grepl("MOJN_(Lookup|Ref)(_Lookup|_Ref)?_(DS|Shared)", name))  # (_Lookup|_Ref)? is to accommodate weirdly named Camera lookup - can be removed once fixed in AGOL
   
   lookup_layers <- lapply(lookup_names$id, function(id) {
-    df <- httr::GET(paste0(lookup_path, "/", id, "/query"),
-                    query = list(where="1=1",
-                                 outFields="*",
-                                 f="JSON",
-                                 token=agol_token$token))
-    df <- jsonlite::fromJSON(httr::content(df, type = "text", encoding = "UTF-8"))
-    df <- df$features$attributes %>%
-      tibble::as_tibble()
+    df <- fetchAllRecords(lookup_path, id, token = agol_token$token)
     return(df)
   })
   names(lookup_layers) <- lookup_names$name
@@ -279,224 +357,79 @@ FetchAGOLLayers <- function(data_path, lookup_path, agol_username, agol_password
   # Fetch each layer in the DS feature service
   
   # ----- MOJN_DS_SpringVisit - visit-level data -----
-  visit <- httr::GET(paste0(data_path, "/0/query"),
-                     query = list(where="1=1",
-                                  outFields="*",
-                                  f="JSON",
-                                  token=agol_token$token))
-  
-  visit <- jsonlite::fromJSON(httr::content(visit, type = "text", encoding = "UTF-8"))
-  agol_layers$visit <- visit$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$visit <- fetchAllRecords(data_path, 0, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles")) %>%
     dplyr::mutate(DateTime = as.POSIXct(DateTime/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- Repeats - repeat photos -----
-  repeats <- httr::GET(paste0(data_path, "/1/query"),
-                       query = list(where="1=1",
-                                    outFields="*",
-                                    f="JSON",
-                                    token=agol_token$token))
-  
-  repeats <- jsonlite::fromJSON(httr::content(repeats, type = "text", encoding = "UTF-8"))
-  agol_layers$repeats <- cbind(repeats$features$attributes, repeats$features$geometry) %>%
-    dplyr::mutate(wkid = repeats$spatialReference$wkid) %>%
-    tibble::as_tibble() %>%
+  agol_layers$repeats <- fetchAllRecords(data_path, 1, token = agol_token$token, geometry = TRUE) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- InvasivePlants - invasive plant data -----
-  invasives <- httr::GET(paste0(data_path, "/2/query"),
-                         query = list(where="1=1",
-                                      outFields="*",
-                                      f="JSON",
-                                      token=agol_token$token))
-  
-  invasives <- jsonlite::fromJSON(httr::content(invasives, type = "text", encoding = "UTF-8"))
-  agol_layers$invasives <- cbind(invasives$features$attributes, invasives$features$geometry) %>%
-    dplyr::mutate(wkid = invasives$spatialReference$wkid) %>%
-    tibble::as_tibble() %>%
+  agol_layers$invasives <- fetchAllRecords(data_path, 2, token = agol_token$token, geometry = TRUE) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- Observers -----
-  observers <- httr::GET(paste0(data_path, "/3/query"),
-                         query = list(where="1=1",
-                                      outFields="*",
-                                      f="JSON",
-                                      token=agol_token$token))
-  
-  observers <- jsonlite::fromJSON(httr::content(observers, type = "text", encoding = "UTF-8"))
-  agol_layers$observers <- observers$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$observers <- fetchAllRecords(data_path, 3, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- SensorRetrieval -----
-  sensor_retrieval <- httr::GET(paste0(data_path, "/4/query"),
-                                query = list(where="1=1",
-                                             outFields="*",
-                                             f="JSON",
-                                             token=agol_token$token))
-  
-  sensor_retrieval <- jsonlite::fromJSON(httr::content(sensor_retrieval, type = "text", encoding = "UTF-8"))
-  agol_layers$sensor_retrieval <- sensor_retrieval$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$sensor_retrieval <- fetchAllRecords(data_path, 4, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- RepeatPhotos_Internal - repeat photos taken on internal device camera -----
-  repeats_int <- httr::GET(paste0(data_path, "/5/query"),
-                           query = list(where="1=1",
-                                        outFields="*",
-                                        f="JSON",
-                                        token=agol_token$token))
-  
-  repeats_int <- jsonlite::fromJSON(httr::content(repeats_int, type = "text", encoding = "UTF-8"))
-  agol_layers$repeats_int <- repeats_int$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$repeats_int <- fetchAllRecords(data_path, 5, token = agol_token$token)
   
   # ----- RepeatPhotos_External - repeat photos taken on external camera -----
-  repeats_ext <- httr::GET(paste0(data_path, "/6/query"),
-                           query = list(where="1=1",
-                                        outFields="*",
-                                        f="JSON",
-                                        token=agol_token$token))
-  
-  repeats_ext <- jsonlite::fromJSON(httr::content(repeats_ext, type = "text", encoding = "UTF-8"))
-  agol_layers$repeats_ext <- repeats_ext$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$repeats_ext <- fetchAllRecords(data_path, 6, token = agol_token$token)
   
   # ----- FillTime - volumetric discharge fill time -----
-  fill_time <- httr::GET(paste0(data_path, "/7/query"),
-                         query = list(where="1=1",
-                                      outFields="*",
-                                      f="JSON",
-                                      token=agol_token$token))
-  
-  fill_time <- jsonlite::fromJSON(httr::content(fill_time, type = "text", encoding = "UTF-8"))
-  agol_layers$fill_time <- fill_time$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$fill_time <- fetchAllRecords(data_path, 7, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- FlowModTypes - flow modifications observed -----
-  disturbance_flow_mod <- httr::GET(paste0(data_path, "/8/query"),
-                                    query = list(where="1=1",
-                                                 outFields="*",
-                                                 f="JSON",
-                                                 token=agol_token$token))
-  
-  disturbance_flow_mod <- jsonlite::fromJSON(httr::content(disturbance_flow_mod, type = "text", encoding = "UTF-8"))
-  agol_layers$disturbance_flow_mod <- disturbance_flow_mod$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$disturbance_flow_mod <- fetchAllRecords(data_path, 8, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- WildlifeRepeat - wildlife observations -----
-  wildlife <- httr::GET(paste0(data_path, "/9/query"),
-                        query = list(where="1=1",
-                                     outFields="*",
-                                     f="JSON",
-                                     token=agol_token$token))
-  
-  wildlife <- jsonlite::fromJSON(httr::content(wildlife, type = "text", encoding = "UTF-8"))
-  agol_layers$wildlife <- wildlife$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$wildlife <- fetchAllRecords(data_path, 9, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- VegImageRepeat - riparian veg photo data -----
-  riparian_veg  <- httr::GET(paste0(data_path, "/10/query"),
-                             query = list(where="1=1",
-                                          outFields="*",
-                                          f="JSON",
-                                          token=agol_token$token))
-  
-  riparian_veg  <- jsonlite::fromJSON(httr::content(riparian_veg, type = "text", encoding = "UTF-8"))
-  agol_layers$riparian_veg  <- riparian_veg$features$attributes %>%
-    tibble::as_tibble() %>%
+  agol_layers$riparian_veg  <- fetchAllRecords(data_path, 10, token = agol_token$token) %>%
     dplyr::mutate(EditDate = as.POSIXct(EditDate/1000, origin = "1970-01-01", tz = "America/Los_Angeles"))
   
   # ----- InternalCamera - riparian veg photos taken on internal device camera -----
-  riparian_veg_int <- httr::GET(paste0(data_path, "/11/query"),
-                                query = list(where="1=1",
-                                             outFields="*",
-                                             f="JSON",
-                                             token=agol_token$token))
-  
-  riparian_veg_int <- jsonlite::fromJSON(httr::content(riparian_veg_int, type = "text", encoding = "UTF-8"))
-  agol_layers$riparian_veg_int <- riparian_veg_int$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$riparian_veg_int <- fetchAllRecords(data_path, 11, token = agol_token$token)
   
   # ----- ExternalCameraFiles - riparian veg photos taken on external camera -----
-  riparian_veg_ext <- httr::GET(paste0(data_path, "/12/query"),
-                                query = list(where="1=1",
-                                             outFields="*",
-                                             f="JSON",
-                                             token=agol_token$token))
-  
-  riparian_veg_ext <- jsonlite::fromJSON(httr::content(riparian_veg_ext, type = "text", encoding = "UTF-8"))
-  agol_layers$riparian_veg_ext <- riparian_veg_ext$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$riparian_veg_ext <- fetchAllRecords(data_path, 12, token = agol_token$token)
   
   # ----- InvImageRepeat - invasive veg photos taken on internal device camera -----
-  invasives_int <- httr::GET(paste0(data_path, "/13/query"),
-                             query = list(where="1=1",
-                                          outFields="*",
-                                          f="JSON",
-                                          token=agol_token$token))
-  
-  invasives_int <- jsonlite::fromJSON(httr::content(invasives_int, type = "text", encoding = "UTF-8"))
-  agol_layers$invasives_int <- invasives_int$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$invasives_int <- fetchAllRecords(data_path, 13, token = agol_token$token)
   
   # ----- ExternalCameraFilesInv - invasive veg photos taken on external camera -----
-  invasives_ext  <- httr::GET(paste0(data_path, "/14/query"),
-                              query = list(where="1=1",
-                                           outFields="*",
-                                           f="JSON",
-                                           token=agol_token$token))
-  
-  invasives_ext  <- jsonlite::fromJSON(httr::content(invasives_ext , type = "text", encoding = "UTF-8"))
-  agol_layers$invasives_ext  <- invasives_ext $features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$invasives_ext <- fetchAllRecords(data_path, 14, token = agol_token$token)
   
   # ----- AdditionalPhotos2 - info about additional photos -----
-  additional_photos<- httr::GET(paste0(data_path, "/15/query"),
-                                query = list(where="1=1",
-                                             outFields="*",
-                                             f="JSON",
-                                             token=agol_token$token))
-  
-  additional_photos <- jsonlite::fromJSON(httr::content(additional_photos, type = "text", encoding = "UTF-8"))
-  agol_layers$additional_photos <- additional_photos$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$additional_photos <- fetchAllRecords(data_path, 15, token = agol_token$token)
   
   # ----- AdditionalPhotoInternal - additional photos taken on internal camera -----
-  additional_photos_int<- httr::GET(paste0(data_path, "/16/query"),
-                                    query = list(where="1=1",
-                                                 outFields="*",
-                                                 f="JSON",
-                                                 token=agol_token$token))
-  
-  additional_photos_int <- jsonlite::fromJSON(httr::content(additional_photos_int, type = "text", encoding = "UTF-8"))
-  agol_layers$additional_photos_int <- additional_photos_int$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$additional_photos_int <- fetchAllRecords(data_path, 16, token = agol_token$token)
   
   # ----- AddtionalPhotoExternal - additional photos taken on external camera -----
-  additional_photos_ext<- httr::GET(paste0(data_path, "/17/query"),
-                                    query = list(where="1=1",
-                                                 outFields="*",
-                                                 f="JSON",
-                                                 token=agol_token$token))
-  
-  additional_photos_ext <- jsonlite::fromJSON(httr::content(additional_photos_ext, type = "text", encoding = "UTF-8"))
-  agol_layers$additional_photos_ext <- additional_photos_ext$features$attributes %>%
-    tibble::as_tibble()
+  agol_layers$additional_photos_ext <- fetchAllRecords(data_path, 17, token = agol_token$token)
   
   agol_layers <- c(agol_layers, lookup_layers)
   
   agol_layers <- lapply(agol_layers, function(data_table) {
-    data_table %>% dplyr::mutate(dplyr::across(where(is.character), function(x) {
-      x %>%
-        utf8::utf8_encode() %>%  # Encode text as UTF-8 - this prevents a lot of parsing issues in R
-        trimws(whitespace = "[ \\t\\r\\n\\h\\v]") %>%  # Trim leading and trailing whitespace
-        dplyr::na_if("")  # Replace empty strings with NA
-    }))
+    data_table <- data_table %>%
+      dplyr::mutate(dplyr::across(where(is.character), function(x) {
+        x %>%
+          utf8::utf8_encode() %>%  # Encode text as UTF-8 - this prevents a lot of parsing issues in R
+          trimws() %>%  # Trim leading and trailing whitespace
+          dplyr::na_if("")  # Replace empty strings with NA
+      }))
     col_names <- names(data_table)
     name_and_label <- grepl("(name)|(label)", col_names, ignore.case = TRUE)
     names(data_table)[name_and_label] <- tolower(names(data_table[name_and_label]))
@@ -505,4 +438,58 @@ FetchAGOLLayers <- function(data_path, lookup_path, agol_username, agol_password
   })
   
   return(agol_layers)
+}
+
+#' Fetch tabular data from AGOL
+#' 
+#' Retrieves tabular data from AGOL layers and tables, even when number of rows exceeds maximum record count.
+#'
+#' @param data_path Feature service URL
+#' @param layer_number Layer number
+#' @param token Authentication token (optional)
+#' @param geometry Include spatial data columns? Works with points, not tested with other geometry types
+#' @param where Query clause specifying a subset of rows (optional; defaults to all rows). See AGOL REST API documentation.
+#' @param outFields String indicating which fields to return (optional; defaults to all fields). See AGOL REST API documentation.
+#'
+#' @return A tibble
+#' @export
+#'
+fetchAllRecords <- function(data_path, layer_number, token, geometry = FALSE, where = "1=1", outFields = "*") {
+  result <- tibble::tibble()
+  exc_transfer <- TRUE
+  offset <- nrow(result)
+  
+  qry <- list(where = where,
+              outFields = outFields,
+              f = "JSON",
+              resultOffset = offset)
+  
+  if (!missing(token)) {
+    qry$token <- token
+  }
+  
+  while(exc_transfer) {
+    resp <- httr::GET(paste0(data_path, "/", layer_number, "/query"),
+                      query = qry)
+    
+    content <- jsonlite::fromJSON(httr::content(resp, type = "text", encoding = "UTF-8"))
+    
+    if ("exceededTransferLimit" %in% names(content)) {
+      exc_transfer <- content$exceededTransferLimit
+    } else {
+      exc_transfer <- FALSE
+    }
+    
+    if (geometry) {
+      partial_result <- cbind(content$features$attributes, content$features$geometry) %>%
+        dplyr::mutate(wkid = content$spatialReference$wkid) %>%
+        tibble::as_tibble()
+    } else {
+      partial_result <- tibble::as_tibble(content$features$attributes)
+    }
+    result <- rbind(result, partial_result)
+    offset <- nrow(result)
+    qry$resultOffset <- offset
+  }
+  return(result)
 }
