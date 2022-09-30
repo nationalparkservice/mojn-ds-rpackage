@@ -1,4 +1,4 @@
-#' View sensors with unkown ID/serial number
+#' View sensors with unknown ID/serial number
 #'
 #' @return Dataframe of sensors omitted from data due to missing serial numbers
 #' @export
@@ -299,7 +299,18 @@ WrangleAGOLData <- function(agol_layers) {
   
   
   # ----- WaterQualityDO -----
+  percent <- visit %>%
+    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected,
+                  DissolvedOxygen_percent1, DissolvedOxygen_percent_2, DissolvedOxygen_percent_3)
   
+  mg <- visit %>% dplyr::select(visitglobalid, visitglobalid, 
+                                DissolvedOxygen_mg_per_L_1, DissolvedOxygen_mg_per_L_2, DissolvedOxygen_mg_per_L_3,
+                                DataQualityFlag,
+                                DataQualityFlagNote,
+                                DOInstrument,
+                                VisitType,
+                                DPL,
+                                MonitoringStatus)
   # ----- WaterQualitypH -----
   
   # ----- WaterQualitySpCond -----
@@ -322,7 +333,10 @@ WrangleAGOLData <- function(agol_layers) {
 #'
 #' @return A list of tibbles
 #'
-FetchAGOLLayers <- function(data_path, lookup_path, sites_path, agol_username, agol_password) {
+FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
+                            lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
+                            sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                            agol_username = "mojn_hydro", agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")) {
   # Get a token with a headless account
   token_resp <- httr::POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
                            body = list(username = agol_username,

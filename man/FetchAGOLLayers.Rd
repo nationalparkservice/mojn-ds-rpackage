@@ -5,11 +5,14 @@
 \title{Read data from the Desert Springs AGOL feature layers.}
 \usage{
 FetchAGOLLayers(
-  data_path,
-  lookup_path,
-  sites_path,
-  agol_username,
-  agol_password
+ 
+    data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
+ 
+    lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
+ 
+    sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+  agol_username = "mojn_hydro",
+  agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")
 )
 }
 \arguments{
