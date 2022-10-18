@@ -96,11 +96,38 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- CalibrationDO -----
   data$CalibrationDO <- visit %>%
+    dplyr::filter(grepl("DO",ParametersCollected)) %>%
     dplyr::inner_join(agol_layers$CalibrationDO, by = "DOUniqueID") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, )
+    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationTime = format(as.POSIXct(CalibrationTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("DOInstrumentID" = "name")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
+                  CalibrationTime, DOInstrument = label, BarometricPressure_mmHg, PreCalibrationReading_percent, 
+                  PreCalibrationTemperature_C, PostCalibrationReading_percent, PostCalibrationTemperature_C,
+                  Notes = Notes.y, ParametersCollected)
   
   # ----- CalibrationpH -----
-  # TODO
+  pH <- visit %>%
+    dplyr::filter(grepl("pH",ParametersCollected)) %>%
+    dplyr::select(visitglobalid, pHUniqueID_7, pHUniqueID_10, pHUniqueID_4) %>%
+    tidyr::pivot_longer(cols=dplyr::starts_with("pHUniqueID_"),
+                        values_to = "pHUniqueID", names_to = NULL) %>%
+    dplyr::left_join(visit, by = "visitglobalid") %>%
+    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
+    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, pHUniqueID)
+  
+    
+  data$CalibrationpH <- visit %>%
+    dplyr::inner_join(agol_layers$CalibrationpH, by = c("pHUniqueID")) %>%
+    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationTime = format(as.POSIXct(CalibrationTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("pHInstrumentID" = "name")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
+                  CalibrationTime, pHInstrument = label, StandardValue_pH, TemperatureCorrectedStd_pH,
+                  PreCalibrationReading_pH, PreCalibrationTemperature_C, PostCalibrationReading_pH, 
+                  PostCalibrationTemperature_C, Notes = Notes.y)
   
   
   # ----- CalibrationSpCond -----
@@ -458,6 +485,7 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
   agol_layers$CalibrationpH <- fetchAllRecords(calibration_path, 4, token = agol_token$token)
   
   agol_layers$CalibrationDO <- fetchAllRecords(calibration_path, 5, token = agol_token$token)
+    
   
   # Fetch each layer in the DS feature service
   
