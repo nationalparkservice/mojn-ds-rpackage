@@ -94,7 +94,16 @@ WrangleAGOLData <- function(agol_layers) {
                   Protocol = ProtocolID,
                   DPL = DataProcessingLevel)
   
-  # ----- Calibration data -----
+  # ----- CalibrationDO -----
+  data$CalibrationDO <- visit %>%
+    dplyr::inner_join(agol_layers$CalibrationDO, by = "DOUniqueID") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, )
+  
+  # ----- CalibrationpH -----
+  # TODO
+  
+  
+  # ----- CalibrationSpCond -----
   # TODO
   
   # ----- Photos -----
@@ -232,8 +241,24 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::filter(!is.na(SerialNumber) & !grepl("-9+", SerialNumber))
   
   # ----- SensorsCurrentlyDeployed -----
-  
+  data$SensorsCurrentlyDeployed <- sensor_retrieval %>%
+    dplyr::right_join(sensor_deployment, by = c("SensorIDRet" = "SensorIDDep")) %>%
+    dplyr::inner_join(visit, by = c("visitglobalid.y" = "visitglobalid")) %>%
+    dplyr::filter(IsSensorSpring == "Y", is.na(visitglobalid.x)) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
+    dplyr::rename(SensorNumber = label) %>%
+    dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.y, SiteName, 
+                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y)
+
   # ----- SensorsAllDeployments -----
+  data$SensorsAllDeployments <- sensor_retrieval %>%
+    dplyr::right_join(sensor_deployment, by = c("SensorIDRet" = "SensorIDDep")) %>%
+    dplyr::inner_join(visit, by = c("visitglobalid.y" = "visitglobalid")) %>%
+    dplyr::filter(IsSensorSpring == "Y", SensorDeployed.y != "N") %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
+    dplyr::rename(SensorNumber = label) %>%
+    dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.y, SiteName, 
+                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y, SensorDeployed.y)
   
   # ----- Site -----
   data$Site <- agol_layers$sites %>%
@@ -300,24 +325,82 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- WaterQualityDO -----
   percent <- visit %>%
-    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected,
-                  DissolvedOxygen_percent1, DissolvedOxygen_percent_2, DissolvedOxygen_percent_3)
+         dplyr::filter(WQDataCollected == "Yes") %>%
+         dplyr::select(visitglobalid, WQDataCollected,
+                       DissolvedOxygen_percent_1, DissolvedOxygen_percent_2, DissolvedOxygen_percent_3) %>%
+         tidyr::pivot_longer(cols = dplyr::starts_with("DissolvedOxygen_"),
+                             values_to = "DissolvedOxygen_percent", names_to = NULL) %>%
+         dplyr::right_join(visit, by = "visitglobalid") %>%
+         dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, 
+                  WQDataCollected = WQDataCollected.y, DissolvedOxygen_percent)
   
-  mg <- visit %>% dplyr::select(visitglobalid, visitglobalid, 
-                                DissolvedOxygen_mg_per_L_1, DissolvedOxygen_mg_per_L_2, DissolvedOxygen_mg_per_L_3,
-                                DataQualityFlag,
-                                DataQualityFlagNote,
-                                DOInstrument,
-                                VisitType,
-                                DPL,
-                                MonitoringStatus)
+  percent <- dplyr::mutate(percent, ID = 1:nrow(percent))
+  
+  mg <- visit %>% 
+    dplyr::filter(WQDataCollected == "Yes") %>%
+    dplyr::select(visitglobalid,
+                  DissolvedOxygen_mg_per_L_1, DissolvedOxygen_mg_per_L_2, DissolvedOxygen_mg_per_L_3) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("DissolvedOxygen_"),
+                        values_to = "DissolvedOxygen_mg_per_L", names_to = NULL) %>%
+    dplyr::right_join(visit, by = "visitglobalid") %>%
+    dplyr::select(visitglobalid, WQNotes, DO_DataQualityFlag, DOInstrument, 
+                  VisitType, DPL, MonitoringStatus, DissolvedOxygen_mg_per_L)
+  
+  mg <- dplyr::mutate(mg, ID = 1:nrow(mg))
+    
+  
+  data$WaterQualityDO <- mg %>%
+    dplyr::inner_join(percent, by = c("visitglobalid", "ID")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
+              DissolvedOxygen_percent, DissolvedOxygen_mg_per_L, DataQualityFlag = DO_DataQualityFlag, 
+              DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
+  
   # ----- WaterQualitypH -----
+  data$WaterQualitypH <- visit %>%
+    dplyr::filter(WQDataCollected == "Yes") %>%
+    dplyr::select(visitglobalid, pH_1, pH_2, pH_3) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("pH_"),
+                        values_to = "pH", names_to = NULL) %>%
+    dplyr::right_join(visit, by = "visitglobalid") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, pH, DataQualityFlag = pH_DataQualityFlag, 
+                  DataQualityFlagNote = WQNotes, pHInstrument, VisitType, DPL, MonitoringStatus)
   
   # ----- WaterQualitySpCond -----
+  data$WaterQualitySpCond <- visit %>%
+    dplyr::filter(WQDataCollected == "Yes") %>%
+    dplyr::select(visitglobalid, SpecificConductance_microS_1, SpecificConductance_microS_2, SpecificConductance_microS_3) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("SpecificConductance_"),
+                        values_to = "SpecificConductance_microS_per_cm", names_to = NULL) %>%
+    dplyr::right_join(visit, by = "visitglobalid") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
+                  SpecificConductance_microS_per_cm, DataQualityFlag = SpCond_microS_DataQualityFlag, DataQualityFlagNote = WQNotes, 
+                  SpCondInstrument, VisitType, DPL, MonitoringStatus)
   
   # ----- WaterQualityTemperature -----
+  data$WaterQualityTemperature <- visit %>%
+    dplyr::filter(WQDataCollected == "Yes") %>%
+    dplyr::select(visitglobalid, Temperature_C_1, Temperature_C_2, Temperature_C_3) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("Temperature_"),
+                        values_to = "WaterTemperature_C", names_to = NULL) %>%
+    dplyr::right_join(visit, by = "visitglobalid") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, WaterTemperature_C, 
+                  DataQualityFlag = Temp_C_DataQualityFlag, DataQualityFlagNote = WQNotes, TemperatureInstrument, 
+                  VisitType, DPL, MonitoringStatus)
   
   # ----- Wildlife -----
+  data$Wildlife <- agol_layers$wildlife %>%
+    dplyr::inner_join(visit, by = c("parentglobalid" = "visitglobalid")) %>%
+    dplyr::left_join(agol_layers$MOJN_Lookup_DS_WildlifeType, by = c("WildlifeType" = "name")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsWildlifeObserved, WildlifeType = label, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes = Species_Notes, VisitType, DPL) %>%
+    dplyr::mutate(DirectObservation = yn[DirectObservation],
+                  Scat = yn[Scat],
+                  Tracks = yn[Tracks],
+                  Shelter = yn[Shelter],
+                  Foraging = yn[Foraging],
+                  Vocalization = yn[Vocalization],
+                  OtherEvidence = yn[OtherEvidence])
+    
+  
   
   return(data)
 }
@@ -336,6 +419,7 @@ WrangleAGOLData <- function(agol_layers) {
 FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
                             lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
                             sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                            calibration_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
                             agol_username = "mojn_hydro", agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")) {
   # Get a token with a headless account
   token_resp <- httr::POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
@@ -367,6 +451,13 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
     return(df)
   })
   names(lookup_layers) <- lookup_names$name
+  
+  #Fetch calibration tables from calibration feature service
+  agol_layers$CalibrationSpCond <- fetchAllRecords(calibration_path, 3, token = agol_token$token)
+  
+  agol_layers$CalibrationpH <- fetchAllRecords(calibration_path, 4, token = agol_token$token)
+  
+  agol_layers$CalibrationDO <- fetchAllRecords(calibration_path, 5, token = agol_token$token)
   
   # Fetch each layer in the DS feature service
   
