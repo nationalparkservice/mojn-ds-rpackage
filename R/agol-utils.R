@@ -99,51 +99,51 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::filter(grepl("DO",ParametersCollected)) %>%
     dplyr::inner_join(agol_layers$CalibrationDO, by = "DOUniqueID") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationTime = format(as.POSIXct(CalibrationTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
     dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
     dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("DOInstrumentID" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
                   CalibrationTime, DOInstrument = label, BarometricPressure_mmHg, PreCalibrationReading_percent, 
                   PreCalibrationTemperature_C, PostCalibrationReading_percent, PostCalibrationTemperature_C,
-                  Notes = Notes.y, ParametersCollected)
+                  Notes = Notes.y)
   
   # ----- CalibrationpH -----
-  pH <- visit %>%
+  data$CalibrationpH <- visit %>%
     dplyr::filter(grepl("pH",ParametersCollected)) %>%
     dplyr::select(visitglobalid, pHUniqueID_7, pHUniqueID_10, pHUniqueID_4) %>%
     tidyr::pivot_longer(cols=dplyr::starts_with("pHUniqueID_"),
                         values_to = "pHUniqueID", names_to = NULL) %>%
     dplyr::left_join(visit, by = "visitglobalid") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, pHUniqueID)
-  
-    
-  data$CalibrationpH <- visit %>%
-    dplyr::inner_join(agol_layers$CalibrationpH, by = c("pHUniqueID")) %>%
+    dplyr::inner_join(agol_layers$CalibrationpH, by = "pHUniqueID") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationTime = format(as.POSIXct(CalibrationTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
     dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
     dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("pHInstrumentID" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
                   CalibrationTime, pHInstrument = label, StandardValue_pH, TemperatureCorrectedStd_pH,
                   PreCalibrationReading_pH, PreCalibrationTemperature_C, PostCalibrationReading_pH, 
-                  PostCalibrationTemperature_C, Notes = Notes.y)
-  
+                  PostCalibrationTemperature_C, Notes = Notes.y, pHUniqueID)
   
   # ----- CalibrationSpCond -----
-  # TODO
+  data$CalibrationSpCond <- visit %>%
+    dplyr::filter(grepl("SpCond",ParametersCollected)) %>%
+    dplyr::inner_join(agol_layers$CalibrationSpCond, by = "SpCondUniqueID") %>%
+    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
+    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("SpCondInstrumentID" = "name")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
+                  CalibrationTime, SpCondInstrument = label, StandardValue_microS_per_cm, 
+                  PreCalibrationReading_microS_per_cm = PreCalibrationReading_microS_pe,
+                  PostCalibrationReading_microS_per_cm = PostCalibrationReading_microS_p, Notes = Notes.y)
   
   # ----- Photos -----
-  # TODO
   rep_photos_int <- agol_layers$repeats_int %>%
-    dplyr::select(repphotoglobalid = parentglobalid) %>%
-    dplyr::mutate(OriginalFilePath = "TBD",
-                  RenamedFilePath = "TBD")
+    dplyr::select(repphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
   
   rep_photos_ext <- agol_layers$repeats_ext %>%
-    dplyr::select(repphotoglobalid = parentglobalid) %>%
-    dplyr::mutate(OriginalFilePath = "TBD",
-                  RenamedFilePath = "TBD")
+    dplyr::select(repphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
   
   rep_photo_files <- dplyr::bind_rows(rep_photos_ext, rep_photos_int) %>%
     dplyr::mutate(IsLibraryPhoto = "TBD")
@@ -154,12 +154,12 @@ WrangleAGOLData <- function(agol_layers) {
                   PhotoSOP = "RPT") %>%
     dplyr::left_join(rep_photo_files, by ="repphotoglobalid")
   
-  data$Photos <- visit %>%
+  data$Photo <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, MonitoringStatus, SpringType, SampleFrame, DPL, Camera, CameraCard, GPSUnit, visitglobalid) %>%
     dplyr::mutate(DateTaken = VisitDate) %>%
     dplyr::inner_join(rep_photos, by = "visitglobalid") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, MonitoringStatus, SpringType, SampleFrame, DPL, Camera, CameraCard, DateTaken, 
-                  PhotoType, IsLibraryPhoto, OriginalFilePath, RenamedFilePath,GPSUnit, UtmX_m, UtmY_m, Notes, PhotoSOP)
+                  PhotoType, IsLibraryPhoto, OriginalFilePath, RenamedFilePath = renamedfilepath,GPSUnit, UtmX_m, UtmY_m, Notes, PhotoSOP)
   
   # ----- DischargeEstimated -----
   data$DischargeEstimated <- visit %>%
@@ -264,7 +264,7 @@ WrangleAGOLData <- function(agol_layers) {
     warning(warn)
   }
   
-  data$SensorRetrievalAttempts %<>% 
+  data$SensorRetrievalAttempts %>% 
     dplyr::filter(!is.na(SerialNumber) & !grepl("-9+", SerialNumber))
   
   # ----- SensorsCurrentlyDeployed -----
@@ -278,14 +278,13 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y)
 
   # ----- SensorsAllDeployments -----
-  data$SensorsAllDeployments <- sensor_retrieval %>%
-    dplyr::right_join(sensor_deployment, by = c("SensorIDRet" = "SensorIDDep")) %>%
-    dplyr::inner_join(visit, by = c("visitglobalid.y" = "visitglobalid")) %>%
-    dplyr::filter(IsSensorSpring == "Y", SensorDeployed.y != "N") %>%
-    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
+  data$SensorsAllDeployments <- sensor_deployment %>%
+    dplyr::inner_join(visit, by = c("visitglobalid" = "visitglobalid")) %>%
+    dplyr::filter(IsSensorSpring == "Y", SensorDeployed.y == "Y") %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep.y" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
     dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.y, SiteName, 
-                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y, SensorDeployed.y)
+                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y, SensorDeployed = SensorDeployed.y)
   
   # ----- Site -----
   data$Site <- agol_layers$sites %>%
@@ -293,6 +292,13 @@ WrangleAGOLData <- function(agol_layers) {
                   Subunit,
                   SiteCode,
                   SiteName = sitename,
+                  SiteDescription,
+                  EcologicalDescription,
+                  LogisticalDescription,
+                  DriveDescription,
+                  HikeDescription,
+                  HikeDistance_m,
+                  HikeTime_min,
                   GRTSDraw,
                   GRTSOrder, 
                   SiteStatus,
@@ -417,6 +423,7 @@ WrangleAGOLData <- function(agol_layers) {
   # ----- Wildlife -----
   data$Wildlife <- agol_layers$wildlife %>%
     dplyr::inner_join(visit, by = c("parentglobalid" = "visitglobalid")) %>%
+    dplyr::filter(VisitDate > "2018-11-04") %>%
     dplyr::left_join(agol_layers$MOJN_Lookup_DS_WildlifeType, by = c("WildlifeType" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsWildlifeObserved, WildlifeType = label, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes = Species_Notes, VisitType, DPL) %>%
     dplyr::mutate(DirectObservation = yn[DirectObservation],
