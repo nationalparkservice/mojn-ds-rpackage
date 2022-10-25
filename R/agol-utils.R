@@ -232,7 +232,10 @@ WrangleAGOLData <- function(agol_layers) {
   
   sensor_deployment <- visit %>%
     # dplyr::filter(IsSensorSpring == "Y") %>%
-    dplyr::select(visitglobalid, DeploymentFieldSeason = FieldSeason, DeploymentDate = VisitDate, SiteCode, DeploymentVisitType = VisitType, SensorDeployed, SensorDep, SensorIDDep, DeploymentTime, SensorDeployNote)
+    dplyr::select(visitglobalid, DeploymentFieldSeason = FieldSeason, DeploymentDate = VisitDate, SiteCode, SiteName, Park, IsSensorSpring, DeploymentVisitType = VisitType, SensorDeployed, SensorDep, SensorIDDep, DeploymentTime, SensorDeployNote)
+  
+  sensorRetrieval_visit <- sensor_retrieval %>%
+    dplyr::inner_join(retrieval_visit, by = "visitglobalid")
   
   # data$SensorRetrievalAttempts <- visit %>%
   #   dplyr::filter(IsSensorSpring == "Y") %>%
@@ -251,7 +254,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
     dplyr::filter(DeploymentDate < RetrievalDate) %>%
-    dplyr::select(SensorNumber, SerialNumber, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SiteName, SiteCode, Park, SensorRetrieved, SensorProblem, DownloadResult = DownloadSuccessful, RetrievalVisitType, DeploymentVisitType, Notes)
+    dplyr::select(SensorNumber, SerialNumber, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SiteName = SiteName.x, SiteCode, Park = Park.x, SensorRetrieved, SensorProblem, DownloadResult = DownloadSuccessful, RetrievalVisitType, DeploymentVisitType, Notes)
   
   unk_sensors <- data$SensorRetrievalAttempts %>% 
     dplyr::filter(is.na(SerialNumber) | grepl("-9+", SerialNumber)) %>%
@@ -268,23 +271,22 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::filter(!is.na(SerialNumber) & !grepl("-9+", SerialNumber))
   
   # ----- SensorsCurrentlyDeployed -----
-  data$SensorsCurrentlyDeployed <- sensor_retrieval %>%
-    dplyr::right_join(sensor_deployment, by = c("SensorIDRet" = "SensorIDDep")) %>%
-    dplyr::inner_join(visit, by = c("visitglobalid.y" = "visitglobalid")) %>%
-    dplyr::filter(IsSensorSpring == "Y", is.na(visitglobalid.x)) %>%
-    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
+   data$SensorsCurrentlyDeployed <- sensor_deployment %>%
+    dplyr::left_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet")) %>%
+    dplyr::filter(IsSensorSpring.x == "Y", SensorDeployed == "Y", is.na(visitglobalid.y)) %>%
+    dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
-    dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.y, SiteName, 
-                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y)
+    dplyr::select(SensorNumber, SerialNumber, SiteCode, SiteName = SiteName.x, 
+                  VisitDate = DeploymentDate, FieldSeason = DeploymentFieldSeason, Park = Park.x, VisitType = DeploymentVisitType, Notes = SensorDeployNote)
 
   # ----- SensorsAllDeployments -----
   data$SensorsAllDeployments <- sensor_deployment %>%
     dplyr::inner_join(visit, by = c("visitglobalid" = "visitglobalid")) %>%
-    dplyr::filter(IsSensorSpring == "Y", SensorDeployed.y == "Y") %>%
+    dplyr::filter(IsSensorSpring.x == "Y", SensorDeployed.x == "Y") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep.y" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
-    dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.y, SiteName, 
-                  VisitDate, FieldSeason, Park, VisitType, Notes = SensorDeployNote.y, SensorDeployed = SensorDeployed.y)
+    dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.x, SiteName = SiteName.x, 
+                  VisitDate, FieldSeason, Park = Park.x, VisitType, Notes = SensorDeployNote.x, SensorDeployed = SensorDeployed.x)
   
   # ----- Site -----
   data$Site <- agol_layers$sites %>%
@@ -380,27 +382,43 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitType, DPL, MonitoringStatus, DissolvedOxygen_mg_per_L)
   
   mg <- dplyr::mutate(mg, ID = 1:nrow(mg))
-    
   
-  data$WaterQualityDO <- mg %>%
+  WaterQualityDO <- mg %>%
     dplyr::inner_join(percent, by = c("visitglobalid", "ID")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
-              DissolvedOxygen_percent, DissolvedOxygen_mg_per_L, DataQualityFlag = DO_DataQualityFlag, 
-              DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
+                  DissolvedOxygen_percent, DissolvedOxygen_mg_per_L, DataQualityFlag = DO_DataQualityFlag, 
+                  DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
+    
+  wqDO_filterRepeats <- WaterQualityDO %>%
+    filter(is.na(DissolvedOxygen_percent), is.na(DissolvedOxygen_mg_per_L)) %>%
+    unique()
+  
+  WaterQualityDO <- WaterQualityDO %>%
+    dplyr::filter_at(vars(DissolvedOxygen_mg_per_L, DissolvedOxygen_percent), any_vars(!is.na(.)))
+  
+  data$WaterQualityDO <- dplyr::bind_rows(wqDO_filterRepeats, WaterQualityDO)
   
   # ----- WaterQualitypH -----
-  data$WaterQualitypH <- visit %>%
-    dplyr::filter(WQDataCollected == "Yes") %>%
+ WaterQualitypH <- visit %>%
     dplyr::select(visitglobalid, pH_1, pH_2, pH_3) %>%
     tidyr::pivot_longer(cols = dplyr::starts_with("pH_"),
                         values_to = "pH", names_to = NULL) %>%
     dplyr::right_join(visit, by = "visitglobalid") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, pH, DataQualityFlag = pH_DataQualityFlag, 
-                  DataQualityFlagNote = WQNotes, pHInstrument, VisitType, DPL, MonitoringStatus)
+                  DataQualityFlagNote = WQNotes, pHInstrument, VisitType, DPL, MonitoringStatus) 
+    
+ wqpH_filterRepeats <- WaterQualitypH %>%
+   dplyr::filter(is.na(pH)) %>%
+   unique()
+ 
+ WaterQualitypH <- WaterQualitypH %>%
+   dplyr::filter(!is.na(pH))
+ 
+ data$WaterQualitypH <- dplyr::bind_rows(wqpH_filterRepeats, WaterQualitypH)
+ 
   
   # ----- WaterQualitySpCond -----
-  data$WaterQualitySpCond <- visit %>%
-    dplyr::filter(WQDataCollected == "Yes") %>%
+  WaterQualitySpCond <- visit %>%
     dplyr::select(visitglobalid, SpecificConductance_microS_1, SpecificConductance_microS_2, SpecificConductance_microS_3) %>%
     tidyr::pivot_longer(cols = dplyr::starts_with("SpecificConductance_"),
                         values_to = "SpecificConductance_microS_per_cm", names_to = NULL) %>%
@@ -408,10 +426,18 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
                   SpecificConductance_microS_per_cm, DataQualityFlag = SpCond_microS_DataQualityFlag, DataQualityFlagNote = WQNotes, 
                   SpCondInstrument, VisitType, DPL, MonitoringStatus)
+ 
+ wqSpCond_filterRepeats <- WaterQualitySpCond %>%
+   dplyr::filter(is.na(SpecificConductance_microS_per_cm))%>%
+   unique()
+ 
+ WaterQualitySpCond <- WaterQualitySpCond %>%
+   dplyr::filter(!is.na(SpecificConductance_microS_per_cm))
+ 
+ data$WaterQualitySpCond <- dplyr::bind_rows(WaterQualitySpCond, wqSpCond_filterRepeats)
   
   # ----- WaterQualityTemperature -----
-  data$WaterQualityTemperature <- visit %>%
-    dplyr::filter(WQDataCollected == "Yes") %>%
+  WaterQualityTemperature <- visit %>%
     dplyr::select(visitglobalid, Temperature_C_1, Temperature_C_2, Temperature_C_3) %>%
     tidyr::pivot_longer(cols = dplyr::starts_with("Temperature_"),
                         values_to = "WaterTemperature_C", names_to = NULL) %>%
@@ -419,6 +445,15 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, WaterTemperature_C, 
                   DataQualityFlag = Temp_C_DataQualityFlag, DataQualityFlagNote = WQNotes, TemperatureInstrument, 
                   VisitType, DPL, MonitoringStatus)
+ 
+ wqTemp_filterRepeats <- WaterQualityTemperature %>%
+   dplyr::filter(is.na(WaterTemperature_C)) %>%
+   unique()
+ 
+ WaterQualityTemperature <- WaterQualityTemperature %>%
+   dplyr::filter(!is.na(WaterTemperature_C))
+ 
+ data$WaterQualityTemperature <- dplyr::bind_rows(WaterQualityTemperature, wqTemp_filterRepeats)
   
   # ----- Wildlife -----
   data$Wildlife <- agol_layers$wildlife %>%
