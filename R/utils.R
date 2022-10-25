@@ -347,7 +347,10 @@ ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rs
 #' LoadDesertSprings("path/to/zipped/csvs.zip")  # Read from zip file of CSV's
 #' }
 #'
-LoadDesertSprings <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/service_815059c20fd448628dc23441f7a7c473/FeatureServer", ...) {
+LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/service_815059c20fd448628dc23441f7a7c473/FeatureServer", 
+                                            lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
+                                            sites = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                                            calibration = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer")) {
   
   # Figure out the format of the data
   agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"

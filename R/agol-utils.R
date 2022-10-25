@@ -273,7 +273,7 @@ WrangleAGOLData <- function(agol_layers) {
   # ----- SensorsCurrentlyDeployed -----
    data$SensorsCurrentlyDeployed <- sensor_deployment %>%
     dplyr::left_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet")) %>%
-    dplyr::filter(IsSensorSpring.x == "Y", SensorDeployed == "Y", is.na(visitglobalid.y)) %>%
+    dplyr::filter(IsSensorSpring.x == "Y", SensorDeployed == "Y", SensorRetrieved == "N") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
     dplyr::select(SensorNumber, SerialNumber, SiteCode, SiteName = SiteName.x, 
