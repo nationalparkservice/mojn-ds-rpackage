@@ -3,12 +3,12 @@
 pkg_globals <- new.env(parent = emptyenv())
 
 # Load data from global package environment
-get_data <- function(data_name) {
-  if (!missing(data_name)) {
-    if (!(data_name %in% names(GetColSpec()))) {
-      stop("Invalid data table name. Use names(desertsprings:::GetColSpec()) to see valid options for data_name.")
+get_data <- function(data.name) {
+  if (!missing(data.name)) {
+    if (!(data.name %in% names(GetColSpec()))) {
+      stop("Invalid data table name. Use names(desertsprings:::GetColSpec()) to see valid options for data.name.")
     }
-    tryCatch({data <- get(data_name, pkg_globals)},
+    tryCatch({data <- get(data.name, pkg_globals)},
              error = function(e) {
                if (grepl(".*object.* not found.*", e$message, ignore.case = TRUE)) {
                  stop(paste0("Could not find data. Did you remember to call LoadDesertSprings?\n\tOriginal error: ", e$message))
@@ -271,18 +271,18 @@ ReadCSV <- function(data_path) {
     # Use this trycatch so that even if there's an error unzipping or reading, the temp dir will be deleted
     tryCatch({
       unzip(data_path, overwrite = TRUE, exdir = temp_dir, junkpaths = TRUE)
-      data <- lapply(names(col.spec), function(data_name){
-        file_path <- file.path(temp_dir, paste0(data_name, ".csv"))
-        df <- readr::read_csv(file = file_path, col_types = col.spec[[data_name]])
+      data <- lapply(names(col.spec), function(data.name){
+        file_path <- file.path(temp_dir, paste0(data.name, ".csv"))
+        df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]])
         return(df)
       })
     },
     finally = unlink(temp_dir, recursive = TRUE)
     )
   } else {  # Read files from data path
-    data <- lapply(names(col.spec), function(data_name){
-      file_path <- file.path(data_path, paste0(data_name, ".csv"))
-      df <- readr::read_csv(file = file_path, col_types = col.spec[[data_name]])
+    data <- lapply(names(col.spec), function(data.name){
+      file_path <- file.path(data_path, paste0(data.name, ".csv"))
+      df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]])
       return(df)
     })
   }
@@ -300,8 +300,8 @@ ReadCSV <- function(data_path) {
 ReadSqlDatabase <- function(...) {
   col.spec <- GetColSpec()
   conn <- OpenDatabaseConnection(...)
-  data <- lapply(names(col.spec), function(data_name){
-    df <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data_name)) %>%
+  data <- lapply(names(col.spec), function(data.name){
+    df <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data.name)) %>%
       dplyr::collect()
     return(df)
   })
@@ -318,7 +318,7 @@ ReadSqlDatabase <- function(...) {
 #' @return A list of tibbles
 #'
 ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
-  agol_layers <- FetchAGOLLayers(data_path, agol_username, agol_password)
+  agol_layers <- FetchAGOLLayers(data_path["main_db"], data_path["lookup_db"], data_path["sites_db"], data_path["calibration_db"], agol_username, agol_password)
   data <- WrangleAGOLData(agol_layers)
   
   return(data)
@@ -328,7 +328,7 @@ ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rs
 #' @description Run this function before you do anything else.
 #'
 #' @param data_path A path or URL to the data. Accepted inputs:
-#' * a URL to the AGOL feature service containing the data
+#' * 4 URLs to the AGOL feature services containing the data (main_db, lookup_db, sites_db, and calibration_db)
 #' * a folder containing the data in csv format
 #' * a .zip file containing the data in csv format
 #' * `"database"` (connect to the deprecated SQL server database)
@@ -347,30 +347,30 @@ ReadAGOL <- function(data_path, agol_username = "mojn_hydro", agol_password = rs
 #' LoadDesertSprings("path/to/zipped/csvs.zip")  # Read from zip file of CSV's
 #' }
 #'
-LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/service_815059c20fd448628dc23441f7a7c473/FeatureServer", 
+LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
                                             lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
-                                            sites = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
-                                            calibration = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer")) {
+                                            sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                                            calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer")) {
   
   # Figure out the format of the data
   agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"
-  is_agol <- grepl(agol_regex, data_path)
-  is_db <- grepl("^database$", data_path, ignore.case = TRUE)
+  is_agol <- grepl(agol_regex, data_path[1])
+  is_db <- grepl("^database$", data_path[1], ignore.case = TRUE)
   if (!is_agol & !is_db) {
     # Standardize data path
-    data_path <- normalizePath(data_path, mustWork = TRUE)
+    data_path <- normalizePath(data_path[1], mustWork = TRUE)
   }
-  is_zip <- grepl("\\.zip$", data_path, ignore.case = TRUE) && file.exists(data_path)
-  is_folder <- dir.exists(data_path)
+  is_zip <- grepl("\\.zip$", data_path[1], ignore.case = TRUE) && file.exists(data_path[1])
+  is_folder <- dir.exists(data_path[1])
   
   if (is_agol) {  # Read from AGOL feature layer
-    data <- ReadAGOL(data_path)  # TODO
+           data <- ReadAGOL(data_path)
   } else if (is_db) {  # Read from SQL Server database
-    data <- ReadSqlDatabase(...)
+    data <- ReadSqlDatabase()
   } else if (is_zip | is_folder) {  # Read from folder of CSV's (may be zipped)
-    data <- ReadCSV(data_path)
+    data <- ReadCSV(data_path[1])
   } else {
-    stop(paste("Data path", data_path, "is invalid. See `?LoadDesertSprings` for more information."))
+    stop(paste("Data path", data_path[1], "is invalid. See `?LoadDesertSprings` for more information."))
   }
 
   # Tidy up the data
@@ -393,35 +393,22 @@ LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.
 }
 
 #' Read desert springs data from database or .csv
-#'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' 
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param data.name The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.
 #'
 #' @return A tibble of filtered data.
 #'
 #' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, SensorRetrievalAttempts, SensorsCurrentlyDeployed, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
 #'
-ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data.source = "database", data.name) {
-  col.spec <- GetColSpec()
-
-  if (!(data.source %in% c("database", "local"))) {
-    stop("Please choose either 'database' or 'local' for data.source")
-  } else if (data.source == "database") {
-    filtered.data <- dplyr::tbl(conn, dbplyr::in_schema("analysis", data.name)) %>%
-      dplyr::collect() %>%
-      dplyr::mutate_if(is.character, stringr::str_trim) %>%
-      dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v]+", replacement = ";  ") %>%
-      dplyr::mutate_if(is.character, dplyr::na_if, "")
-  } else if (data.source == "local") {
-    filtered.data <- readr::read_csv(file.path(path.to.data, paste0(data.name, ".csv")), na = "", col_types = col.spec[[data.name]])
+ReadAndFilterData <- function(park, site, field.season, data.name) {
+  filtered.data <- get_data(data.name)
+  
+  if (!missing(field.season)) {
+    field.season <- as.character(field.season)
   }
-
-  class(filtered.data) <- c("tbl_df", "tbl", "data.frame")  # R 4.0 fix: makes sure that filtered.data is the same class regardless of where it was read from
   
   if (!missing(park)) {
     filtered.data %<>%
@@ -430,7 +417,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
       warning(paste0(data.name, ": Data are not available for the park specified"))
     }
   }
-
+  
   if (!missing(site) & nrow(filtered.data) > 0) {
     filtered.data %<>%
       dplyr::filter(SiteCode == site)
@@ -439,16 +426,16 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
       warning(paste0(data.name, ": Data are not available for the site specified"))
     }
   }
-
+  
   if ("FieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(FieldSeason = as.character(FieldSeason))
   }
-
+  
   # Accommodate sensor data
   if ("DeploymentFieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(DeploymentFieldSeason = as.character(DeploymentFieldSeason))
   }
-
+  
   if ("RetrievalFieldSeason" %in% names(filtered.data)) {
     filtered.data %<>% dplyr::mutate(RetrievalFieldSeason = as.character(RetrievalFieldSeason))
   }
@@ -468,13 +455,13 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
       warning(paste0(data.name, ": Data are not available for one or more of the deployment field seasons specified"))
     }
   }
-
+  
   return(filtered.data)
 }
 
 #' Save desert springs analysis views as a set of .csv files
 #'
-#' @param conn A database connection pool object generated from a call to \code{OpenDatabaseConnection()}.
+#' 
 #' @param dest.folder The folder in which to save the .csv files.
 #' @param create.folders Should \code{dest.folder} be created automatically if it doesn't exist? Defaults to \code{FALSE}.
 #' @param overwrite Should existing data be automatically overwritten? Defaults to \code{FALSE}.
@@ -484,11 +471,10 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
 #'
 #' @examples
 #' \dontrun{
-#' conn <- OpenDatabaseConnection()
-#' SaveDataToCsv(conn, "C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
-#' CloseDatabaseConnection(conn)
+#' LoadDesertSprings()
+#' SaveDataToCsv("C:/Users/myusername/Documents/R/desert-springs-data", TRUE, TRUE)
 #' }
-SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite = FALSE) {
+SaveDataToCsv <- function(dest.folder, create.folders = FALSE, overwrite = FALSE) {
   analysis.views <- names(GetColSpec())
   dest.folder <- file.path(dirname(dest.folder), basename(dest.folder)) # Get destination directory in a consistent format. Seems like there should be a better way to do this.
   file.paths <- file.path(dest.folder, paste0(analysis.views, ".csv"))
@@ -508,7 +494,7 @@ SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite =
 
   # Write each analysis view in the database to csv
   for (view.name in analysis.views) {
-    df <- ReadAndFilterData(conn, data.name = view.name) %>%
+    df <- ReadAndFilterData(data.name = view.name) %>%
       dplyr::collect()
     readr::write_csv(df, file.path(dest.folder, paste0(view.name, ".csv")), na = "", append = FALSE, col_names = TRUE)
   }
@@ -516,22 +502,22 @@ SaveDataToCsv <- function(conn, dest.folder, create.folders = FALSE, overwrite =
 
 #' Raw data dump
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' 
+#'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Spring code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' 
 #'
 #' @return A list of dataframes containing raw desert springs data.
 #' @export
 #'
-GetRawData <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+GetRawData <- function(park, site, field.season) {
   data.dump <- list()
   data.names <- names(GetColSpec())
 
   for (data.name in data.names) {
-    data.dump[[data.name]] <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name)
+    data.dump[[data.name]] <- ReadAndFilterData(park, site, field.season, data.name)
   }
 
   return(data.dump)
@@ -539,16 +525,16 @@ GetRawData <- function(conn, path.to.data, park, site, field.season, data.source
 
 #' Get the name of a site from the site code
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' 
+#' 
 #' @param site.code Spring code to get the name for, e.g. "LAKE_P_HOR0042".
-#' @param data.source Character string indicating whether to access data in the desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
 #'
 #' @return The name of the site
 #' @export
 #'
-GetSiteName <- function(conn, path.to.data, site.code, data.source = "database") {
-  site <- ReadAndFilterData(conn, path.to.data, site = site.code, data.source = data.source, data.name = "Site")
+GetSiteName <- function(site.code) {
+  site <- ReadAndFilterData(site = site.code, data.name = "Site")
   site %<>% dplyr::select("SiteCode", "SiteName") %>%
     unique() %>%
     dplyr::filter(SiteCode == site.code)

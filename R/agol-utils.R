@@ -177,7 +177,7 @@ WrangleAGOLData <- function(agol_layers) {
   data$DischargeVolumetric <- visit %>%
     dplyr::filter(DischargeMethod == "VOL") %>%
     dplyr::left_join(vol, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, ContainerVolume_mL, EstimatedCapture_percent, VisitType, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, ContainerVolume_mL, FillTime_seconds, EstimatedCapture_percent, VisitType, DPL)
   
   # ----- Disturbance -----
   data$Disturbance <- visit %>%
@@ -272,8 +272,8 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- SensorsCurrentlyDeployed -----
    data$SensorsCurrentlyDeployed <- sensor_deployment %>%
-    dplyr::left_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet")) %>%
-    dplyr::filter(IsSensorSpring.x == "Y", SensorDeployed == "Y", SensorRetrieved == "N") %>%
+    dplyr::inner_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet", "DeploymentDate" = "RetrievalDate")) %>%
+    dplyr::filter(SensorDeployed == "Y") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
     dplyr::select(SensorNumber, SerialNumber, SiteCode, SiteName = SiteName.x, 

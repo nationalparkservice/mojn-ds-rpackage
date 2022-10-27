@@ -1,17 +1,14 @@
 #' Wildlife observed, no wildlife type specified
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble with columns for 
 #' @export
 #'
-qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+qcWildlifeObservedNoTypes <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park,data.name = "Wildlife")
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -25,18 +22,15 @@ qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.seas
 
 #' Wildlife observed and wildlife type specified, no evidence recorded
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+qcWildlifeObservedNoEvidence <- function(park, site, field.season,) {
+  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   
   type.noevidence <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -55,18 +49,15 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
 
 #' Table of springs with evidence of ungulate (sheep and deer) activity
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+UngulatesEvidence <- function(park, site, field.season,) {
+  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
@@ -79,19 +70,16 @@ UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data
 
 #' Map of springs with evidence of ungulate (sheep and deer) activity
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return leaflet map
 #' @export
 #'
-UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+UngulatesMap <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+  site <- ReadAndFilterData(park = park, data.name = "Site")
   
   coords <- site %>%
     select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

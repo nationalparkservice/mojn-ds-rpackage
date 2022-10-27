@@ -1,17 +1,14 @@
 #' Return list of visits with vegetation observed, no lifeform present
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+qcVegPresentNoLifeforms <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
   
   vegnolife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -25,18 +22,14 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits with no vegetation observed, lifeform present
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#'
 #' @return
 #' @export
 #'
-qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+qcNoVegLifeformsPresent <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
   
   noveglife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -50,18 +43,15 @@ qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits with lifeform present, no rank
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+qcLifeformPresentNoRank <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
   
   lifenorank <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -75,18 +65,15 @@ qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits where multiple lifeforms have the same rank, and rank gaps have not been properly entered
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+qcLifeformRankCheck <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
   
   rankcheck <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -112,17 +99,14 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 
 #' Table with summary of life form presence and rank
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @return
 #' @export
 #'
-LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Riparian")
+LifeformsPresence <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
   
   veg.summary <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -138,17 +122,14 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 
 #' Bar plot showing the distribution of the number of life form categories at springs by park
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
+LifeformsPerSpringPlot <- function(park, field.season) {
+  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
   
   veg %<>% dplyr::filter(Park != "CAMO")
   
@@ -214,17 +195,14 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, field.season, data.
 
 #' Bar plot showing the most common life form categories at springs by park
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = field.season, data.source = data.source, data.name = "Riparian")
+MostCommonLifeformsPlot <- function(park, field.season) {
+  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
 
   veg %<>% dplyr::filter(Park != "CAMO")
   
@@ -252,18 +230,15 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, field.season, data
 
 #' Table of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return
 #' @export
 #'
-InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Invasives")
+InvasivePlants <- function(park, site, field.season) {
+  invasives <- ReadAndFilterData(park = park,  data.name = "Invasives")
   
   targetinvasives <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode, ScientificName, InRiparianVegBuffer, Notes) %>%
@@ -276,20 +251,17 @@ InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.so
 
 #' Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return leaflet map
 #' @export
 #'
 #' @examples
-InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Invasives")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+InvasivePlantsMap <- function(park, site, field.season) {
+  invasives <- ReadAndFilterData(park = park,  data.name = "Invasives")
+  site <- ReadAndFilterData(park = park,  data.name = "Site")
   
   coords <- site %>%
     select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

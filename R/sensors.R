@@ -1,18 +1,15 @@
 #' Summarize sensor retrieval and download attempts by park and season
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble with columns for park, deployment field season, number of sensors deployed, number of sensors for which retrieval was not attempted, number of sensors for which retrieval was attempted, number of sensors actually retrieved, number of sensors actually downloaded
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorRetrievalAttempts")
-  deployed.only <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
+qcSensorSummary <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
 
   # Number of sensors that have been deployed but no retrieval (successful or unsuccessful) has been attempted
   deployed.only
@@ -69,18 +66,15 @@ qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, d
 
 #' Plot sensor retrieval results over time as a heatmap.
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A ggplot object.
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
+qcSensorHeatmap <- function(park) {
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+  visit <- ReadAndFilterData(park = park, data.name = "Visit")
   
   sampleframe <- visit %>%
     select(SiteCode, SampleFrame)
@@ -106,18 +100,15 @@ qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") 
 
 #' Problems with retrieved sensors
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+qcSensorProblems <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
   
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
@@ -130,18 +121,15 @@ qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, 
 
 #' Sensors were retrieved, but download status is unknown
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+qcSensorDownloads <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
   
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
@@ -153,18 +141,14 @@ qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season,
 
 #' Sensors were deployed in previous field seasons and are still unaccounted for 
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  deployed <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
+qcMissingSensors <- function(park, deployment.field.season) {
+  deployed <- ReadAndFilterData(park = park, data.name = "SensorsCurrentlyDeployed")
   
   current.date <- Sys.Date()
   
@@ -185,18 +169,15 @@ qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, 
 
 #' Sensors whose retrieval date is the same as their deployment date
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+qcSensorDates <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
  
   error <- attempts %>%
     dplyr::filter(DeploymentDate == RetrievalDate)
@@ -208,20 +189,17 @@ qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, dat
 
 #' Springs with no sensor deployment data for latest field season
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return A tibble
 #' @export
 #'
 #' @examples
-qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "database") {
+qcSensorsNoData <- function(park, site) {
  
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+  visit <- ReadAndFilterData(park = park, data.name = "Visit")
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
   
   visit.x <- visit %>%
     select(Park, SiteCode, SiteName, SampleFrame) %>%
