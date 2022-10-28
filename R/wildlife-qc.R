@@ -29,7 +29,7 @@ qcWildlifeObservedNoTypes <- function(park, site, field.season) {
 #' @return
 #' @export
 #'
-qcWildlifeObservedNoEvidence <- function(park, site, field.season,) {
+qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   
   type.noevidence <- wildlife %>%
@@ -56,7 +56,7 @@ qcWildlifeObservedNoEvidence <- function(park, site, field.season,) {
 #' @return
 #' @export
 #'
-UngulatesEvidence <- function(park, site, field.season,) {
+UngulatesEvidence <- function(park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
