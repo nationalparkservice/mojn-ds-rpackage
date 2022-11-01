@@ -154,10 +154,56 @@ WrangleAGOLData <- function(agol_layers) {
                   PhotoSOP = "RPT") %>%
     dplyr::left_join(rep_photo_files, by ="repphotoglobalid")
   
+  veg_photos_int <- agol_layers$riparian_veg_int %>%
+    dplyr::select(vegphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  veg_photos_ext <- agol_layers$riparian_veg_ext %>%
+    dplyr::select(vegphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  veg_photo_files <- dplyr::bind_rows(veg_photos_ext, veg_photos_int) %>%
+    dplyr::mutate(IsLibraryPhoto = "TBD")
+   
+  veg_photos <- agol_layers$riparian_veg %>%
+    dplyr::select(vegphotoglobalid = globalid, visitglobalid = parentglobalid, PhotoType = LifeForm) %>%
+    dplyr::mutate(UtmX_m = 0, UtmY_m = 0,
+                  PhotoSOP = "RVG") %>%
+    dplyr::left_join(veg_photo_files, by ="vegphotoglobalid")
+  
+  inv_photos_ext <- agol_layers$invasives_ext %>%
+    dplyr::select(invphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  inv_photos_int <- agol_layers$invasives_int %>%
+    dplyr::select(invphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  inv_photo_files <- dplyr::bind_rows(invasives_photos_ext, invasives_photos_int) %>%
+    dplyr::mutate(IsLibraryPhoto = "TBD")
+  
+  inv_photos <- agol_layers$invasives %>%
+    dplyr::select(invphotoglobalid = globalid, visitglobalid = parentglobalid, PhotoType = InvasiveSpeciesCode) %>%
+    dplyr::mutate(UtmX_m = 0, UtmY_m = 0,
+                  PhotoSOP = "INV") %>%
+    dplyr::left_join(inv_photo_files, by ="invphotoglobalid")
+  
+  add_photos_ext <- agol_layers$additional_photos_ext %>%
+    dplyr::select(addphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  add_photos_int <- agol_layers$additional_photos_int %>%
+    dplyr::select(addphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
+  
+  add_photo_files <- dplyr::bind_rows(add_photos_ext, add_photos_int)
+  
+  add_photos <- agol_layers$additional_photos %>%
+    dplyr::select(addphotoglobalid = globalid, visitglobalid = parentglobalid, PhotoType = AdditionalPhotoType, IsLibraryPhoto) %>%
+    dplyr::mutate(UtmX_m = 0, UtmY_m = 0,
+                  PhotoSOP = "MSC") %>%
+    dplyr::left_join(add_photo_files, by ="addphotoglobalid")
+  
+  photos <- dplyr::bind_rows(veg_photos, rep_photos, inv_photos, add_photos)
+  
   data$Photo <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, MonitoringStatus, SpringType, SampleFrame, DPL, Camera, CameraCard, GPSUnit, visitglobalid) %>%
     dplyr::mutate(DateTaken = VisitDate) %>%
-    dplyr::inner_join(rep_photos, by = "visitglobalid") %>%
+    dplyr::inner_join(photos, by = "visitglobalid") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, MonitoringStatus, SpringType, SampleFrame, DPL, Camera, CameraCard, DateTaken, 
                   PhotoType, IsLibraryPhoto, OriginalFilePath, RenamedFilePath = renamedfilepath,GPSUnit, UtmX_m, UtmY_m, Notes, PhotoSOP)
   
