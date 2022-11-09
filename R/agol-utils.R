@@ -175,7 +175,7 @@ WrangleAGOLData <- function(agol_layers) {
   inv_photos_int <- agol_layers$invasives_int %>%
     dplyr::select(invphotoglobalid = parentglobalid, OriginalFilePath, renamedfilepath)
   
-  inv_photo_files <- dplyr::bind_rows(invasives_photos_ext, invasives_photos_int) %>%
+  inv_photo_files <- dplyr::bind_rows(inv_photos_ext, inv_photos_int) %>%
     dplyr::mutate(IsLibraryPhoto = "TBD")
   
   inv_photos <- agol_layers$invasives %>%
