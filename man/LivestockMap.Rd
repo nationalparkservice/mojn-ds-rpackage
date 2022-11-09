@@ -32,3 +32,13 @@ leaflet map
 \description{
 Map of livestock disturbance observations
 }
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    LivestockMap(conn)
+    LivestockMap(conn, site = "MOJA_P_WIL0224", field.season = "2019")
+    LivestockMap(conn, park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
+    LivestockMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}

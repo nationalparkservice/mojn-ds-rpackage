@@ -8,16 +8,25 @@
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param data.name The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.
 #'
-#' @return A tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
+#' @return Tibble with columns for park, field season, site code, visit date, and the median values, flags, and flag notes for temperature, specific conductance, pH, and dissolved oxygen.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMedian(conn)
+#'     WqMedian(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMedian(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqMedian(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMedian <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  temp <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityTemperature")
-  spcond <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitySpCond")
-  ph <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualitypH")
-  do <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "WaterQualityDO")
+  temp <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityTemperature")
+  spcond <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitySpCond")
+  ph <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualitypH")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "WaterQualityDO")
 
-  wq.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  wq.visits <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit")
 
   temp.med <- temp %>%
     dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
@@ -77,9 +86,18 @@ WqMedian <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqSanity(conn)
+#'     qcWqSanity(conn, site = "LAKE_P_HOT0065", field.season = "2019")
+#'     qcWqSanity(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqSanity(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.sanity.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -101,18 +119,18 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
     dplyr::filter(pHMedian > 10 | pHMedian < 6) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
     tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
-    dplyr::mutate(SanityNote = case_when(pHMedian > 10 ~ "pH > 10",
-                                               pHMedian < 6 ~ "pH < 6",
-                                               TRUE ~ "NA")) %>%
+    dplyr::mutate(SanityNote = dplyr::case_when(pHMedian > 10 ~ "pH > 10",
+                                                pHMedian < 6 ~ "pH < 6",
+                                                TRUE ~ "NA")) %>%
     dplyr::rename(Value = pHMedian, Flag = pHFlag, FlagNote = pHFlagNote)
 
   do.percent.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOMedian_Percent > 100 | DOMedian_Percent < 2) %>%
     dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_Percent, DOFlag, DOFlagNote) %>%
     tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
-    dplyr::mutate(SanityNote = case_when(DOMedian_Percent > 100 ~ "Dissolved oxygen > 100 %",
-                                          DOMedian_Percent < 2 ~ "Dissolved oxygen < 2 %",
-                                          TRUE ~ "NA")) %>%
+    dplyr::mutate(SanityNote = dplyr::case_when(DOMedian_Percent > 100 ~ "Dissolved oxygen > 100 %",
+                                                DOMedian_Percent < 2 ~ "Dissolved oxygen < 2 %",
+                                                TRUE ~ "NA")) %>%
     dplyr::rename(Value = DOMedian_Percent, Flag = DOFlag, FlagNote = DOFlagNote)
 
   do.mgl.sanity <- wq.sanity.predata %>%
@@ -139,9 +157,18 @@ qcWqSanity <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqFlags(conn)
+#'     qcWqFlags(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWqFlags(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqFlags(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.flags.predata <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -190,9 +217,18 @@ qcWqFlags <- function(conn, path.to.data, park, site, field.season, data.source 
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
+#' @return Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWqLong(conn)
+#'     qcWqLong(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWqLong(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWqLong(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.cleaned.data <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
 
@@ -246,20 +282,27 @@ qcWqLong <- function(conn, path.to.data, park, site, field.season, data.source =
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
+#' @return Tibble with columns for Park; FieldSeason; Parameter; Units; and 0%, 25%, 50%, 75%, and 100% quantiles.
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqStats(conn)
+#'     WqStats(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqStats(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqStats <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.stats.predata <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
 
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarize(stats = list(quantile(Value, type = 6, na.rm = TRUE)),
-                     Count = n()) %>%
+                     Count = dplyr::n()) %>%
     tidyr::unnest_wider(stats) %>%
     dplyr::ungroup() %>%
     dplyr::rename(Minimum = `0%`,
@@ -278,42 +321,50 @@ WqStats <- function(conn, path.to.data, park, site, field.season, data.source = 
 }
 
 
-#' Generate box plots for water temperature for each park and year. Includes annual and 3Yr springs only.
+#' Generate box plots for water temperature for each park and 3-year cycle. Includes annual and 3Yr springs only.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title Include plot title? Defaults to TRUE
 #'
-#' @return Box plots of water temperature data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
-
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotTemp(conn)
+#'     WqPlotTemp(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotTemp(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "Temperature") %>%
-    GetSampleSizes(Park, FieldSeason)
-  
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    
   wq.plot.temp <- FormatPlot(
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    ymin = 0,
-    ymax = 55,
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
     facet.as.subtitle = include.title,
     x.lab = "Field Season",
-    y.lab = "Temperature (C)",
-    n.col.facet = 5
-  ) +
+    y.lab = "Temperature (C)"
+    ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
 
   return(wq.plot.temp)
 }
@@ -324,18 +375,29 @@ WqPlotTemp <- function(conn, path.to.data, park, site, field.season, data.source
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of specific conductance data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotSpCond(conn)
+#'     WqPlotSpCond(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotSpCond(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "SpCond") %>%
-    GetSampleSizes(Park, FieldSeason)
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.spcond <- FormatPlot(
     data = wq.plot,
@@ -344,54 +406,16 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
-    facet.as.subtitle = include.title,
     x.lab = "Field Season",
-    y.lab = "Specific Conductance (uS/cm)"
+    y.lab = "Specific Cond. (uS/cm)"
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000))
+    # ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.spcond)
-}
-
-
-#' Generate box plots for specific conductance for each park and year in units of mS/cm. Includes annual and 3Yr springs only.
-#'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
-#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#' @param include.title 
-#'
-#' @return Box plots of specific conductance data for each park and field season.
-#' @export
-#'
-WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
-  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
-    dplyr::filter(Parameter == "SpCond") %>%
-    GetSampleSizes(Park, FieldSeason)
   
-  wq.plot.spcond.ms <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value / 1000,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
-    y.lab = "Specific Conductance (mS/cm)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), labels = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), limits = c(0.2, 100))
-  
-  return(wq.plot.spcond.ms)
 }
 
 
@@ -400,20 +424,29 @@ WqPlotSpCondmS <- function(conn, path.to.data, park, site, field.season, data.so
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of pH data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
-
-
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotPH(conn)
+#'     WqPlotPH(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotPH(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
     dplyr::filter(Parameter == "pH") %>%
-    GetSampleSizes(Park, FieldSeason)
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
     data = wq.plot,
@@ -422,72 +455,47 @@ WqPlotPH <- function(conn, path.to.data, park, site, field.season, data.source =
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "pH", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
+    x.lab = "Park",
     y.lab = "pH"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.ph)
+  
 }
 
-
-#' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
-#'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
-#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
-#' @param include.title 
-#'
-#' @return Box plots of dissolved oxygen (percent) data for each park and field season.
-#' @export
-#'
-WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
-   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
-    dplyr::filter(Parameter == "DO" & Units == "%") %>%
-    GetSampleSizes(Park, FieldSeason)
-  
-  wq.plot.do.pct <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Percent", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
-    y.lab = "Dissolved Oxygen (%)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::ylim(0, 100)
-  
-  return(wq.plot.do.pct)
-}
 
 #' Generate box plots for concentration dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #' @param include.title 
 #'
-#' @return Box plots of dissolved oxygen (mg/L) data for each park and field season.
+#' @return ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotDOmgL(conn)
+#'     WqPlotDOmgL(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotDOmgL(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
   wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
-    dplyr::filter(Parameter == "DO" & Units == "mg/L") %>%
-    GetSampleSizes(Park, FieldSeason)
+    dplyr::filter(Parameter == "DO",
+                  Units == "mg/L") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.mgl <- FormatPlot(
     data = wq.plot,
@@ -496,15 +504,62 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
     facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Concentration", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
+    x.lab = "Park",
     y.lab = "Dissolved Oxygen (mg/L)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free")
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.do.mgl)
+  
+}
+
+
+#' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#' @param include.title 
+#'
+#' @return ggplot box plots
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotDOPct(conn)
+#'     WqPlotDOPct(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotDOPct(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+WqPlotDOPct <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "DO" & Units == "%") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.do.pct <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Value,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    x.lab = "Park",
+    y.lab = "Dissolved Oxygen (%)"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
+  
+  return(wq.plot.do.pct)
 }
 
 
@@ -513,151 +568,245 @@ WqPlotDOmgL <- function(conn, path.to.data, park, site, field.season, data.sourc
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
+#' @return Grid of ggplot box plots
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqPlotGrid(conn)
+#'     WqPlotGrid(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     WqPlotGrid(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqPlotGrid <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   wq.plot.temp <- WqPlotTemp(conn, path.to.data, park, site, field.season, data.source)
   wq.plot.ph <- WqPlotPH(conn, path.to.data, park, site, field.season, data.source)
-  wq.plot.spcond.ms <- WqPlotSpCondmS(conn, path.to.data, park, site, field.season, data.source)
+  wq.plot.spcond <- WqPlotSpCond(conn, path.to.data, park, site, field.season, data.source)
   wq.plot.do.mgl <- WqPlotDOmgL(conn, path.to.data, park, site, field.season, data.source)
   
-  wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond.ms, wq.plot.ph, wq.plot.do.mgl, ncol = 1)
+  wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond, wq.plot.ph, wq.plot.do.mgl, ncol = 1)
 
   return(wq.plot.grid)
 }
 
 
-# Function NYI: MAPS
-WqMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Sites")
+#' Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen percent.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcLocalDOCheck(conn)
+#'     qcLocalDOCheck(conn, site = "PARA_P_COY0069")
+#'     qcLocalDOCheck(conn, park = c("LAKE", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     qcLocalDOCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcLocalDOCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   
-  coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationDO")
   
-  wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
-    dplyr::inner_join(coords, by = "SiteCode") %>%
-    dplyr::relocate(SiteName, .before = SiteCode) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
-    dplyr::relocate(Year, .after = FieldSeason) %>%
-    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
-    dplyr::relocate(Measurement, .after = Units) %>%
-    dplyr::filter(!is.na(Median))
+  do.check <- do %>%
+    dplyr::filter(99.5 > PostCalibrationReading_percent | 100.5 < PostCalibrationReading_percent) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, DOInstrument, PreCalibrationReading_percent, PostCalibrationReading_percent) %>%
+    dplyr::rename(PreCalDO_percent = PreCalibrationReading_percent,
+                  PostCalDO_percent = PostCalibrationReading_percent) %>%
+    dplyr::mutate(PreCalDO_percent = round(PreCalDO_percent, 1),
+                  PostCalDO_percent = round(PostCalDO_percent, 1)) %>%
+    unique() %>%
+    dplyr::arrange(SiteCode, FieldSeason)
   
-  wqdata$Measurement <- factor(wqdata$Measurement, levels = c("Temp_C", "SpCond_uS/cm", "pH_units", "DO_mg/L", "DO_%"))
-  wqdata$Parameter <- factor(wqdata$Parameter, levels = c("Temp", "SpCond", "pH", "DO"))
   
-  pal <- leaflet::colorFactor(palette = c("chartreuse4", "gold", "cornflowerblue", "salmon", "gray"),
-                              domain = wqdata$Measurement)
-  
-  # Make NPS map Attribution
-  NPSAttrib <-
-    htmltools::HTML(
-      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
-      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
-      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
-      <a class='improve-park-tiles'
-      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
-      target='_blank'>Improve Park Tiles</a>"
-    )
-  
-  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  
-  width <- 800
-  height <- 800
-  
-  sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
-  
-  wqmap <- leaflet::leaflet(sd, height = height, width = width) %>%
-    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
-    leaflet::addScaleBar('bottomright') %>%
-    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
-                              lat = ~Lat_WGS84,
-                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
-                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
-                                             "Parameter: ", wqdata$Parameter, "<br>",
-                                             "Units: ", wqdata$Units, "<br>",
-                                             "Value: ", wqdata$Median),
-                              radius = 6,
-                              stroke = FALSE,
-                              fillOpacity = 1,
-                              color = ~pal(Measurement),
-                              group = ~Measurement) %>%
-    leaflet::addLegend(pal = pal,
-                       values = ~Measurement,
-                       title = "Parameter",
-                       opacity = 1,
-                       position = "bottomleft") %>%
-    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~Measurement,
-                              options=leaflet::layersControlOptions(collapsed = FALSE))
-  
-  wqdatamap <- crosstalk::bscols(list(year_filter,
-                                         wqmap))
-  
-  return(wqdatamap)
+  return(do.check)
   
 }
 
 
+#' Check specific conductance calibrations for the use of low conductivity standards at high conductivity springs.
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSpCondStandardCheck(conn)
+#'     qcSpCondStandardCheck(conn, site = "LAKE_P_GET0066")
+#'     qcSpCondStandardCheck(conn, park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#'     qcSpCondStandardCheck(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSpCondStandardCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  
+  sc <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source,  data.name = "CalibrationSpCond")
+  
+  med <- WqMedian(conn, path.to.data, park, site, field.season, data.source)
+  
+  sc.sel <- sc %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpCondInstrument, StandardValue_microS_per_cm)
+  
+  med.sc <- med %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, SpCondMedian_microS_per_cm) %>%
+    dplyr::rename(SpCondMedian = SpCondMedian_microS_per_cm) %>%
+    dplyr::filter(!is.na(SpCondMedian))
+  
+  sc.joined <- med.sc %>%
+    dplyr::left_join(sc.sel, by = c("Park", "SiteCode", "VisitDate", "FieldSeason")) %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::relocate(SpCondInstrument, .after = FieldSeason) %>%
+    dplyr::rename(SpCondStandard = StandardValue_microS_per_cm) %>%
+    dplyr::filter((SpCondMedian > 5000 & SpCondStandard < 5000) | (SpCondMedian > 25000 & SpCondStandard < 25000)) %>%
+    dplyr::arrange(SiteCode, FieldSeason)
+  
+  return(sc.joined)
+  
+}
 
 
+#' Check that instruments were calibrated within 1 day of site visit
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcCalibrationTimes(conn)
+#'     qcCalibrationTimes(conn, site = "LAKE_P_GET0066")
+#'     qcCalibrationTimes(conn, park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#'     qcCalibrationTimes(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcCalibrationTimes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  ph <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationpH")
+  sc <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationSpCond")
+  do <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "CalibrationDO")
+
+  ph_data <- ph %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, pHInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = pHInstrument) %>%
+    dplyr::mutate(Parameter = "pH")
+    
+  sc_data <- sc %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, SpCondInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = SpCondInstrument) %>%
+    dplyr::mutate(Parameter = "SpCond") 
+  
+  do_data <- do %>%
+    dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, DOInstrument) %>%
+    dplyr::rename(VisitTime = StartTime,
+                  Instrument = DOInstrument) %>%
+    dplyr::mutate(Parameter = "DO")
+  
+  cal_data <- dplyr::bind_rows(ph_data, sc_data, do_data) %>%
+    dplyr::mutate(VisitDateTime = as.POSIXct(paste(VisitDate, VisitTime), format="%Y-%m-%d %H:%M:%S"),
+                  CalibrationDateTime = as.POSIXct(paste(CalibrationDate, CalibrationTime), format="%Y-%m-%d %H:%M:%S")) %>%
+    dplyr::relocate(VisitDateTime, .after = "FieldSeason") %>%
+    dplyr::relocate(CalibrationDateTime, .after = "VisitTime") %>%
+    dplyr::select(-c("VisitTime", "CalibrationTime")) %>%
+    dplyr::mutate(Flag = dplyr::case_when(VisitDate != CalibrationDate ~ "date",
+                                          (VisitDate == CalibrationDate) & (VisitDateTime < CalibrationDateTime) ~ "time",
+                                          TRUE ~ NA_character_)) %>%
+    dplyr::filter(!is.na(Flag)) %>%
+    dplyr::mutate(DaysBefore = difftime(VisitDate, CalibrationDate, units = "days")) %>%
+    unique()
+  
+  all_data <- dplyr::bind_rows(ph_data, sc_data, do_data) %>%
+    dplyr::mutate(VisitDateTime = as.POSIXct(paste(VisitDate, VisitTime), format="%Y-%m-%d %H:%M:%S"),
+                  CalibrationDateTime = as.POSIXct(paste(CalibrationDate, CalibrationTime), format="%Y-%m-%d %H:%M:%S")) %>%
+    dplyr::relocate(VisitDateTime, .after = "FieldSeason") %>%
+    dplyr::relocate(CalibrationDateTime, .after = "VisitTime") %>%
+    dplyr::select(-c("VisitTime", "CalibrationTime")) %>%
+    unique()
+  
+  return(cal_data)
+}
+
+
+#' Map of water temperature at springs with surface water
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapTemp(conn)
+#'     WqMapTemp(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapTemp(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapTemp(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
-    dplyr::relocate(SiteName, .before = SiteCode) %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
-    dplyr::relocate(Year, .after = FieldSeason) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%
-    dplyr::filter(!is.na(Median)) %>%
-    dplyr::filter(Parameter == "Temp") %>%
-    dplyr::mutate(Bin = dplyr::case_when(Median < 5 ~ "< 5",
-                                         Median >= 5 & Median < 10 ~ "5 - 10",
-                                         Median >= 10 & Median < 15 ~ "10 - 15",
-                                         Median >= 15 & Median < 20 ~ "15 - 20",
-                                         Median >= 20 & Median < 30 ~ "20 - 30",
-                                         Median >= 30 & Median < 40 ~ "30 - 40",
-                                         Median >= 40 ~ "> 40",
-                                         TRUE ~ "NA"))
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::filter(Parameter == "Temperature") %>%
+    dplyr::mutate(Bin = dplyr::case_when(Value < 5 ~ "< 5",
+                                         Value >= 5 & Value < 10 ~ "5 - 10",
+                                         Value >= 10 & Value < 15 ~ "10 - 15",
+                                         Value >= 15 & Value < 20 ~ "15 - 20",
+                                         Value >= 20 & Value < 30 ~ "20 - 30",
+                                         Value >= 30 & Value < 40 ~ "30 - 40",
+                                         Value >= 40 ~ "> 40",
+                                         TRUE ~ "NA")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"))
-
+  
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
+  
   pal <- leaflet::colorFactor(palette = "RdYlBu",
-                           domain = wqdata$Bin,
-                           rev = TRUE)
+                              domain = wqdata$Bin,
+                              rev = TRUE)
   
   # Make NPS map Attribution
   NPSAttrib <-
@@ -675,21 +824,21 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+                                           "",
+                                           sd,
+                                           column = ~Year,
+                                           ticks = TRUE,
+                                           width = width,
+                                           step = 1,
+                                           sep = "",
+                                           pre = "WY",
+                                           post = NULL,
+                                           dragRange = TRUE)
   
   wqmaptemp <- leaflet::leaflet(sd, height = height, width = width) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
@@ -701,60 +850,87 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", wqdata$SiteName, "<br>",
                                              "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Field Season: ", wqdata$FieldSeason, "<br>",
                                              "Parameter: ", wqdata$Parameter, "<br>",
                                              "Units: ", wqdata$Units, "<br>",
-                                             "Value: ", wqdata$Median),
-                              radius = 6,
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
                               stroke = TRUE,
                               weight = 1,
                               color = "black",
                               fillOpacity = 1,
-                              fillColor = ~pal(Bin)) %>%
+                              fillColor = ~pal(Bin),
+                              group = ~Bin) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Bin,
                        title = "Temperature (C)",
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              overlayGroups = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-#  wqdatamaptemp <- crosstalk::bscols(list(year_filter,
-#                                     wqmaptemp))
+  wqdatamaptemp <- crosstalk::bscols(list(year_filter,
+                                          wqmaptemp))
   
-  return(wqmaptemp)
+  return(wqdatamaptemp)
   
 }
 
 
+#' Map of specific conductance at springs with surface water
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapSpCond(conn)
+#'     WqMapSpCond(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapSpCond(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapSpCond(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
   data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Median) %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
-    dplyr::relocate(SiteName, .before = SiteCode) %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
-    dplyr::relocate(Year, .after = FieldSeason) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%
-    dplyr::filter(!is.na(Median)) %>%
+    dplyr::filter(!is.na(Value)) %>%
     dplyr::filter(Parameter == "SpCond") %>%
-    dplyr::mutate(Bin = dplyr::case_when(Median < 200 ~ "< 200",
-                                         Median >= 200 & Median < 500 ~ "200 - 500",
-                                         Median >= 500 & Median < 1000 ~ "500 - 1000",
-                                         Median >= 1000 & Median < 2000 ~ "1000 - 2000",
-                                         Median >= 2000 & Median < 5000 ~ "2000 - 5000",
-                                         Median >= 5000 & Median < 10000 ~ "5000 - 10000",
-                                         Median >= 10000 ~ "> 10000",
-                                         TRUE ~ "NA"))
+    dplyr::mutate(Bin = dplyr::case_when(Value < 200 ~ "< 200",
+                                         Value >= 200 & Value < 500 ~ "200 - 500",
+                                         Value >= 500 & Value < 1000 ~ "500 - 1000",
+                                         Value >= 1000 & Value < 2000 ~ "1000 - 2000",
+                                         Value >= 2000 & Value < 5000 ~ "2000 - 5000",
+                                         Value >= 5000 & Value < 10000 ~ "5000 - 10000",
+                                         Value >= 10000 ~ "> 10000",
+                                         TRUE ~ "NA")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
+
   
   wqdata$Bin <- factor(wqdata$Bin, levels = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"))
   
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
+
   pal <- leaflet::colorFactor(palette = "Reds",
                               domain = wqdata$Bin,
                               rev = FALSE)
@@ -775,8 +951,8 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -801,10 +977,476 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", wqdata$SiteName, "<br>",
                                              "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Field Season: ", wqdata$FieldSeason, "<br>",
                                              "Parameter: ", wqdata$Parameter, "<br>",
                                              "Units: ", wqdata$Units, "<br>",
-                                             "Value: ", wqdata$Median),
-                              radius = 6,
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
+                              fillOpacity = 1,
+                              fillColor = ~pal(Bin),
+                              group = ~Bin) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Bin,
+                       title = "Specific Conductance (uS/cm)",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              overlayGroups = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
+                                            wqmapspcond))
+  
+  return(wqdatamapspcond)
+  
+}
+
+
+
+#' Map of pH at springs with surface water
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapPH(conn)
+#'     WqMapPH(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapPH(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapPH(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  
+  coords <- site %>%
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  wqdata <- data %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
+    dplyr::relocate(Measurement, .after = Units) %>%
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::filter(Parameter == "pH") %>%
+    dplyr::mutate(Bin = dplyr::case_when(Value < 6.5 ~ "< 6.5",
+                                         Value >= 6.5 & Value < 7 ~ "6.5 - 7",
+                                         Value >= 7 & Value < 7.5 ~ "7 - 7.5",
+                                         Value >= 7.5 & Value < 8 ~ "7.5 - 8",
+                                         Value >= 8 & Value < 8.5 ~ "8 - 8.5",
+                                         Value >= 8.5 & Value < 9 ~ "8.5 - 9",
+                                         Value >= 9 ~ "> 9",
+                                         TRUE ~ "NA")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
+  
+  
+  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 6.5", "6.5 - 7", "7 - 7.5", "7.5 - 8", "8 - 8.5", "8.5 - 9", "> 9"))
+  
+  wqdata %<>% dplyr::arrange(FieldSeason, desc(Value))
+  
+  pal <- leaflet::colorFactor(palette = c("#FDAE61", "#FFFFBF", "#E0F3F8", "#ABD9E9", "#71ADD1", "#4575B4", "#313695"),
+                              domain = wqdata$Bin,
+                              rev = FALSE)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 700
+  height <- 700
+  
+  sd <- crosstalk::SharedData$new(wqdata)
+  year_filter <- crosstalk::filter_slider("year",
+                                          "",
+                                          sd,
+                                          column = ~Year,
+                                          ticks = TRUE,
+                                          width = width,
+                                          step = 1,
+                                          sep = "",
+                                          pre = "WY",
+                                          post = NULL,
+                                          dragRange = TRUE)
+  
+  wqmapph <- leaflet::leaflet(sd, height = height, width = width) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
+                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Field Season: ", wqdata$FieldSeason, "<br>",
+                                             "Parameter: ", wqdata$Parameter, "<br>",
+                                             "Units: ", wqdata$Units, "<br>",
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
+                              fillOpacity = 1,
+                              fillColor = ~pal(Bin),
+                              group = ~Bin) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Bin,
+                       title = "pH",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              overlayGroups = c("< 6.5", "6.5 - 7", "7 - 7.5", "7.5 - 8", "8 - 8.5", "8.5 - 9", "> 9"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  wqdatamapph <- crosstalk::bscols(list(year_filter,
+                                            wqmapph))
+  
+  return(wqdatamapph)
+  
+}
+
+
+#' Map of dissolved oxygen concentration at springs with surface water
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return leaflet map
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     WqMapDO(conn)
+#'     WqMapDO(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     WqMapDO(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     WqMapDO(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+WqMapDO <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  
+  coords <- site %>%
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  wqdata <- data %>%
+    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
+    dplyr::relocate(Measurement, .after = Units) %>%
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::filter(Parameter == "DO",
+                  Units == "mg/L") %>%
+    dplyr::mutate(Bin = dplyr::case_when(Value < 2 ~ "< 2",
+                                         Value >= 2 & Value < 4 ~ "2 - 4",
+                                         Value >= 4 & Value < 6 ~ "4 - 6",
+                                         Value >= 6 & Value < 8 ~ "6 - 8",
+                                         Value >= 8 & Value < 10 ~ "8 - 10",
+                                         Value >= 10 ~ "> 10",
+                                         TRUE ~ "NA")) %>%
+    dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
+    dplyr::relocate(Year, .after = FieldSeason)
+  
+  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 2", "2 - 4", "4 - 6", "6 - 8", "8 - 10", "> 10"))
+  
+  wqdata %<>% dplyr::arrange(FieldSeason, Value)
+  
+  pal <- leaflet::colorFactor(palette = "Blues",
+                              domain = wqdata$Bin,
+                              rev = FALSE)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 700
+  height <- 700
+  
+  sd <- crosstalk::SharedData$new(wqdata)
+  year_filter <- crosstalk::filter_slider("year",
+                                          "",
+                                          sd,
+                                          column = ~Year,
+                                          ticks = TRUE,
+                                          width = width,
+                                          step = 1,
+                                          sep = "",
+                                          pre = "WY",
+                                          post = NULL,
+                                          dragRange = TRUE)
+  
+  wqmapdo <- leaflet::leaflet(sd, height = height, width = width) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
+                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Field Season: ", wqdata$FieldSeason, "<br>",
+                                             "Parameter: ", wqdata$Parameter, "<br>",
+                                             "Units: ", wqdata$Units, "<br>",
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
+                              fillOpacity = 1,
+                              fillColor = ~pal(Bin),
+                              group = ~Bin) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Bin,
+                       title = "Dissolved Oxygen (mg/L)",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              overlayGroups = c("< 2", "2 - 4", "4 - 6", "6 - 8", "8 - 10", "> 10"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  wqdatamapdo <- crosstalk::bscols(list(year_filter,
+                                        wqmapdo))
+  
+  return(wqdatamapdo)
+  
+}
+
+
+
+#################### Functions for Desert Springs PowerPoint -- not for final data package
+
+WqMapTempX <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  
+  coords <- site %>%
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  meddata <- data %>%
+    dplyr::group_by(Park, SiteCode, SampleFrame, Parameter, Units) %>%
+    dplyr::summarize(Value = median(Value)) %>%
+    dplyr::ungroup()
+  
+  wqdata <- meddata %>%
+    dplyr::select(Park, SiteCode, Parameter, Units, Value) %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::relocate(SiteName, .before = SiteCode) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
+    dplyr::relocate(Measurement, .after = Units) %>%
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::filter(Parameter == "Temperature") %>%
+    dplyr::mutate(Bin = dplyr::case_when(Value < 5 ~ "< 5",
+                                         Value >= 5 & Value < 10 ~ "5 - 10",
+                                         Value >= 10 & Value < 15 ~ "10 - 15",
+                                         Value >= 15 & Value < 20 ~ "15 - 20",
+                                         Value >= 20 & Value < 30 ~ "20 - 30",
+                                         Value >= 30 & Value < 40 ~ "30 - 40",
+                                         Value >= 40 ~ "> 40",
+                                         TRUE ~ "NA"))
+  
+  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"))
+  
+  pal <- leaflet::colorFactor(palette = "RdYlBu",
+                              domain = wqdata$Bin,
+                              rev = TRUE)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 700
+  height <- 700
+  
+  sd <- crosstalk::SharedData$new(wqdata)
+  # year_filter <- crosstalk::filter_slider("year",
+  #                                         "",
+  #                                         sd,
+  #                                         column = ~Year,
+  #                                         ticks = TRUE,
+  #                                         width = width,
+  #                                         step = 1,
+  #                                         sep = "",
+  #                                         pre = "WY",
+  #                                         post = NULL,
+  #                                         dragRange = TRUE)
+  
+  wqmaptemp <- leaflet::leaflet(sd, height = height, width = width) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
+                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Parameter: ", wqdata$Parameter, "<br>",
+                                             "Units: ", wqdata$Units, "<br>",
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
+                              fillOpacity = 1,
+                              fillColor = ~pal(Bin)) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Bin,
+                       title = "Temperature (C)",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+  
+  # wqdatamaptemp <- crosstalk::bscols(list(year_filter,
+  #   wqmaptemp))
+  
+  return(wqmaptemp)
+  
+}
+
+
+WqMapSpCondX <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  data <- qcWqLong(conn, path.to.data, park, site, field.season, data.source)
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+  
+  coords <- site %>%
+    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+  
+  meddata <- data %>%
+    dplyr::group_by(Park, SiteCode, SampleFrame, Parameter, Units) %>%
+    dplyr::summarize(Value = median(Value)) %>%
+    dplyr::ungroup()
+  
+  wqdata <- meddata %>%
+    dplyr::select(Park, SiteCode, Parameter, Units, Value) %>%
+    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::relocate(SiteName, .before = SiteCode) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
+    dplyr::relocate(Measurement, .after = Units) %>%
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::filter(Parameter == "SpCond") %>%
+    dplyr::mutate(Bin = dplyr::case_when(Value < 200 ~ "< 200",
+                                         Value >= 200 & Value < 500 ~ "200 - 500",
+                                         Value >= 500 & Value < 1000 ~ "500 - 1000",
+                                         Value >= 1000 & Value < 2000 ~ "1000 - 2000",
+                                         Value >= 2000 & Value < 5000 ~ "2000 - 5000",
+                                         Value >= 5000 & Value < 10000 ~ "5000 - 10000",
+                                         Value >= 10000 ~ "> 10000",
+                                         TRUE ~ "NA"))
+  
+  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"))
+  
+  pal <- leaflet::colorFactor(palette = "Reds",
+                              domain = wqdata$Bin,
+                              rev = FALSE)
+  
+  # Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 700
+  height <- 700
+  
+  sd <- crosstalk::SharedData$new(wqdata)
+  # year_filter <- crosstalk::filter_slider("year",
+  #                                         "",
+  #                                         sd,
+  #                                         column = ~Year,
+  #                                         ticks = TRUE,
+  #                                         width = width,
+  #                                         step = 1,
+  #                                         sep = "",
+  #                                         pre = "WY",
+  #                                         post = NULL,
+  #                                         dragRange = TRUE)
+  
+  wqmapspcond <- leaflet::leaflet(sd, height = height, width = width) %>%
+    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+    leaflet::addScaleBar('bottomright') %>%
+    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                              lat = ~Lat_WGS84,
+                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
+                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
+                                             "Parameter: ", wqdata$Parameter, "<br>",
+                                             "Units: ", wqdata$Units, "<br>",
+                                             "Value: ", wqdata$Value),
+                              radius = 5,
                               stroke = TRUE,
                               weight = 1,
                               color = "black",
@@ -818,8 +1460,139 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-#  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
-#                                          wqmapspcond))
+  #  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
+  #                                          wqmapspcond))
   
   return(wqmapspcond)
+}
+
+
+WqPlotTempX <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "Temperature") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason)
+  
+  wq.plot.temp <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Value,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
+    facet.as.subtitle = include.title,
+    x.lab = "Field Season",
+    y.lab = "Temperature (C)"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+                   axis.text.y = ggplot2::element_text(size = 20), #
+                   axis.title.x = ggplot2::element_text(size = 24), #
+                   axis.title.y = ggplot2::element_text(size = 24), #
+                   strip.text.x = ggplot2::element_text(size = 24)) #
+  
+  return(wq.plot.temp)
+}
+
+
+WqPlotSpCondX <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "SpCond") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+  
+  wq.plot.spcond <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Value,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    x.lab = "Field Season",
+    y.lab = "Specific Cond. (uS/cm)"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+                   axis.text.y = ggplot2::element_text(size = 20), #
+                   axis.title.x = ggplot2::element_text(size = 24), #
+                   axis.title.y = ggplot2::element_text(size = 24), #
+                   strip.text.x = ggplot2::element_text(size = 24)) #
+  
+  return(wq.plot.spcond)
+
+}
+
+
+WqPlotPHX <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "pH") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+  
+  wq.plot.ph <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Value,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    x.lab = "Park",
+    y.lab = "pH"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+                   axis.text.y = ggplot2::element_text(size = 20), #
+                   axis.title.x = ggplot2::element_text(size = 24), #
+                   axis.title.y = ggplot2::element_text(size = 24), #
+                   strip.text.x = ggplot2::element_text(size = 24)) #
+  
+  return(wq.plot.ph)
+  
+}
+
+
+WqPlotDOX <- function(conn, path.to.data, park, site, field.season, data.source = "database", include.title = FALSE) {
+  wq.plot <- qcWqLong(conn, path.to.data, park, site, field.season, data.source) %>%
+    dplyr::filter(Parameter == "DO",
+                  Units == "mg/L") %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+  
+  wq.plot.do <- FormatPlot(
+    data = wq.plot,
+    x.col = FieldSeason,
+    y.col = Value,
+    facet.col = Park,
+    sample.size.col = SampleSizeLabel,
+    sample.size.loc = "xaxis",
+    x.lab = "Park",
+    y.lab = "Dissolved Oxygen (mg/L)"
+  ) +
+    ggplot2::geom_boxplot() + 
+    ggplot2::facet_grid(~Park, scales = "free") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
+                   axis.text.y = ggplot2::element_text(size = 20), #
+                   axis.title.x = ggplot2::element_text(size = 24), #
+                   axis.title.y = ggplot2::element_text(size = 24),
+                   strip.text.x = ggplot2::element_text(size = 24)) #
+  
+  return(wq.plot.do)
+  
 }

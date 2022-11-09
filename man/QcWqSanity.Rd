@@ -27,8 +27,18 @@ qcWqSanity(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
+Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, Median, Flag, and FlagNote.
 }
 \description{
 Perform sanity check and compile list of potentially incorrect or outlier water quality values.
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcWqSanity(conn)
+    qcWqSanity(conn, site = "LAKE_P_HOT0065", field.season = "2019")
+    qcWqSanity(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcWqSanity(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

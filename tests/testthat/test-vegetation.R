@@ -54,7 +54,7 @@ test_that("qcLifeformRankCheck works as expected", {
   expect_equal(class(actual_int$Diff), "integer")
   
   actual_lifeforms <- qcLifeformRankCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_LIT0005", FieldSeason == "2021", Rank == 6) %>% dplyr::select(LifeForms)
-  expected_lifeforms <- as_tibble(as.character("Sedge, Bryophyte")) %>% dplyr::rename(LifeForms = value)
+  expected_lifeforms <- tibble::as_tibble(as.character("Sedge, Bryophyte")) %>% dplyr::rename(LifeForms = value)
   expect_equal(actual_lifeforms, expected_lifeforms)
    
 })
@@ -73,7 +73,7 @@ test_that("LifeformsPresence works as expected", {
   expect_equal(class(actual_int$Observations), "integer")
   
   actual_observations <- LifeformsPresence(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "PARA", FieldSeason == "2020", LifeForm == "Bryophyte") %>% dplyr::select(Observations)
-  expected_observations <- as_tibble(as.integer(6)) %>% dplyr::rename(Observations = value)
+  expected_observations <- tibble::as_tibble(as.integer(6)) %>% dplyr::rename(Observations = value)
   expect_equal(actual_observations, expected_observations)
     
 })
@@ -82,7 +82,7 @@ test_that("LifeformsPresence works as expected", {
 test_that("InvasivePlants works as expected", {
   
   actual_rows <- nrow(InvasivePlants(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 125)
+  expect_equal(actual_rows, 142)
   
   actual_cols <- colnames(InvasivePlants(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "USDAPlantsCode", "ScientificName", "InRiparianVegBuffer", "Notes")
@@ -92,7 +92,7 @@ test_that("InvasivePlants works as expected", {
   expect_equal(class(actual_date$VisitDate), "Date")
   
   actual_code <- InvasivePlants(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "JOTR_P_COT0294", FieldSeason == "2020") %>% dplyr::select(USDAPlantsCode)
-  expected_code <- as_tibble(as.character(c("PHDA4", "TARA"))) %>% dplyr::rename(USDAPlantsCode = value)
+  expected_code <- tibble::as_tibble(as.character(c("PHDA4", "TARA"))) %>% dplyr::rename(USDAPlantsCode = value)
   expect_equal(actual_code, expected_code)
   
 })

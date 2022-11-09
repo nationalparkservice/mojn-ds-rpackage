@@ -27,8 +27,18 @@ qcVolumetricTimes(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble
+Tibble
 }
 \description{
 Volumetric method was used, but the median fill time is less than 5 seconds
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcVolumetricTimes(conn)
+    qcVolumetricTimes(conn, site = "LAKE_P_GRA0058", field.season = "2019")
+    qcVolumetricTimes(conn, park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2019"))
+    qcVolumetricTimes(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

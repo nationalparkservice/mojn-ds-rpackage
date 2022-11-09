@@ -27,8 +27,18 @@ qcSpringDryWater(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble
+Tibble
 }
 \description{
 Spring is dry, estimated discharge > 0 or volumetric discharge > 0 or springbrook dimension > 0
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcSpringDryWater(conn)
+    qcSpringDryWater(conn, site = "LAKE_P_GRA0058", field.season = "2019")
+    qcSpringDryWater(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcSpringDryWater(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

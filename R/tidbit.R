@@ -9,7 +9,7 @@
 #' @return A tibble with columns for date-time, water temperature, water detect, and water binary.
 #' @export
 #'
-#' @examples
+#' @examples ProcessTidbiT(path.to.data = "", data.source = "")
 ProcessTidbiT <- function(path.to.data, data.source = "database") {
   
 # Import raw CSV file of HOBO TidbiT logger data.

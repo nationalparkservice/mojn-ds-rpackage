@@ -6,13 +6,22 @@
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for park, deployment field season, number of sensors deployed, number of sensors for which retrieval was not attempted, number of sensors for which retrieval was attempted, number of sensors actually retrieved, number of sensors actually downloaded
+#' @return Tibble with columns for park, deployment field season, number of sensors deployed, number of sensors for which retrieval was not attempted, number of sensors for which retrieval was attempted, number of sensors actually retrieved, number of sensors actually downloaded
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorRetrievalAttempts")
-  deployed.only <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, field.season = deployment.field.season, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
+#' 
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSensorSummary(conn)
+#'     qcSensorSummary(conn, park = "DEVA", deployment.field.season = c("2018", "2020", "2021"))
+#'     qcSensorSummary(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorSummary <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
+  deployed.only <- ReadAndFilterData(conn, path.to.data, park, site, deployment.field.season, data.source, data.name = "SensorsCurrentlyDeployed")
 
   # Number of sensors that have been deployed but no retrieval (successful or unsuccessful) has been attempted
   deployed.only
@@ -67,6 +76,7 @@ qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, d
   return(summary)
 }
 
+
 #' Plot sensor retrieval results over time as a heatmap.
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
@@ -74,37 +84,182 @@ qcSensorSummary <- function(conn, path.to.data, park, deployment.field.season, d
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A ggplot object.
+#' @return ggplot heatmap
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
+#' 
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSensorHeatmap(conn)
+#'     qcSensorHeatmap(conn, park = c("JOTR", "MOJA"))
+#'     qcSensorHeatmap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorHeatmap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "SensorRetrievalAttempts")
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Visit")
   
   sampleframe <- visit %>%
-    select(SiteCode, SampleFrame)
+    dplyr::select(SiteCode, SampleFrame)
   
   joined <- attempts %>%
-    left_join(sampleframe, by = c("SiteCode"))
+    dplyr::left_join(sampleframe, by = c("SiteCode"))
   
   joined %<>%
     # filter(DeploymentVisitType == "Primary") %>%
-    filter(SampleFrame == "Annual") %>%
-    mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
-                                  if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
-           SensorResultOrder = if_else(DownloadResult == "Y", 1,
-                                       if_else(SensorRetrieved == "Y", 2, 3)))
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::mutate(SensorResult = dplyr::if_else(DownloadResult == "Y", "Download successful",
+                                 dplyr::if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
+                  SensorResultOrder = dplyr::if_else(DownloadResult == "Y", 1,
+                                      dplyr::if_else(SensorRetrieved == "Y", 2, 3)))
   
-  plt <- ggplot(joined, aes(x = DeploymentFieldSeason, 
-                              y = reorder(SiteCode, desc(SiteCode)))) + 
-    geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
-    scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome")
+  plt <- ggplot2::ggplot(joined, aes(x = DeploymentFieldSeason, 
+                                     y = reorder(SiteCode, dplyr::desc(SiteCode)),
+                                     text = paste("Site Name: ", SiteName,
+                                                  "<br>Site Code:", SiteCode,
+                                                  "<br>Deployment Field Season:", DeploymentFieldSeason,
+                                                  "<br>Sensor Result:", SensorResult))) + 
+         geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
+         scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome") +
+         xlab("Deployment Field Season") +
+         ylab("Spring Site Code") +
+         theme(legend.position = "bottom")
   
   return(plt)
 }
 
-#' Problems with retrieved sensors
+
+#' Springs where a sensor was not deployed during a field season
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcSensorsNotDeployed(conn)
+#'     qcSensorsNotDeployed(conn, site = "MOJA_P_UNN0014")
+#'     qcSensorsNotDeployed(conn, park = c("DEVA", "JOTR"), deployment.field.season = c("2017", "2018", "2021"))
+#'     qcSensorsNotDeployed(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorsNotDeployed <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "Visit")
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorsCurrentlyDeployed")
+  
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName) %>%
+    unique()
+  
+  deployments_past <- attempts %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason)
+  
+  deployments_recent <- deployed %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::rename(DeploymentDate = VisitDate,
+                  DeploymentFieldSeason = FieldSeason)
+  
+  deployments <- rbind(deployments_past, deployments_recent) %>%
+    unique()
+  
+  all_visits <- visit %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitDate) %>%
+    dplyr::rename(DeploymentFieldSeason = FieldSeason)
+  
+  notdeployed <- annual_springs %>%
+    dplyr::full_join(deployments, by = c("Park", "SiteCode", "SiteName")) %>%
+    tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
+    dplyr::filter(!is.na(Park),
+                  is.na(DeploymentDate)) %>%
+    dplyr::filter(!(Park == "DEVA" & DeploymentFieldSeason %in% c("2016", "2017")),
+                  !(Park == "JOTR" & DeploymentFieldSeason == "2016")) %>%
+    dplyr::arrange(DeploymentFieldSeason, SiteCode) %>%
+    dplyr::left_join(all_visits, by = c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason")) %>%
+    dplyr::rename(FieldSeason = DeploymentFieldSeason) %>%
+    dplyr::relocate(VisitDate, .after = FieldSeason)
+  
+  return(notdeployed)
+  
+}
+
+
+#' Springs where a sensor was not recovered during a field season
+#'
+#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
+#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorsNotRecovered <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  
+  visit <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "Visit")
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
+  
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    unique()
+  
+  notrecovered <- attempts %>%
+    tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(all_springs, by = "SiteCode") %>%
+    dplyr::select(Park, SiteCode, SiteName, RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber, SampleFrame, SensorRetrieved, Notes) %>%
+    dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
+                  !(Park == "JOTR" & RetrievalFieldSeason == "2017")) %>%
+    dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved)) %>%
+    dplyr::filter(!(SampleFrame != "Annual" & is.na(RetrievalDate))) %>%
+    dplyr::select(-SensorRetrieved, -SampleFrame) %>%
+    dplyr::arrange(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::rename(FieldSeason = RetrievalFieldSeason,
+                  VisitDate = RetrievalDate)
+  
+  return(notrecovered)
+  
+}
+
+
+#' Sensors were retrieved with problems or caveats
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -112,21 +267,33 @@ qcSensorHeatmap <- function(conn, path.to.data, park, data.source = "database") 
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorProblems <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
   
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
     dplyr::relocate(DownloadResult, .after = SensorRetrieved) %>%
-    dplyr::select(-RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(problems)
   
 }
+
 
 #' Sensors were retrieved, but download status is unknown
 #'
@@ -136,22 +303,34 @@ qcSensorProblems <- function(conn, path.to.data, park, deployment.field.season, 
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorDownloads <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
   
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
-    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(nodata)
    
 }
 
-#' Sensors were deployed in previous field seasons and are still unaccounted for 
+
+#' Sensors were retrieved but missing, or sensors were not retrieved and not missing
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
@@ -159,29 +338,31 @@ qcSensorDownloads <- function(conn, path.to.data, park, deployment.field.season,
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  deployed <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorsCurrentlyDeployed")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcMissingSensors <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorsCurrentlyDeployed")
   
-  current.date <- Sys.Date()
-  
-  if(lubridate::month(current.date) >= 10) {
-    current.fs <- (lubridate::year(current.date) - 1)
-  } else {
-    current.fs <- lubridate::year(current.date)
-  }
-  
-  missing <- deployed %>%
-    dplyr::filter(FieldSeason != current.fs) %>%
-    dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::select(-VisitType)
+  missing <- attempts %>%
+    dplyr::filter((SensorRetrieved == "Y" & SensorProblem == "Missing") | (SensorRetrieved == "N" & SensorProblem != "Missing")) %>%
+    dplyr::arrange(SiteCode, DeploymentFieldSeason) %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate, RetrievalFieldSeason, RetrievalDate, SensorRetrieved, DownloadResult, SensorProblem, SensorNumber, SerialNumber, Notes)
   
   return(missing)
    
 }
+
 
 #' Sensors whose retrieval date is the same as their deployment date
 #'
@@ -191,50 +372,60 @@ qcMissingSensors <- function(conn, path.to.data, park, deployment.field.season, 
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorDates <- function(conn, path.to.data, park, deployment.field.season, data.source = "database") {
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcSensorDates <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  attempts <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorRetrievalAttempts")
  
   error <- attempts %>%
-    dplyr::filter(DeploymentDate == RetrievalDate)
+    dplyr::filter(DeploymentDate == RetrievalDate) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(error)
   
 }
 
-
-#' Springs with no sensor deployment data for latest field season
+#' Sensors with unknown ID or serial number
 #'
 #' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
 #' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorsNoData <- function(conn, path.to.data, park, site, data.source = "database") {
- 
-  visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Visit")
-  attempts <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "SensorRetrievalAttempts")
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcRepeatVisits(conn)
+#'     qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
+qcUnknownSensorIDs <- function(conn, path.to.data, park, site, deployment.field.season, data.source = "database") {
+  sensors <- ReadAndFilterData(conn, path.to.data, park, site, field.season = deployment.field.season, data.source, data.name = "SensorsAllDeployments") %>%
+    dplyr::relocate(Park, .before = "SiteCode") %>%
+    dplyr::relocate(SensorNumber, .after = "FieldSeason") %>%
+    dplyr::relocate(SerialNumber, .after = "SensorNumber") %>%
+    dplyr::select(-VisitType)
+
+  unknown <- sensors %>%
+    dplyr::filter(SensorNumber < 0 | is.na(SensorNumber) | SerialNumber == "unknown" | is.na(SerialNumber))
   
-  visit.x <- visit %>%
-    select(Park, SiteCode, SiteName, SampleFrame) %>%
-    filter(SampleFrame == "Annual") %>%
-    unique()
-  
-  attempts.x <- attempts %>%
-    filter(DeploymentFieldSeason == max(DeploymentFieldSeason)) %>%
-    select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
-  
-  discrepancies <- visit.x %>%
-    dplyr::left_join(attempts.x, by = c("Park", "SiteCode", "SiteName")) %>%
-    dplyr::filter(is.na(SensorRetrieved))
-  
-  return(discrepancies)
+  return(unknown) 
 }

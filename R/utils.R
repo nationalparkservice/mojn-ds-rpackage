@@ -87,6 +87,7 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       SpringbrookLength_m = readr::col_double(),
       SpringbrookWidth_m = readr::col_double(),
+      DiscontinuousSpringbrookLength_m = readr::col_double(),
       .default = readr::col_character()
     ),
     DischargeVolumetric = readr::cols(
@@ -111,6 +112,11 @@ GetColSpec <- function() {
     Riparian = readr::cols(
       VisitDate = readr::col_date(),
       Rank = readr::col_integer(),
+      .default = readr::col_character()
+    ),
+    SensorsAllDeployments = readr::cols(
+      SensorNumber = readr::col_integer(),
+      VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
     SensorRetrievalAttempts = readr::cols(
@@ -214,7 +220,7 @@ ReadAndFilterData <- function(conn, path.to.data, park, site, field.season, data
   
   if (!missing(park)) {
     filtered.data %<>%
-      dplyr::filter(Park == park)
+      dplyr::filter(Park %in% park) # Changed to allow filtering of multiple parks
     if (nrow(filtered.data) == 0) {
       warning(paste0(data.name, ": Data are not available for the park specified"))
     }

@@ -209,7 +209,7 @@ test_that("WqMedian works as expected", {
   expect_equal(typeof(actual_date$DOMedian_mg_per_L), "double")
   
   actual_medians <- WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_BEN0606", FieldSeason == "2020") %>% dplyr::select(TemperatureMedian_C, SpCondMedian_microS_per_cm, pHMedian, DOMedian_Percent, DOMedian_mg_per_L)
-  expected_medians <- as_tibble_row(c(TemperatureMedian_C = as.double(16.4), SpCondMedian_microS_per_cm = as.double(2844), pHMedian = as.double(3.53), DOMedian_Percent = as.double(114.6), DOMedian_mg_per_L = as.double(10.45)))
+  expected_medians <- tibble::as_tibble_row(c(TemperatureMedian_C = as.double(16.4), SpCondMedian_microS_per_cm = as.double(2844), pHMedian = as.double(3.53), DOMedian_Percent = as.double(114.6), DOMedian_mg_per_L = as.double(10.45)))
   expect_equal(actual_medians, expected_medians)
   
 })
@@ -231,7 +231,7 @@ test_that("qcWqSanity works as expected", {
   expect_equal(typeof(actual_dbl$Value), "double")
   
   actual_value <- qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LOW0152", FieldSeason == "2021") %>% dplyr::select(Parameter, Units, Value)
-  expected_value <- as_tibble_row(c(Parameter = as.character("DO"), Units = as.character("%"), Value = as.double(123.8))) %>% dplyr::mutate(Value = as.double(Value))
+  expected_value <- tibble::as_tibble_row(c(Parameter = as.character("DO"), Units = as.character("%"), Value = as.double(123.8))) %>% dplyr::mutate(Value = as.double(Value))
   expect_equal(actual_value, expected_value)
   
 })
@@ -253,7 +253,7 @@ test_that("qcWqFlags works as expected", {
   expect_equal(typeof(actual_dbl$Value), "double")
   
   actual_value <- qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_GET0066", FieldSeason == "2019") %>% dplyr::select(Parameter, Units, Value, Flag)
-  expected_value <- as_tibble_row(c(Parameter = as.character("pH"), Units = as.character("units"), Value = as.double(7.05), Flag = as.character("W"))) %>% dplyr::mutate(Value = as.double(Value))
+  expected_value <- tibble::as_tibble_row(c(Parameter = as.character("pH"), Units = as.character("units"), Value = as.double(7.05), Flag = as.character("W"))) %>% dplyr::mutate(Value = as.double(Value))
   expect_equal(actual_value, expected_value)
   
 })
@@ -275,10 +275,10 @@ test_that("qcWqLong works as expected", {
   expect_equal(typeof(actual_dbl$Value), "double")
   
   actual_value <- qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_DRI0002", FieldSeason == "2016") %>% dplyr::select(SiteCode, Parameter, Units, Value)
-  expected_value <- tibble(SiteCode = as.character(c("LAKE_P_DRI0002", "LAKE_P_DRI0002", "LAKE_P_DRI0002")),
-                           Parameter = as.character(c("Temperature", "SpCond", "pH")),
-                           Units = as.character(c("C", "uS/cm", "units")),
-                           Value = as.double(c(12.6, 1805, 7.68)))
+  expected_value <- tibble::tibble(SiteCode = as.character(c("LAKE_P_DRI0002", "LAKE_P_DRI0002", "LAKE_P_DRI0002")),
+                                   Parameter = as.character(c("Temperature", "SpCond", "pH")),
+                                   Units = as.character(c("C", "uS/cm", "units")),
+                                   Value = as.double(c(12.6, 1805, 7.68)))
   expect_equal(actual_value, expected_value)
   
 })
@@ -297,7 +297,43 @@ test_that("WqStats works as expected", {
   expect_equal(unique(sapply(actual_dbl[, 5:9], typeof)), "double")
   
   actual_stats <- WqStats(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA", FieldSeason == "2019", Parameter == "Temperature") %>% dplyr::select(Minimum, FirstQuartile, Median, ThirdQuartile, Maximum)
-  expected_stats <- as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.5), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
+  expected_stats <- tibble::as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.5), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
   expect_equal(actual_stats, expected_stats)
   
+})
+
+
+test_that("qcLocalDOCheck returns correct number of rows and columns", {
+  
+  actual_rows <- nrow(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 165)
+  
+  actual_cols <- colnames(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "DOInstrument", "PreCalDO_percent", "PostCalDO_percent")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_dbl <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
+  
+})
+
+
+test_that("qcSpCondStandardCheck works as expected", {
+  
+  actual_rows <- nrow(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expect_equal(actual_rows, 21)
+  
+  actual_cols <- colnames(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SpCondInstrument", "SpCondMedian", "SpCondStandard")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_dbl <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
+
 })

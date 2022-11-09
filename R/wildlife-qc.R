@@ -7,11 +7,20 @@
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return A tibble with columns for 
+#' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWildlifeObservedNoTypes(conn)
+#'     qcWildlifeObservedNoTypes(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoTypes(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     qcWildlifeObservedNoTypes(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -32,11 +41,20 @@ qcWildlifeObservedNoTypes <- function(conn, path.to.data, park, site, field.seas
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     qcWildlifeObservedNoEvidence(conn)
+#'     qcWildlifeObservedNoEvidence(conn, site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoEvidence(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#'     qcWildlifeObservedNoEvidence(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   type.noevidence <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -62,11 +80,20 @@ qcWildlifeObservedNoEvidence <- function(conn, path.to.data, park, site, field.s
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     UngulatesEvidence(conn)
+#'     UngulatesEvidence(conn, site = "LAKE_P_COR0023", field.season = "2020")
+#'     UngulatesEvidence(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#'     UngulatesEvidence(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
@@ -89,26 +116,37 @@ UngulatesEvidence <- function(conn, path.to.data, park, site, field.season, data
 #' @return leaflet map
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     conn <- OpenDatabaseConnection()
+#'     UngulatesMap(conn)
+#'     UngulatesMap(conn, site = "LAKE_P_COR0023")
+#'     UngulatesMap(conn, park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
+#'     UngulatesMap(path.to.data = "path/to/data", data.source = "local")
+#'     CloseDatabaseConnection(conn)
+#' }
 UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  wildlife <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Wildlife")
-  site <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, data.source = data.source, data.name = "Site")
+  wildlife <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Wildlife")
+  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   ungulatedata <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Observed = case_when(WildlifeType == "Ungulate" ~ "Yes",
-                                       is.na(WildlifeType) ~ "No",
-                                       TRUE ~ "No")) %>%
+    dplyr::mutate(Observed = dplyr::case_when(WildlifeType == "Ungulate" ~ "Yes",
+                                              is.na(WildlifeType) ~ "No",
+                                              TRUE ~ "No")) %>%
     dplyr::filter(Observed == "Yes")  %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
   ungulatedata$Observed <- factor(ungulatedata$Observed, levels = c("Yes"))
+  
+  ungulatedata %<>% dplyr::arrange(FieldSeason)
   
   pal <- leaflet::colorFactor(palette = c("red"),
                      domain = ungulatedata$Observed)
@@ -129,8 +167,8 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(ungulatedata)
   year_filter <- crosstalk::filter_slider("year",
@@ -155,6 +193,7 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", ungulatedata$SiteName, "<br>",
                                              "Sample Frame: ", ungulatedata$SampleFrame, "<br>",
+                                             "Field Season: ", ungulatedata$FieldSeason, "<br>",
                                              "Direct Observation: ", ungulatedata$DirectObservation, "<br>",
                                              "Scat: ", ungulatedata$Scat, "<br>",
                                              "Tracks: ", ungulatedata$Tracks, "<br>",
@@ -163,10 +202,12 @@ UngulatesMap <- function(conn, path.to.data, park, site, field.season, data.sour
                                              "Vocalization: ", ungulatedata$Vocalization, "<br>",
                                              "Other Evidence: ", ungulatedata$OtherEvidence, "<br>",
                                              "Notes: ", ungulatedata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(Observed),
+                              fillColor = ~pal(Observed),
                               group = ~Observed) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Observed,
