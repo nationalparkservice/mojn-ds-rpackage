@@ -321,7 +321,8 @@ qcVolumetricFillEvents <- function(conn, path.to.data, park, site, field.season,
   median <- VolumetricMedian(conn, path.to.data, park, site, field.season, data.source)
   
   fills <- median %>%
-    dplyr::filter(Count < 5)
+    dplyr::filter(Count < 5) %>%
+    dplyr::mutate(Discharge_L_per_s = round(Discharge_L_per_s, 3))
   
   return(fills)
 }

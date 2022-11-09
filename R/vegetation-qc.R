@@ -332,7 +332,7 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
              position = position_dodge(preserve = "single")) +
     facet_grid(Visit ~ Park) +
     xlab("Number of Different Vegetation Life Form Categories") +
-    ylab("Number of Occurences (All Field Seasons)") +
+    ylab("Number of Occurences") +
     scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
     geom_vline(data = veg.stats.year,
                aes(xintercept = Mean,
@@ -351,7 +351,8 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
                                   Mean = "red")) +
     labs(fill = "Revisit Cycle",
          color = "Stats") +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed"))))
   
   ggplotly(veg.barplot.year)
   

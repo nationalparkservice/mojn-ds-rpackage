@@ -437,7 +437,8 @@ TempElevPlot <- function(conn, path.to.data, park, site, field.season, data.sour
     ggpmisc::stat_poly_line() +
     ggpmisc::stat_poly_eq(aes(label =  paste(after_stat(eq.label),
                                              after_stat(rr.label),
-                                             after_stat(n.label),
+                                             after_stat(p.value.label),
+                                             # after_stat(n.label),
                                              sep = '*", "*'))) +
     scale_color_brewer(palette = "Dark2") +
     theme(legend.position = "bottom",
@@ -486,7 +487,8 @@ SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.so
                      SpCond_Med = median(SpCondMedian_microS_per_cm, na.rm = TRUE),
                      pH_Med = median(pHMedian, na.rm = TRUE),
                      DO_Med = median(DOMedian_mg_per_L, na.rm = TRUE)) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() # %>%
+    # dplyr::filter(SpCond_Med < 30000)
   
   spcond.elev.plot <- ggplot2::ggplot(wq.elev.med,
                                     aes(x = ElevationDEM_m,
@@ -503,7 +505,8 @@ SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.so
     ggpmisc::stat_poly_line() +
     ggpmisc::stat_poly_eq(aes(label =  paste(after_stat(eq.label),
                                              after_stat(rr.label),
-                                             after_stat(n.label),
+                                             # after_stat(n.label),
+                                             after_stat(p.value.label),
                                              sep = '*", "*'))) +
     # ggpmisc::stat_correlation(mapping = aes(label = paste(after_stat(p.value.label),
     #                                                      after_stat(n.label),
@@ -522,9 +525,10 @@ SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.so
     # scale_y_log10() +
     labs(y = "Specific Conductance (uS/cm)",
          x = "Elevation of Spring (m)") +
-    # ylim(min = 0, max = 10000) +
+    coord_cartesian(ylim = c(-5000, 20000)) +
+    #ylim(min = 0, max = 20000) +
     # xlim(min = -500, 8000) +
-    facet_grid(.~Park, scales = "free")
+    facet_grid(.~Park, scales = "free_x")
   
   spcond.elev.plot
   

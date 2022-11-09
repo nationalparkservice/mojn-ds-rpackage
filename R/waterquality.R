@@ -411,7 +411,7 @@ WqPlotSpCond <- function(conn, path.to.data, park, site, field.season, data.sour
   ) +
     ggplot2::geom_boxplot() + 
     ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
+    # ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.spcond)
@@ -867,7 +867,7 @@ WqMapTemp <- function(conn, path.to.data, park, site, field.season, data.source 
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~Bin,
+                              overlayGroups = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   wqdatamaptemp <- crosstalk::bscols(list(year_filter,
@@ -994,7 +994,7 @@ WqMapSpCond <- function(conn, path.to.data, park, site, field.season, data.sourc
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~Bin,
+                              overlayGroups = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   wqdatamapspcond <- crosstalk::bscols(list(year_filter,
@@ -1122,7 +1122,7 @@ WqMapPH <- function(conn, path.to.data, park, site, field.season, data.source = 
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~Bin,
+                              overlayGroups = c("< 6.5", "6.5 - 7", "7 - 7.5", "7.5 - 8", "8 - 8.5", "8.5 - 9", "> 9"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   wqdatamapph <- crosstalk::bscols(list(year_filter,
@@ -1248,7 +1248,7 @@ WqMapDO <- function(conn, path.to.data, park, site, field.season, data.source = 
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~Bin,
+                              overlayGroups = c("< 2", "2 - 4", "4 - 6", "6 - 8", "8 - 10", "> 10"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
   wqdatamapdo <- crosstalk::bscols(list(year_filter,
