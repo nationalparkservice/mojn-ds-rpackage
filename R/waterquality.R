@@ -155,7 +155,7 @@
 #'     qcWqFlags(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcWqFlags(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-qcWqFlags <- function( park, site, field.season) {
+qcWqFlags <- function(park, site, field.season) {
   wq.flags.predata <- WqMedian(park, site, field.season)
 
   temp.flags <- wq.flags.predata %>%

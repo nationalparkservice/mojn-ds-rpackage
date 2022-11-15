@@ -49,14 +49,12 @@ export(WqPlotDOmgL)
 export(WqPlotGrid)
 export(WqPlotPH)
 export(WqPlotSpCond)
+export(WqPlotSpCondmS)
 export(WqPlotTemp)
 export(WqStats)
 export(expect_dataframe_equal)
-<<<<<<< HEAD
 export(fetchAllRecords)
-=======
 export(qcCalibrationTimes)
->>>>>>> master
 export(qcCompleteness)
 export(qcCompletenessPlot)
 export(qcContinuousLength)

@@ -4,48 +4,26 @@
 \alias{qcVegPresentNoLifeforms}
 \title{Return list of visits with vegetation observed, no lifeform present}
 \usage{
-qcVegPresentNoLifeforms(
-  conn,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+qcVegPresentNoLifeforms(park, site, field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-<<<<<<< HEAD
-
-=======
 Tibble
->>>>>>> master
 }
 \description{
 Return list of visits with vegetation observed, no lifeform present
 }
-<<<<<<< HEAD
-=======
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    qcVegPresentNoLifeforms(conn)
-    qcVegPresentNoLifeforms(conn, site = "LAKE_P_GET0066", field.season = "2019")
-    qcVegPresentNoLifeforms(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-    qcVegPresentNoLifeforms(path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    
+    qcVegPresentNoLifeforms()
+    qcVegPresentNoLifeforms(site = "LAKE_P_GET0066", field.season = "2019")
+    qcVegPresentNoLifeforms(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 }
 }
->>>>>>> master

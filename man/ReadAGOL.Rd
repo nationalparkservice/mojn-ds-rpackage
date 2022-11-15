@@ -5,7 +5,14 @@
 \title{Read data from the Desert Springs AGOL feature layer.}
 \usage{
 ReadAGOL(
-  data_path,
+  data_path = c(main_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
+    lookup_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
+    sites_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+    calibration_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
   agol_username = "mojn_hydro",
  
     agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account",

@@ -4,27 +4,14 @@
 \alias{FlowCategoriesAnnualHeatMap}
 \title{Summary heat map of flow categories for annual springs}
 \usage{
-FlowCategoriesAnnualHeatMap(
-  conn,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+FlowCategoriesAnnualHeatMap(park, site, field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
 ggplot heat map plot
@@ -32,16 +19,12 @@ ggplot heat map plot
 \description{
 Summary heat map of flow categories for annual springs
 }
-<<<<<<< HEAD
-=======
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    FlowCategoriesAnnualHeatMap(conn)
-    FlowCategoriesAnnualHeatMap(conn, site = "LAKE_P_GRA0058", field.season = "2019")
-    FlowCategoriesAnnualHeatMap(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    FlowCategoriesAnnualHeatMap(path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    
+    FlowCategoriesAnnualHeatMap()
+    FlowCategoriesAnnualHeatMap(site = "LAKE_P_GRA0058", field.season = "2019")
+    FlowCategoriesAnnualHeatMap(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    
 }
 }
->>>>>>> master

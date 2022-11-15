@@ -4,48 +4,26 @@
 \alias{qcLifeformRankCheck}
 \title{Return list of visits where multiple lifeforms have the same rank, and rank gaps have not been properly entered}
 \usage{
-qcLifeformRankCheck(
-  conn,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+qcLifeformRankCheck(park, site, field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-<<<<<<< HEAD
-
-=======
 Tibble
->>>>>>> master
 }
 \description{
 Return list of visits where multiple lifeforms have the same rank, and rank gaps have not been properly entered
 }
-<<<<<<< HEAD
-=======
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    qcLifeformRankCheck(conn)
-    qcLifeformRankCheck(conn, site = "JOTR_P_NOR0083", field.season = "2021")
-    qcLifeformRankCheck(conn, park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
-    qcLifeformRankCheck(path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    
+    qcLifeformRankCheck()
+    qcLifeformRankCheck(site = "JOTR_P_NOR0083", field.season = "2021")
+    qcLifeformRankCheck(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
 }
 }
->>>>>>> master

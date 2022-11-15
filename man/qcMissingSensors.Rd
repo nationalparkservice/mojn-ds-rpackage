@@ -2,55 +2,28 @@
 % Please edit documentation in R/sensors.R
 \name{qcMissingSensors}
 \alias{qcMissingSensors}
-<<<<<<< HEAD
-\title{Sensors were deployed in previous field seasons and are still unaccounted for}
-=======
 \title{Sensors were retrieved but missing, or sensors were not retrieved and not missing}
->>>>>>> master
 \usage{
-qcMissingSensors(
-  conn,
-  path.to.data,
-  park,
-<<<<<<< HEAD
-=======
-  site,
->>>>>>> master
-  deployment.field.season,
-  data.source = "database"
-)
+qcMissingSensors(park, deployment.field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{deployment.field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
+\item{deployment.field.season}{Optional. Field season name to filter on, e.g. "2019".#'}
 }
 \value{
-<<<<<<< HEAD
 A tibble
-}
-\description{
-Sensors were deployed in previous field seasons and are still unaccounted for
-=======
-Tibble
 }
 \description{
 Sensors were retrieved but missing, or sensors were not retrieved and not missing
 }
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    qcRepeatVisits(conn)
-    qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
-    qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    
+    qcRepeatVisits()
+    qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+    qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    
 }
->>>>>>> master
+
 }

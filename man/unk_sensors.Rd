@@ -2,7 +2,7 @@
 % Please edit documentation in R/agol-utils.R
 \name{unk_sensors}
 \alias{unk_sensors}
-\title{View sensors with unkown ID/serial number}
+\title{View sensors with unknown ID/serial number}
 \usage{
 unk_sensors()
 }
@@ -10,5 +10,5 @@ unk_sensors()
 Dataframe of sensors omitted from data due to missing serial numbers
 }
 \description{
-View sensors with unkown ID/serial number
+View sensors with unknown ID/serial number
 }

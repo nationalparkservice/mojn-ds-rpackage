@@ -5,23 +5,28 @@
 \title{Load raw data into package environment}
 \usage{
 LoadDesertSprings(
- 
-    data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/service_815059c20fd448628dc23441f7a7c473/FeatureServer",
-  ...
+  data_path = c(main_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
+    lookup_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
+    sites_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+    calibration_db =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer")
 )
 }
 \arguments{
 \item{data_path}{A path or URL to the data. Accepted inputs:
-* a URL to the AGOL feature service containing the data
+* 4 URLs to the AGOL feature services containing the data (main_db, lookup_db, sites_db, and calibration_db)
 * a folder containing the data in csv format
 * a .zip file containing the data in csv format
 * `"database"` (connect to the deprecated SQL server database)}
 
-\item{...}{Additional arguments to OpenDatabaseConnection (ignored if `data_path != "database"`)}
-
 \item{use_default_sql}{Use default SQL database? Ignored if `data_path != "database"`.}
 
 \item{sql_drv}{Driver to use to connect to database. Ignored if `data_path != "database"`.}
+
+\item{...}{Additional arguments to OpenDatabaseConnection (ignored if `data_path != "database"`)}
 }
 \value{
 Invisibly return a list containing all raw data
