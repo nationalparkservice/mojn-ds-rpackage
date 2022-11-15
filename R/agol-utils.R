@@ -436,11 +436,11 @@ WrangleAGOLData <- function(agol_layers) {
                   DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
     
   wqDO_filterRepeats <- WaterQualityDO %>%
-    filter(is.na(DissolvedOxygen_percent), is.na(DissolvedOxygen_mg_per_L)) %>%
+    dplyr::filter(is.na(DissolvedOxygen_percent), is.na(DissolvedOxygen_mg_per_L)) %>%
     unique()
   
   WaterQualityDO <- WaterQualityDO %>%
-    dplyr::filter_at(vars(DissolvedOxygen_mg_per_L, DissolvedOxygen_percent), any_vars(!is.na(.)))
+    dplyr::filter_at(dplyr::vars(DissolvedOxygen_mg_per_L, DissolvedOxygen_percent), dplyr::any_vars(!is.na(.)))
   
   data$WaterQualityDO <- dplyr::bind_rows(wqDO_filterRepeats, WaterQualityDO)
   
