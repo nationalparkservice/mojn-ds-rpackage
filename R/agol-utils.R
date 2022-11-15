@@ -100,7 +100,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::inner_join(agol_layers$CalibrationDO, by = "DOUniqueID") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
     dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
     dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("DOInstrumentID" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
                   CalibrationTime, DOInstrument = label, BarometricPressure_mmHg, PreCalibrationReading_percent, 
@@ -118,7 +118,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::inner_join(agol_layers$CalibrationpH, by = "pHUniqueID") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
     dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
     dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("pHInstrumentID" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
                   CalibrationTime, pHInstrument = label, StandardValue_pH, TemperatureCorrectedStd_pH,
@@ -131,7 +131,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::inner_join(agol_layers$CalibrationSpCond, by = "SpCondUniqueID") %>%
     dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
     dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = as_date(CalibrationDate.y)) %>%
+    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
     dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("SpCondInstrumentID" = "name")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
                   CalibrationTime, SpCondInstrument = label, StandardValue_microS_per_cm, 
@@ -436,7 +436,7 @@ WrangleAGOLData <- function(agol_layers) {
                   DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
     
   wqDO_filterRepeats <- WaterQualityDO %>%
-    filter(is.na(DissolvedOxygen_percent), is.na(DissolvedOxygen_mg_per_L)) %>%
+    dply::filter(is.na(DissolvedOxygen_percent), is.na(DissolvedOxygen_mg_per_L)) %>%
     unique()
   
   WaterQualityDO <- WaterQualityDO %>%
