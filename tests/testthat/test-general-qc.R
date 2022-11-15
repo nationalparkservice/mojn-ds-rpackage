@@ -38,24 +38,24 @@ context("Completeness")
 
 test_that("qcCompleteness works as expected", {
   
-  actual_rows <- nrow(qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_rows <- nrow(qcCompleteness())
   expect_equal(actual_rows, 49)
   
-  actual_cols <- colnames(qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcCompleteness())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "MonitoringStatus", "Count", "Percent")
   expect_equal(actual_cols, expected_cols)
   
-  actual_int <- qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_int <- qcCompleteness()
   expect_equal(class(actual_int$Count), "integer")
   
-  actual_dbl <- qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcCompleteness()
   expect_equal(typeof(actual_dbl$Percent), "double")
   
-  actual_count <- (qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Count))[1,]
+  actual_count <- (qcCompleteness() %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Count))[1,]
   expected_count <- tibble::as_tibble(as.integer(59)) %>% dplyr::rename(Count = value)
   expect_equal(actual_count, expected_count)
   
-  actual_percent <- (qcCompleteness(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Percent))[1,]
+  actual_percent <- (qcCompleteness() %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018", SampleFrame == "3Yr", MonitoringStatus == "Sampled") %>% dplyr::select(Percent))[1,]
   expected_percent <- tibble::as_tibble(as.double(59*100/60)) %>% dplyr::rename(Percent = value)
   expect_equal(actual_count, expected_count)
   
@@ -64,10 +64,10 @@ test_that("qcCompleteness works as expected", {
 
 test_that("qcDPLCheck returns correct number of rows and columns", {
 
-  actual_rows <- nrow(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(FieldSeason == "2018"))
+  actual_rows <- nrow(qcDPLCheck() %>% dplyr::filter(FieldSeason == "2018"))
   expect_equal(actual_rows, 125)
   
-  actual_cols <- colnames(qcDPLCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcDPLCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "Visit", "FlowCondition", "EstimatedDischarge", "VolumetricDischarge", "Disturbance", "FlowModification", "Wildlife", "Riparian", "Invasives", "Temperature", "pH", "SpCond", "DisOxygen")
   expect_equal(actual_cols, expected_cols)
     
@@ -76,10 +76,10 @@ test_that("qcDPLCheck returns correct number of rows and columns", {
 
 test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns", {
 
-  actual_rows <- nrow(qcSpringTypeDiscrepancies(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_rows <- nrow(qcSpringTypeDiscrepancies())
   expect_equal(actual_rows, 76)
   
-  actual_cols <- colnames(qcSpringTypeDiscrepancies(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcSpringTypeDiscrepancies())
   expected_cols <- c("Park", "SiteCode", "SiteName", "SpringType", "FieldSeasons")
   expect_equal(actual_cols, expected_cols)
     
@@ -88,10 +88,10 @@ test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns"
 
 test_that("qcVisitDate returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcVisitDate(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_rows <- nrow(qcVisitDate())
   expect_equal(actual_rows, 246)
   
-  actual_cols <- colnames(qcVisitDate(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcVisitDate())
   expected_cols <- c("Park", "SiteCode", "SiteName", "SampleFrame", "VisitDates")
   expect_equal(actual_cols, expected_cols)
   
@@ -100,14 +100,14 @@ test_that("qcVisitDate returns correct number of rows and columns", {
 
 test_that("qcNotSampled returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcNotSampled(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_rows <- nrow(qcNotSampled())
   expect_equal(actual_rows, 35)
   
-  actual_cols <- colnames(qcNotSampled(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcNotSampled())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "MonitoringStatus", "Notes")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcNotSampled(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcNotSampled()
   expect_equal(class(actual_date$VisitDate), "Date")
   
 })
@@ -115,14 +115,14 @@ test_that("qcNotSampled returns correct number of rows and columns", {
 
 test_that("qcRepeatVisits returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_rows <- nrow(qcRepeatVisits())
   expect_equal(actual_rows, 8)
   
-  actual_cols <- colnames(qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcRepeatVisits())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "MonitoringStatus", "Notes")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcRepeatVisits(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcRepeatVisits()
   expect_equal(class(actual_date$VisitDate), "Date")
   
 })

@@ -1,10 +1,10 @@
 # Calculate median discharge; join and clean flow condition, springbrook length, and discharge data; assign springbrook length to categories
 # DischargeEstimated, DischargeFlowCondition, DischargeVolumetric,
 
-QcFlowCat <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  volumetric <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeVolumetric")
-  estimated <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeEstimated")
-  flowcondition <- desertsprings:::ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "DischargeFlowCondition")
+QcFlowCat <- function(park, site, field.season) {
+  volumetric <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeVolumetric")
+  estimated <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated")
+  flowcondition <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition")
   
   # Find median fill time.
   volumetric.median <- volumetric %>%
@@ -44,8 +44,8 @@ QcFlowCat <- function(conn, path.to.data, park, site, field.season, data.source 
 
 # Discharge > 0, but flow condition dry. Flow condition not dry, but discharge = 0 or no estimate/volumetric measurement.
 
-QcFlowCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  fc.data <- QcFlowCat(conn, path.to.data, park, site, field.season, data.source)
+QcFlowCheck <- function(park, site, field.season) {
+  fc.data <- QcFlowCat(park, site, field.season)
   
   fc.check.1 <- fc.data %>%
     dplyr::filter(FlowCondition == "dry" & VolumetricDischarge_L_per_s != 0)
@@ -69,10 +69,10 @@ QcFlowCheck <- function(conn, path.to.data, park, site, field.season, data.sourc
 
 # Limited to annual and 3-year springs as well as primary visits.
 
-QcFlowTidy <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  fc.cat.data <- QcFlowCat(conn, path.to.data, park, site, field.season, data.source)
+QcFlowTidy <- function(park, site, field.season) {
+  fc.cat.data <- QcFlowCat(park, site, field.season)
   
-  flow.visits <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+  flow.visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
   
   fc.tidy <- fc.cat.data %>%
     dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
@@ -88,8 +88,8 @@ QcFlowTidy <- function(conn, path.to.data, park, site, field.season, data.source
 
 # Plot springbrook length categories
 
-QcFcPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  fc.plot.data <- QcFlowTidy(conn, path.to.data, park, site, field.season, data.source)
+QcFcPlot <- function(park, site, field.season) {
+  fc.plot.data <- QcFlowTidy(park, site, field.season)
   
   df <- fc.plot.data %>%
     dplyr::group_by(Park, FieldSeason, FlowCategory) %>%
