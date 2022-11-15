@@ -27,8 +27,18 @@ qcWqLong(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
+Tibble with columns for Park, FieldSeason, SiteCode, VisitDate, Parameter, Units, and Median.
 }
 \description{
 Intermediate step used to clean water quality data for stats and plotting functions. Limit data to primary visits of annual and 3Yr springs, and exclude data with "W" and "C" flags.
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcWqLong(conn)
+    qcWqLong(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    qcWqLong(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcWqLong(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

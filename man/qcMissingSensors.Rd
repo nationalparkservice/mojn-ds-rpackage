@@ -2,12 +2,20 @@
 % Please edit documentation in R/sensors.R
 \name{qcMissingSensors}
 \alias{qcMissingSensors}
+<<<<<<< HEAD
 \title{Sensors were deployed in previous field seasons and are still unaccounted for}
+=======
+\title{Sensors were retrieved but missing, or sensors were not retrieved and not missing}
+>>>>>>> master
 \usage{
 qcMissingSensors(
   conn,
   path.to.data,
   park,
+<<<<<<< HEAD
+=======
+  site,
+>>>>>>> master
   deployment.field.season,
   data.source = "database"
 )
@@ -24,8 +32,25 @@ qcMissingSensors(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
+<<<<<<< HEAD
 A tibble
 }
 \description{
 Sensors were deployed in previous field seasons and are still unaccounted for
+=======
+Tibble
+}
+\description{
+Sensors were retrieved but missing, or sensors were not retrieved and not missing
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcRepeatVisits(conn)
+    qcRepeatVisits(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    qcRepeatVisits(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcRepeatVisits(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+>>>>>>> master
 }

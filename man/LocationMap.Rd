@@ -4,6 +4,7 @@
 \alias{LocationMap}
 \title{Map of annual and 3-year desert springs monitoring locations}
 \usage{
+<<<<<<< HEAD
 LocationMap(
   conn,
   path.to.data,
@@ -12,6 +13,9 @@ LocationMap(
   field.season,
   data.source = "database"
 )
+=======
+LocationMap(conn, path.to.data, park, site, data.source = "database")
+>>>>>>> master
 }
 \arguments{
 \item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
@@ -22,13 +26,33 @@ LocationMap(
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
+<<<<<<< HEAD
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
 A leaflet map
+=======
+\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
+}
+\value{
+leaflet map
+>>>>>>> master
 }
 \description{
 Map of annual and 3-year desert springs monitoring locations
 }
+<<<<<<< HEAD
+=======
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    LocationMap(conn)
+    LocationMap(conn, site = "LAKE_P_GET0066")
+    LocationMap(conn, park = c("DEVA", "MOJA"))
+    LocationMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
+>>>>>>> master

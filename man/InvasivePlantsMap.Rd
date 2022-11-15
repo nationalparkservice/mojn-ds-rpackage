@@ -2,7 +2,11 @@
 % Please edit documentation in R/vegetation-qc.R
 \name{InvasivePlantsMap}
 \alias{InvasivePlantsMap}
+<<<<<<< HEAD
 \title{Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations}
+=======
+\title{Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations}
+>>>>>>> master
 \usage{
 InvasivePlantsMap(
   conn,
@@ -30,5 +34,19 @@ InvasivePlantsMap(
 leaflet map
 }
 \description{
+<<<<<<< HEAD
 Map of tamarisk, fountain grass, date palm, and fan palm (non-JOTR) observations
+=======
+Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    InvasivePlantsMap(conn)
+    InvasivePlantsMap(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    InvasivePlantsMap(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+    InvasivePlantsMap(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+>>>>>>> master
 }

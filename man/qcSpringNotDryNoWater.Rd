@@ -2,7 +2,11 @@
 % Please edit documentation in R/discharge-qc.R
 \name{qcSpringNotDryNoWater}
 \alias{qcSpringNotDryNoWater}
+<<<<<<< HEAD
 \title{Spring is not dry, stimated discharge = 0 or volumetric discharge = 0 or springbrook dimensions = 0}
+=======
+\title{Spring is not dry, estimated discharge = 0 or volumetric discharge = 0 or springbrook dimensions = 0}
+>>>>>>> master
 \usage{
 qcSpringNotDryNoWater(
   conn,
@@ -27,8 +31,25 @@ qcSpringNotDryNoWater(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
+<<<<<<< HEAD
 A tibble
 }
 \description{
 Spring is not dry, stimated discharge = 0 or volumetric discharge = 0 or springbrook dimensions = 0
+=======
+Tibble
+}
+\description{
+Spring is not dry, estimated discharge = 0 or volumetric discharge = 0 or springbrook dimensions = 0
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcSpringNotDryNoWater(conn)
+    qcSpringNotDryNoWater(conn, site = "DEVA_P_ARR0137", field.season = "2019")
+    qcSpringNotDryNoWater(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcSpringNotDryNoWater(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+>>>>>>> master
 }

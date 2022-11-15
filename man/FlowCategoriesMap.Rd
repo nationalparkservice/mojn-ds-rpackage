@@ -35,3 +35,16 @@ leaflet map
 \description{
 Map of spring flow categories for latest field season at each park
 }
+<<<<<<< HEAD
+=======
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    FlowCategoriesMap(conn, interactive = "no")
+    FlowCategoriesMap(conn, interactive = "yes", site = "LAKE_P_GRA0058", field.season = "2019")
+    FlowCategoriesMap(conn, interactive = "yes", park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
+    FlowCategoriesMap(interactive = "yes", path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
+>>>>>>> master

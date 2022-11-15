@@ -20,6 +20,7 @@ HumanUsePlot(
 
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
+<<<<<<< HEAD
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
@@ -28,7 +29,25 @@ HumanUsePlot(
 }
 \value{
 
+=======
+\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
+}
+\value{
+ggplot bar plot
+>>>>>>> master
 }
 \description{
 Bar plot with percent of springs with human use
 }
+<<<<<<< HEAD
+=======
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    HumanUsePlot(conn)
+    HumanUsePlot(conn, park = c("DEVA", "JOTR"))
+    HumanUsePlot(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
+>>>>>>> master

@@ -27,8 +27,25 @@ qcVolumetricMissing(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
+<<<<<<< HEAD
 A tibble
+=======
+Tibble
+>>>>>>> master
 }
 \description{
 Volumetric method was used, but there is no container volume, percent of flow, or fill time recorded
 }
+<<<<<<< HEAD
+=======
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcVolumetricMissing(conn)
+    qcVolumetricMissing(conn, site = "LAKE_P_GRA0058", field.season = "2019")
+    qcVolumetricMissing(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    qcVolumetricMissing(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
+>>>>>>> master

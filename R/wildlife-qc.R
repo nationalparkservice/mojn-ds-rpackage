@@ -4,11 +4,18 @@
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble with columns for 
+#' @return Tibble
 #' @export
 #'
-qcWildlifeObservedNoTypes <- function(park, site, field.season) {
-  wildlife <- ReadAndFilterData(park = park,data.name = "Wildlife")
+#' @examples 
+#' \dontrun{
+#'     
+#'     qcWildlifeObservedNoTypes()
+#'     qcWildlifeObservedNoTypes(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoTypes(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#' }
+  qcWildlifeObservedNoTypes <- function(park, site, field.season) {
+    wildlife <- ReadAndFilterData(park = park,data.name = "Wildlife")
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -26,12 +33,19 @@ qcWildlifeObservedNoTypes <- function(park, site, field.season) {
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
-qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
-  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
-  
+#' @examples 
+#' \dontrun{
+#'     
+#'     qcWildlifeObservedNoEvidence()
+#'     qcWildlifeObservedNoEvidence(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcWildlifeObservedNoEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#' }
+  qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
+    wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+
   type.noevidence <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
                   DirectObservation != "Yes",
@@ -53,11 +67,18 @@ qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return
+#' @return Tibble
 #' @export
 #'
-UngulatesEvidence <- function(park, site, field.season) {
-  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+#' @examples 
+#' \dontrun{
+#'     
+#'     UngulatesEvidence()
+#'     UngulatesEvidence(site = "LAKE_P_COR0023", field.season = "2020")
+#'     UngulatesEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
+#' }
+    UngulatesEvidence <- function(park, site, field.season) {
+      wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
@@ -77,26 +98,35 @@ UngulatesEvidence <- function(park, site, field.season) {
 #' @return leaflet map
 #' @export
 #'
+#' @examples 
+#' \dontrun{
+#'     
+#'     UngulatesMap()
+#'     UngulatesMap(site = "LAKE_P_COR0023")
+#'     UngulatesMap(park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
+#' }
 UngulatesMap <- function(park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
   site <- ReadAndFilterData(park = park, data.name = "Site")
   
   coords <- site %>%
-    select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   ungulatedata <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Observed = case_when(WildlifeType == "Ungulate" ~ "Yes",
-                                       is.na(WildlifeType) ~ "No",
-                                       TRUE ~ "No")) %>%
+    dplyr::mutate(Observed = dplyr::case_when(WildlifeType == "Ungulate" ~ "Yes",
+                                              is.na(WildlifeType) ~ "No",
+                                              TRUE ~ "No")) %>%
     dplyr::filter(Observed == "Yes")  %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
   ungulatedata$Observed <- factor(ungulatedata$Observed, levels = c("Yes"))
+  
+  ungulatedata %<>% dplyr::arrange(FieldSeason)
   
   pal <- leaflet::colorFactor(palette = c("red"),
                      domain = ungulatedata$Observed)
@@ -117,8 +147,8 @@ UngulatesMap <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 800
-  height <- 800
+  width <- 700
+  height <- 700
   
   sd <- crosstalk::SharedData$new(ungulatedata)
   year_filter <- crosstalk::filter_slider("year",
@@ -143,6 +173,7 @@ UngulatesMap <- function(park, site, field.season) {
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", ungulatedata$SiteName, "<br>",
                                              "Sample Frame: ", ungulatedata$SampleFrame, "<br>",
+                                             "Field Season: ", ungulatedata$FieldSeason, "<br>",
                                              "Direct Observation: ", ungulatedata$DirectObservation, "<br>",
                                              "Scat: ", ungulatedata$Scat, "<br>",
                                              "Tracks: ", ungulatedata$Tracks, "<br>",
@@ -151,10 +182,12 @@ UngulatesMap <- function(park, site, field.season) {
                                              "Vocalization: ", ungulatedata$Vocalization, "<br>",
                                              "Other Evidence: ", ungulatedata$OtherEvidence, "<br>",
                                              "Notes: ", ungulatedata$Notes),
-                              radius = 6,
-                              stroke = FALSE,
+                              radius = 5,
+                              stroke = TRUE,
+                              weight = 1,
+                              color = "black",
                               fillOpacity = 1,
-                              color = ~pal(Observed),
+                              fillColor = ~pal(Observed),
                               group = ~Observed) %>%
     leaflet::addLegend(pal = pal,
                        values = ~Observed,

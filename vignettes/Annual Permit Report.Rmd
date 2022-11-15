@@ -1,0 +1,191 @@
+---
+params:
+  park: "MOJA"
+  wateryear: "2020"
+title: |
+    | Desert Springs Protocol
+    | Summary of Effort
+author: "Mojave Desert Network"
+date: "3/28/2022"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+pkgList <- c("tidyverse",
+                  "magrittr",
+                  "rmarkdown",
+                  "yaml")
+
+inst <- pkgList %in% installed.packages()
+if (length(pkgList[!inst]) > 0) {
+  install.packages(pkgList[!inst], dep = TRUE, 
+                   repos = "https://cloud.r-project.org")
+}
+
+lapply(pkgList, library, character.only = TRUE, quietly = TRUE)
+require("desertsprings")
+
+conn <- OpenDatabaseConnection()
+```
+
+### Park: `r params$park`
+### Water Year: `r params$wateryear`
+
+### Completeness
+
+``` {r completeness}
+comp <- qcCompleteness(conn, park = params$park, field.season = params$wateryear)
+
+comp.data <- comp %>%
+  dplyr::mutate(Percent = round(Percent, 0))
+
+comp.table <- knitr::kable(comp.data) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE, position = "left")
+```
+
+`r if(any(comp.data$Percent < 100)) {"Due to Covid-19 travel restrictions in effect from December 2020 through February 2021, we were not able to monitor all planned springs this water year."}`
+
+```{r completeness.table}
+comp.table
+```
+
+``` {r completeness.plot, include = FALSE}
+comp.plot <- qcCompletenessPlot(conn, park = params$park, field.season = params$wateryear)
+
+comp.plot
+```
+
+### Site List: Visited
+
+The following springs were monitored during this water year:
+
+``` {r visits}
+visits <- desertsprings:::ReadAndFilterData(conn, park = params$park, field.season = params$wateryear, data.source = "database", data.name = "Visit")
+
+visits$SampleFrame <- factor(visits$SampleFrame, levels = c("Annual", "3Yr", "Over"))
+
+visits.data <- visits %>%
+  dplyr::select(Park, SiteCode, SiteName, VisitDate, SampleFrame, VisitType) %>%
+  dplyr::arrange(SampleFrame, SiteName)
+
+visits.table <- knitr::kable(visits.data) %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE, position = "left")
+
+visits.table
+```
+
+``` {r no.visits}
+visits.park <- desertsprings:::ReadAndFilterData(conn, park = params$park, data.source = "database", data.name = "Visit")
+visits <- desertsprings:::ReadAndFilterData(conn, park = params$park, field.season = params$wateryear, data.source = "database", data.name = "Visit")
+
+visits$SampleFrame <- factor(visits$SampleFrame, levels = c("Annual", "3Yr", "Over"))
+visits.park$SampleFrame <- factor(visits.park$SampleFrame, levels = c("Annual", "3Yr", "Over"))
+
+visits.park.data <- visits.park %>%
+  dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+  dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+  unique() %>%
+  dplyr::arrange(SampleFrame, SiteName) %>%
+  dplyr::filter(dplyr::case_when(params$wateryear %in% c("2016", "2019", "2022", "2025", "2028") & params$park %in% c("LAKE", "MOJA") ~ SampleFrame %in% c("Annual", "3Yr"),
+                          params$wateryear %in% c("2017", "2020", "2023", "2026", "2029") & params$park %in% c("PARA", "JOTR") ~ SampleFrame %in% c("Annual", "3Yr"),
+                          params$wateryear %in% c("2018", "2021", "2024", "2027", "2030") & params$park %in% c("DEVA") ~ SampleFrame %in% c("Annual", "3Yr"),
+                          TRUE ~ SampleFrame == "Annual"))
+  
+visits.data <- visits %>%
+  dplyr::select(Park, SiteCode, SiteName, VisitDate, SampleFrame, VisitType) %>%
+  dplyr::arrange(SampleFrame, SiteName)
+
+no.visits.data <- anti_join(visits.park.data, visits.data, by = "SiteCode")
+
+no.visits.table <- knitr::kable(no.visits.data) %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE, position = "left")
+
+no.visits <- nrow(no.visits.data)
+```
+
+`r if(no.visits > 0) {"### Site List: Not Visited"}`
+
+`r if(no.visits > 0) {"The following planned springs were not monitored during this water year:"}`
+
+``` {r no.visits.table}
+if(no.visits > 0){no.visits.table}
+```
+
+``` {r visits.map, include = FALSE}
+visits.monitored <- visits.data %>%
+  dplyr::mutate(Monitored = "monitored") %>%
+  dplyr::filter(VisitType == "Primary")
+
+visits.merge <- no.visits.data %>%
+  dplyr::mutate(VisitDate = as.Date(NA),
+                VisitType = as.character(NA)) %>%
+  dplyr::select(Park, SiteCode, SiteName, VisitDate, SampleFrame, VisitType) %>%
+  dplyr::mutate(Monitored = "not monitored")
+
+sites.status <- rbind(visits.monitored, visits.merge)
+
+site <- desertsprings:::ReadAndFilterData(conn, park = params$park, data.source = "database", data.name = "Site")
+  
+coords <- site %>%
+  dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+
+sites.coords <- dplyr::left_join(sites.status, coords, by = "SiteCode") %>%
+  dplyr::mutate(Status = paste0(SampleFrame, ", ", Monitored))
+
+sites.coords$Status <- factor(sites.coords$Status, levels = c("Annual, monitored", "Annual, not monitored", "3Yr, monitored", "3Yr, not monitored", "Over, monitored"))
+  
+  pal <- leaflet::colorFactor(palette = c("firebrick1", "darkred", "royalblue1", "midnightblue", "gold"),
+                              domain = sites.coords$Status)
+
+
+# Make NPS map Attribution
+  NPSAttrib <-
+    htmltools::HTML(
+      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
+      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
+      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
+      <a class='improve-park-tiles'
+      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
+      target='_blank'>Improve Park Tiles</a>"
+    )
+  
+  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
+  
+  width <- 800
+  height <- 800
+  
+visit.map <- leaflet::leaflet(sites.coords, height = height, width = width) %>%
+  leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
+  leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
+  leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
+  leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
+  leaflet::addScaleBar('bottomright') %>%
+  leaflet::addCircleMarkers(lng = ~Lon_WGS84,
+                            lat = ~Lat_WGS84,
+                            popup = paste ("Name: ", sites.coords$SiteName, "<br>",
+                                           "Sample Frame: ", sites.coords$SampleFrame, "<br>",
+                                           "Visit Date: ", sites.coords$VisitDate),
+                            radius = 6,
+                            stroke = TRUE,
+                            color = "black",
+                            weight = 1,
+                            fillOpacity = 1,
+                            fillColor = ~pal(Status),
+                            group = ~Status) %>%
+    leaflet::addLegend(pal = pal,
+                       values = ~Status,
+                       title = "Monitoring Status",
+                       opacity = 1,
+                       position = "bottomleft") %>%
+    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
+                              overlayGroups = ~Status,
+                              options=leaflet::layersControlOptions(collapsed = FALSE))
+
+visit.map
+
+```

@@ -20,15 +20,22 @@ WqPlotGrid(
 
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
-
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-Grid of box plots of water quality parameter data (temp C, spcond mS/cm, pH, DO mg/L) for each park and field season.
+Grid of ggplot box plots
 }
 \description{
 Generate grid of box plots for core water quality parameters for each park and year. Includes annual and 3Yr springs only.
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    WqPlotGrid(conn)
+    WqPlotGrid(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+    WqPlotGrid(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
 }

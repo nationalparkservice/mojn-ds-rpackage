@@ -25,12 +25,23 @@ qcCompleteness(
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
-
-\item{data.name}{The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.}
 }
 \value{
-A tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
+Tibble with columns for park, field season, sample frame (i.e., annual, 3Yr), monitoring status (i.e., sampled), count of springs monitored, and percent of springs monitored.
 }
 \description{
 Calculate completeness (\% of planned sites visited)
+<<<<<<< HEAD
+=======
+}
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcCompleteness(conn)
+    qcCompleteness(conn, site = "LAKE_P_GET0066", field.season = "2019")
+    qcCompleteness(conn, park = "DEVA", field.season = c("2018", "2020", "2021"))
+    qcCompleteness(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+>>>>>>> master
 }

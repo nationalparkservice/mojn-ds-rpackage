@@ -27,8 +27,25 @@ qcSpringNotDryNoDischarge(
 \item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
+<<<<<<< HEAD
 A tibble
+=======
+Tibble
+>>>>>>> master
 }
 \description{
 Spring is not dry, estimated discharge = 0 or volumetric discharge = 0
 }
+<<<<<<< HEAD
+=======
+\examples{
+\dontrun{
+    conn <- OpenDatabaseConnection()
+    qcSpringNotDryNoDischarge(conn)
+    qcSpringNotDryNoDischarge(conn, site = "LAKE_P_GRA0058", field.season = "2019")
+    qcSpringNotDryNoDischarge(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2019", "2020"))
+    qcSpringNotDryNoDischarge(path.to.data = "path/to/data", data.source = "local")
+    CloseDatabaseConnection(conn)
+}
+}
+>>>>>>> master

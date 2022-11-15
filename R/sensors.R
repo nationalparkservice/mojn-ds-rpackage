@@ -3,14 +3,21 @@
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble with columns for park, deployment field season, number of sensors deployed, number of sensors for which retrieval was not attempted, number of sensors for which retrieval was attempted, number of sensors actually retrieved, number of sensors actually downloaded
+#' @return Tibble with columns for park, deployment field season, number of sensors deployed, number of sensors for which retrieval was not attempted, number of sensors for which retrieval was attempted, number of sensors actually retrieved, number of sensors actually downloaded
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorSummary <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
-  deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
-
+#' 
+#' @examples
+#' \dontrun{
+#'     
+#'     qcSensorSummary()
+#'     qcSensorSummary(park = "DEVA", deployment.field.season = c("2018", "2020", "2021"))
+#'     
+#' }
+  qcSensorSummary <- function(park, deployment.field.season) {
+    attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+    deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
   # Number of sensors that have been deployed but no retrieval (successful or unsuccessful) has been attempted
   deployed.only
   no.attempt <- deployed.only %>%
@@ -64,155 +71,321 @@ qcSensorSummary <- function(park, deployment.field.season) {
   return(summary)
 }
 
+
 #' Plot sensor retrieval results over time as a heatmap.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #'
-#' @return A ggplot object.
+#' @return ggplot heatmap
 #' @export
 #'
 #' @importFrom magrittr %>% %<>%
-qcSensorHeatmap <- function(park) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
-  visit <- ReadAndFilterData(park = park, data.name = "Visit")
-  
+#' 
+#' @examples 
+#' \dontrun{
+#'     
+#'     qcSensorHeatmap()
+#'     qcSensorHeatmap(park = c("JOTR", "MOJA"))
+#'     
+#' }
+  qcSensorHeatmap <- function(park) {
+    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+    visit <- ReadAndFilterData(park = park, data.name = "Visit")
   sampleframe <- visit %>%
-    select(SiteCode, SampleFrame)
+    dplyr::select(SiteCode, SampleFrame)
   
   joined <- attempts %>%
-    left_join(sampleframe, by = c("SiteCode"))
+    dplyr::left_join(sampleframe, by = c("SiteCode"))
   
   joined %<>%
     # filter(DeploymentVisitType == "Primary") %>%
-    filter(SampleFrame == "Annual") %>%
-    mutate(SensorResult = if_else(DownloadResult == "Y", "Download successful",
-                                  if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
-           SensorResultOrder = if_else(DownloadResult == "Y", 1,
-                                       if_else(SensorRetrieved == "Y", 2, 3)))
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::mutate(SensorResult = dplyr::if_else(DownloadResult == "Y", "Download successful",
+                                 dplyr::if_else(SensorRetrieved == "Y", "Download failed", "Not retrieved")),
+                  SensorResultOrder = dplyr::if_else(DownloadResult == "Y", 1,
+                                      dplyr::if_else(SensorRetrieved == "Y", 2, 3)))
   
-  plt <- ggplot(joined, aes(x = DeploymentFieldSeason, 
-                              y = reorder(SiteCode, desc(SiteCode)))) + 
-    geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
-    scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome")
+  plt <- ggplot2::ggplot(joined, aes(x = DeploymentFieldSeason, 
+                                     y = reorder(SiteCode, dplyr::desc(SiteCode)),
+                                     text = paste("Site Name: ", SiteName,
+                                                  "<br>Site Code:", SiteCode,
+                                                  "<br>Deployment Field Season:", DeploymentFieldSeason,
+                                                  "<br>Sensor Result:", SensorResult))) + 
+         geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
+         scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome") +
+         xlab("Deployment Field Season") +
+         ylab("Spring Site Code") +
+         theme(legend.position = "bottom")
   
   return(plt)
 }
 
-#' Problems with retrieved sensors
+
+#' Springs where a sensor was not deployed during a field season
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     
+#'     qcSensorsNotDeployed()
+#'     qcSensorsNotDeployed(site = "MOJA_P_UNN0014")
+#'     qcSensorsNotDeployed(park = c("DEVA", "JOTR"), deployment.field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
+  
+  visit <- ReadAndFilterData(site, field.season = deployment.field.season)
+  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  deployed <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName) %>%
+    unique()
+  
+  deployments_past <- attempts %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason)
+  
+  deployments_recent <- deployed %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::rename(DeploymentDate = VisitDate,
+                  DeploymentFieldSeason = FieldSeason)
+  
+  deployments <- rbind(deployments_past, deployments_recent) %>%
+    unique()
+  
+  all_visits <- visit %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitDate) %>%
+    dplyr::rename(DeploymentFieldSeason = FieldSeason)
+  
+  notdeployed <- annual_springs %>%
+    dplyr::full_join(deployments, by = c("Park", "SiteCode", "SiteName")) %>%
+    tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
+    dplyr::filter(!is.na(Park),
+                  is.na(DeploymentDate)) %>%
+    dplyr::filter(!(Park == "DEVA" & DeploymentFieldSeason %in% c("2016", "2017")),
+                  !(Park == "JOTR" & DeploymentFieldSeason == "2016")) %>%
+    dplyr::arrange(DeploymentFieldSeason, SiteCode) %>%
+    dplyr::left_join(all_visits, by = c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason")) %>%
+    dplyr::rename(FieldSeason = DeploymentFieldSeason) %>%
+    dplyr::relocate(VisitDate, .after = FieldSeason)
+  
+  return(notdeployed)
+  
+}
+
+
+#' Springs where a sensor was not recovered during a field season
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
+  
+  visit <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  
+  annual_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::filter(SampleFrame == "Annual") %>%
+    unique() %>%
+    dplyr::select(-SampleFrame)
+  
+  all_springs <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    unique()
+  
+  notrecovered <- attempts %>%
+    tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::select(-Park, -SiteName) %>%
+    dplyr::left_join(all_springs, by = "SiteCode") %>%
+    dplyr::select(Park, SiteCode, SiteName, RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber, SampleFrame, SensorRetrieved, Notes) %>%
+    dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
+                  !(Park == "JOTR" & RetrievalFieldSeason == "2017")) %>%
+    dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved)) %>%
+    dplyr::filter(!(SampleFrame != "Annual" & is.na(RetrievalDate))) %>%
+    dplyr::select(-SensorRetrieved, -SampleFrame) %>%
+    dplyr::arrange(SiteCode, RetrievalFieldSeason) %>%
+    dplyr::rename(FieldSeason = RetrievalFieldSeason,
+                  VisitDate = RetrievalDate)
+  
+  return(notrecovered)
+  
+}
+
+
+#' Sensors were retrieved with problems or caveats
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorProblems <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
-  
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+  qcSensorProblems <- function(park, deployment.field.season) {
+    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
     dplyr::relocate(DownloadResult, .after = SensorRetrieved) %>%
-    dplyr::select(-RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(problems)
   
 }
+
 
 #' Sensors were retrieved, but download status is unknown
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorDownloads <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
-  
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+    qcSensorDownloads <- function(park, deployment.field.season) {
+      attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
-    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType)
+    dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(nodata)
    
 }
 
-#' Sensors were deployed in previous field seasons and are still unaccounted for 
+
+#' Sensors were retrieved but missing, or sensors were not retrieved and not missing
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".#'
 #' @return A tibble
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+#' 
 qcMissingSensors <- function(park, deployment.field.season) {
   deployed <- ReadAndFilterData(park = park, data.name = "SensorsCurrentlyDeployed")
-  
-  current.date <- Sys.Date()
-  
-  if(lubridate::month(current.date) >= 10) {
-    current.fs <- (lubridate::year(current.date) - 1)
-  } else {
-    current.fs <- lubridate::year(current.date)
-  }
-  
-  missing <- deployed %>%
-    dplyr::filter(FieldSeason != current.fs) %>%
-    dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::select(-VisitType)
+  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  missing <- attempts %>%
+    dplyr::filter((SensorRetrieved == "Y" & SensorProblem == "Missing") | (SensorRetrieved == "N" & SensorProblem != "Missing")) %>%
+    dplyr::arrange(SiteCode, DeploymentFieldSeason) %>%
+    dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate, RetrievalFieldSeason, RetrievalDate, SensorRetrieved, DownloadResult, SensorProblem, SensorNumber, SerialNumber, Notes)
   
   return(missing)
    
 }
+
 
 #' Sensors whose retrieval date is the same as their deployment date
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorDates <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
- 
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+  qcSensorDates <- function(park, deployment.field.season) {
+    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+
   error <- attempts %>%
-    dplyr::filter(DeploymentDate == RetrievalDate)
+    dplyr::filter(DeploymentDate == RetrievalDate) %>%
+    dplyr::relocate(Park, .before = "SensorNumber") %>%
+    dplyr::relocate(SiteCode, .after = "Park") %>%
+    dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(error)
   
 }
 
-
-#' Springs with no sensor deployment data for latest field season
+#' Sensors with unknown ID or serial number
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param deployment.field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return A tibble
+#' @return Tibble
 #' @export
 #'
 #' @examples
-qcSensorsNoData <- function(park, site) {
- 
-  visit <- ReadAndFilterData(park = park, data.name = "Visit")
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+#' \dontrun{
+#'     
+#'     qcRepeatVisits()
+#'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#'     
+#' }
+qcUnknownSensorIDs <- function(park, site, deployment.field.season) {
+  sensors <- ReadAndFilterData(park, site, field.season = deployment.field.season) %>%
+    dplyr::relocate(Park, .before = "SiteCode") %>%
+    dplyr::relocate(SensorNumber, .after = "FieldSeason") %>%
+    dplyr::relocate(SerialNumber, .after = "SensorNumber") %>%
+    dplyr::select(-VisitType)
+
+  unknown <- sensors %>%
+    dplyr::filter(SensorNumber < 0 | is.na(SensorNumber) | SerialNumber == "unknown" | is.na(SerialNumber))
   
-  visit.x <- visit %>%
-    select(Park, SiteCode, SiteName, SampleFrame) %>%
-    filter(SampleFrame == "Annual") %>%
-    unique()
-  
-  attempts.x <- attempts %>%
-    filter(DeploymentFieldSeason == max(DeploymentFieldSeason)) %>%
-    select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, SensorNumber, SensorRetrieved)
-  
-  discrepancies <- visit.x %>%
-    dplyr::left_join(attempts.x, by = c("Park", "SiteCode", "SiteName")) %>%
-    dplyr::filter(is.na(SensorRetrieved))
-  
-  return(discrepancies)
+  return(unknown) 
 }
