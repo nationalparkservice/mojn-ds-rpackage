@@ -13,7 +13,7 @@ WqPlotSpCondmS(park, site, field.season, include.title = FALSE)
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
-\item{include.title}{}
+\item{include.title}{Include plot title? Defaults to TRUE}
 }
 \value{
 Box plots of specific conductance data for each park and field season.

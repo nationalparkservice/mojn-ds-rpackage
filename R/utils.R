@@ -105,6 +105,7 @@ CloseDatabaseConnection <- function(conn) {
 #' Get column specifications
 #'
 #' @return A list of column specifications for each table of data.
+#' @export
 #'
 #' @examples
 #' col.spec <- GetColSpec()

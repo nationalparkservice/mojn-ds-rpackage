@@ -12,7 +12,10 @@ LoadDesertSprings(
     sites_db =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
     calibration_db =
-    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer")
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
+  use_default_sql = FALSE,
+  sql_drv = odbc::odbc(),
+  ...
 )
 }
 \arguments{

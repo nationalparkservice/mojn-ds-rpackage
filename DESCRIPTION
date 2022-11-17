@@ -25,7 +25,8 @@ Imports:
     testthat,
     tidyr,
     magrittr,
-    leaflet,
+    leaflet
+Suggests:
     crosstalk,
     ggpmisc,
     gridExtra,

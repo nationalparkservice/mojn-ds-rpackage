@@ -24,6 +24,8 @@ FetchAGOLLayers(
 
 \item{sites_path}{URL to feature service on AGOL containing sites table}
 
+\item{calibration_path}{URL to feature service on AGOL containing calibration tables.}
+
 \item{agol_username}{Username of headless AGOL account with permissions to view the feature service.}
 
 \item{agol_password}{Password for headless AGOL account.}
