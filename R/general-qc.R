@@ -77,6 +77,7 @@
 #' Generate stacked bar plot for completeness (\% of planned sites visited).
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return ggplot stacked bar plot

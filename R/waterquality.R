@@ -262,6 +262,7 @@ qcWqLong <- function(park, site, field.season) {
 #' Calculate quartile values for each water quality parameter for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' 
 #'
@@ -301,6 +302,7 @@ WqStats <- function(park, site, field.season) {
 #' Generate box plots for water temperature for each park and 3-year cycle. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param include.title Include plot title? Defaults to TRUE
 #'
@@ -320,7 +322,7 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    GetSampleSizes(Park, FieldSeason)
     
   wq.plot.temp <- FormatPlot(
     data = wq.plot,
@@ -345,8 +347,9 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
 #' Generate box plots for specific conductance for each park and year in units of uS/cm. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return ggplot box plots
 #' @export
@@ -364,7 +367,7 @@ WqPlotSpCond <- function(park, site, field.season,include.title = FALSE) {
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+    GetSampleSizes(Park, FieldSeason) #
   wq.plot.spcond <- FormatPlot(
     data = wq.plot,
     x.col = FieldSeason,
@@ -390,7 +393,7 @@ WqPlotSpCond <- function(park, site, field.season,include.title = FALSE) {
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
@@ -423,8 +426,9 @@ WqPlotSpCondmS <- function(park, site, field.season,include.title = FALSE) {
 #' Generate box plots for pH for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return ggplot box plots
 #' @export
@@ -442,7 +446,7 @@ WqPlotPH <- function(park, site, field.season,include.title = FALSE) {
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
     data = wq.plot,
@@ -467,7 +471,7 @@ WqPlotPH <- function(park, site, field.season,include.title = FALSE) {
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return Box plots of dissolved oxygen (percent) data for each park and field season.
 #' @export
@@ -499,8 +503,9 @@ WqPlotDOPct <- function(park, site, field.season,include.title = FALSE) {
 #' Generate box plots for concentration dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return ggplot box plots
 #' @export
@@ -519,7 +524,7 @@ WqPlotDOmgL <- function(park, site, field.season,include.title = FALSE) {
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.mgl <- FormatPlot(
     data = wq.plot,
@@ -544,7 +549,7 @@ WqPlotDOmgL <- function(park, site, field.season,include.title = FALSE) {
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title 
+#' @param include.title Include plot title? Defaults to TRUE
 #'
 #' @return ggplot box plots
 #' @export
@@ -562,7 +567,7 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
                                     Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                     Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                     TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.pct <- FormatPlot(
     data = wq.plot,
@@ -585,6 +590,7 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
 #' Generate grid of box plots for core water quality parameters for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' 
 #'
@@ -1450,7 +1456,7 @@ WqPlotTempX <- function(park, site, field.season = "database", include.title = F
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason)
+    GetSampleSizes(Park, FieldSeason)
   
   wq.plot.temp <- FormatPlot(
     data = wq.plot,
@@ -1483,7 +1489,7 @@ WqPlotSpCondX <- function(park, site, field.season = "database", include.title =
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+    GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.spcond <- FormatPlot(
     data = wq.plot,
@@ -1516,7 +1522,7 @@ WqPlotPHX <- function(park, site, field.season = "database", include.title = FAL
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+    GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.ph <- FormatPlot(
     data = wq.plot,
@@ -1549,7 +1555,7 @@ WqPlotDOX <- function(park, site, field.season = "database", include.title = FAL
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    desertsprings:::GetSampleSizes(Park, FieldSeason) #
+    GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.do <- FormatPlot(
     data = wq.plot,

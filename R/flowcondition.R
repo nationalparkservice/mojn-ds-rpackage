@@ -2,9 +2,9 @@
 # DischargeEstimated, DischargeFlowCondition, DischargeVolumetric,
 
 QcFlowCat <- function(park, site, field.season) {
-  volumetric <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeVolumetric")
-  estimated <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated")
-  flowcondition <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition")
+  volumetric <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeVolumetric")
+  estimated <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated")
+  flowcondition <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition")
   
   # Find median fill time.
   volumetric.median <- volumetric %>%

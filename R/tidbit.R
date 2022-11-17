@@ -3,14 +3,12 @@
 #' To do: path to import as one argument, path to export as second argument, option to write to CSV or not as third argument
 #' To do: "for loop" to apply function to all CSVs in Raw folder
 #' 
-#' @param path.to.data 
-#' @param data.source 
 #'
 #' @return A tibble with columns for date-time, water temperature, water detect, and water binary.
 #' @export
 #'
 #' @examples ProcessTidbiT(path.to.data = "", data.source = "")
-ProcessTidbiT <- function(path.to.data, data.source = "database") {
+ProcessTidbiT <- function() {
   
 # Import raw CSV file of HOBO TidbiT logger data.
 import <- read.csv("M:\\MONITORING\\DS_Water\\Data\\LoggerData\\WY2021\\Raw\\xxxxxx.csv", header = TRUE, skip = 2, na.strings=c(""," "))

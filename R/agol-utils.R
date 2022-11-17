@@ -526,6 +526,7 @@ WrangleAGOLData <- function(agol_layers) {
 #' @param data_path URL to Desert Springs feature service on AGOL.
 #' @param lookup_path URL to feature service on AGOL containing Desert Springs lookup tables.
 #' @param sites_path URL to feature service on AGOL containing sites table
+#' @param calibration_path URL to feature service on AGOL containing calibration tables.
 #' @param agol_username Username of headless AGOL account with permissions to view the feature service.
 #' @param agol_password Password for headless AGOL account.
 #'

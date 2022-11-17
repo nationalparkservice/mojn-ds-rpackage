@@ -362,6 +362,7 @@ SpringDischarge <- function(park, site, field.season) {
 #' Summary table of flow categories for continuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return Tibble
@@ -400,6 +401,7 @@ SpringDischarge <- function(park, site, field.season) {
 #' Summary table of flow categories for discontinuous springbrooks: dry, wet soil, <10 m, 10-50 m, >50 m
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return Tibble
@@ -440,6 +442,7 @@ SpringDischarge <- function(park, site, field.season) {
 #' Summary bar plot of flow categories for annual springs
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return ggplot bar plot
@@ -479,6 +482,7 @@ SpringDischarge <- function(park, site, field.season) {
 #' Summary bar plot of flow categories for 3-yr springs
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return ggplot bar plot
@@ -771,6 +775,7 @@ SpringDischarge <- function(park, site, field.season) {
 #' Box plot of springbrook lengths for annual springs at each park and field season
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
 #' @return ggplot box plot
