@@ -214,7 +214,7 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- DischargeFlowCondition -----
   data$DischargeFlowCondition <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, DPL, Notes, Notes, SpringbrookNotes = DischargeNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, DPL, Notes, SpringbrookNotes = DischargeNotes)
   
   # ----- DischargeVolumetric -----
   vol <- agol_layers$fill_time %>%

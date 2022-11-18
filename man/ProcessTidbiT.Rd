@@ -10,8 +10,7 @@ ProcessTidbiT()
 A tibble with columns for date-time, water temperature, water detect, and water binary.
 }
 \description{
-To do: path to import as one argument, path to export as second argument, option to write to CSV or not as third argument
-To do: "for loop" to apply function to all CSVs in Raw folder
+Convert raw TidbiT data into format importable into Aquarius database.
 }
 \examples{
 ProcessTidbiT()

@@ -1,5 +1,5 @@
 context("Utility functions")
-
+LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("GetSiteName retrieves the correct spring name for the spring code provided", {
   
   expect_equal(GetSiteName(site.code = "LAKE_P_HOR0042"), "Horsethief Canyon")
