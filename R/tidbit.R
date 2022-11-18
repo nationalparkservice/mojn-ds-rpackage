@@ -1,29 +1,29 @@
 #' Convert raw TidbiT data into format importable into Aquarius database.
 #' 
-#'
+#' @param wy.folder Mandatory. WY followed by 4-digit water year, e.g. "WY2022".
+#' 
 #' @return A tibble with columns for date-time, water temperature, water detect, and water binary.
 #' @export
 #'
 #' @examples ProcessTidbiT()
-ProcessTidbiT <- function() {
+ProcessTidbiT <- function(wy.folder) {
   # Enter water year of folder to process raw files.
-  wy <- "WY2021"
-  
+
   # Create variables for file paths.
-  raw_folder <- paste0("M:\\MONITORING\\DS_Water\\Data\\LoggerData\\",wy,"\\Raw")
+  raw_folder <- paste0("M:\\MONITORING\\DS_Water\\Data\\LoggerData\\",wy.folder,"\\Raw")
   csv_list <- list.files(raw_folder, pattern = "csv")
   file_paths <- paste0(raw_folder,"\\",csv_list)
   
   for(path in file_paths) {
     
     # Import raw CSV file of HOBO TidbiT logger data.
-    import <- read.csv(path, header = TRUE, skip = 1, na.strings = c(""," "))
+    import <- read.csv(path, header = TRUE, na.strings = c(""," "))
     
     # Standardize column names.
-    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Date") & stringr::str_detect(names(.), "08"), ~paste0("DateTime_GMT0800"))
-    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Date") & stringr::str_detect(names(.), "07"), ~paste0("DateTime_GMT0700"))
-    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Temp") & stringr::str_detect(names(.), "F"), ~paste0("Temp_F"))
-    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Temp") & stringr::str_detect(names(.), "C"), ~paste0("Temp_C"))
+    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Date") & stringr::str_detect(names(.), "PST.PDT"), ~paste0("DateTime_GMT-0800"))
+    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Date") & stringr::str_detect(names(.), "MST"), ~paste0("DateTime_GMT-0700"))
+    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Temp") & stringr::str_detect(names(.), "F."), ~paste0("Temp_F"))
+    import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Temp") & stringr::str_detect(names(.), "C."), ~paste0("Temp_C"))
     import %<>% dplyr::rename_if(stringr::str_detect(names(.), "Water.Detect"), ~paste0("Water_Detect"))
     
     if(!"Water_Detect" %in% colnames(import)) 
@@ -79,6 +79,5 @@ ProcessTidbiT <- function() {
     processed_path <- stringr::str_replace(new_file_path, "\\\\Raw\\\\", "\\\\Processed\\\\")
     readr::write_csv(export, processed_path, append = FALSE, col_names = TRUE) # If you run this twice in the same year, it will overwrite the processed folder.
     
-    return(export)
   }
 }
