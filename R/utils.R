@@ -520,7 +520,7 @@ SaveDataToCsv <- function(dest.folder, create.folders = FALSE, overwrite = FALSE
   }
 }
 
-#' Raw data dump
+#' Raw data dump. With no parameters, it returns the data in the same form they are in when using LoadDesertSprings().
 #'
 #' 
 #'
