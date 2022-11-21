@@ -521,7 +521,7 @@ WrangleAGOLData <- function(agol_layers) {
 }
 
 
-#' Read data from the Desert Springs AGOL feature layers. Used for data management purposes to get the raw data in its current format on AGOL. 
+#' Read data from the Desert Springs AGOL feature layers. Returns the raw data in its current format on AGOL. Mostly used for data management purposes. 
 #'
 #' @param data_path URL to Desert Springs feature service on AGOL.
 #' @param lookup_path URL to feature service on AGOL containing Desert Springs lookup tables.
