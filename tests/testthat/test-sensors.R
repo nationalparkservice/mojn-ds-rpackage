@@ -47,7 +47,7 @@ context("Sensor functions")
 # 
 # # Remove temporary csv's
 # unlink(dir, recursive = TRUE)
-
+LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("qcSensorSummary works as expected", {
   
   actual_rows <- nrow(qcSensorSummary())

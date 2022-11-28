@@ -35,7 +35,7 @@ context("Completeness")
 
 # Remove temporary CSV files
 # unlink(dir, recursive = TRUE)
-
+LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("qcCompleteness works as expected", {
   
   actual_rows <- nrow(qcCompleteness())

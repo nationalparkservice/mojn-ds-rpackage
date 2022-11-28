@@ -1,5 +1,5 @@
 context("Wildlife")
-
+LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("qcWildlifeObservedNoTypes returns expected number of rows and columns", {
 
   actual_rows <- nrow(qcWildlifeObservedNoTypes())

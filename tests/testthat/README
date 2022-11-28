@@ -1,3 +1,3 @@
-To run tests for this package, create a folder in tests/testthat called test_data. Use SaveDataToCsv(conn, here::here("tests", "testthat", "test_data"), create.folders = TRUE) to export full dataset to that folder. DO NOT COMMIT THIS FOLDER TO YOUR GIT REPOSITORY.
+To run tests for this package, create a folder in tests/testthat called test_data. Run load desert springs, then use SaveDataToCsv(here::here("tests", "testthat", "test_data")) to export full dataset to that folder. DO NOT COMMIT THIS FOLDER TO YOUR GIT REPOSITORY.
 
 How to call local data: function(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")

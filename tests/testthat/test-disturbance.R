@@ -1,5 +1,5 @@
 context("Disturbance")
-
+LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("qcOverallDisturbance returns correct number of rows and columns", {
   
   actual_rows <- nrow(qcOverallDisturbance())
