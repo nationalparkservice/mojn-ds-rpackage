@@ -228,8 +228,9 @@ dpl <- visit.DPL %>%
 #'     qcSpringTypeDiscrepancies(site = "LAKE_P_GET0066")
 #'     qcSpringTypeDiscrepancies(park = "DEVA", field.season = c("2018", "2021"))
 #' }
-      qcSpringTypeDiscrepancies <- function(park, site, field.season) {
-        visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+qcSpringTypeDiscrepancies <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  
   discrepancies <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled") %>%
     dplyr::arrange(SiteCode, VisitDate) %>%
@@ -256,12 +257,13 @@ dpl <- visit.DPL %>%
 #'
 #' @examples
 #' \dontrun{
-#'     qcVisitDate()
-#'     qcVisitDate(site = "LAKE_P_GET0066", field.season = "2019")
-#'     qcVisitDate(park = "DEVA", field.season = c("2018", "2020", "2021"))
+#'     qcVisitsBySite()
+#'     qcVisitsBySite(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVisitsBySite(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-        qcVisitDate <- function(park, site, field.season) {
-          visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+qcVisitsBySite <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  
   visit.dates <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
@@ -284,6 +286,48 @@ dpl <- visit.DPL %>%
 }
 
 
+#' Return list of springs that have been visited on each date 
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcVisitsByDate()
+#'     qcVisitsByDate(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVisitsByDate(park = "DEVA", field.season = c("2018", "2020", "2021"))
+#' }
+qcVisitsByDate <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+
+  visit.dates <- visit %>%
+    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(SiteCode, VisitDate, FieldSeason, SampleFrame) %>%
+    dplyr::mutate(VisitDate = as.POSIXct(VisitDate)) %>%
+    dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
+    dplyr::mutate(Day = as.integer(format(VisitDate, "%d"))) %>%
+    dplyr::mutate(Month = factor(Month, levels = c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"))) %>%
+    dplyr::mutate(DOY = as.integer(format(VisitDate, "%j"))) %>%
+    dplyr::mutate(FieldSeason = paste0("WY", FieldSeason)) %>%
+    dplyr::arrange(Month, Day) %>%
+    dplyr::mutate(Date = paste(Month, Day, sep = " ")) %>%
+    dplyr::select(SiteCode, FieldSeason, Month, Day, Date) %>%
+    dplyr::group_by(FieldSeason, Month, Day, Date) %>%
+    dplyr::mutate(SitesVisited = paste0(SiteCode, collapse = ", ")) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-SiteCode) %>%
+    unique() %>%
+    tidyr::pivot_wider(names_from = FieldSeason, values_from = SitesVisited, names_sort = TRUE) %>%
+    dplyr::select(-c("Month", "Day"))
+  
+  return(visit.dates)  
+}
+
+
 #' Generate timeline of dates that each spring has been visited
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -295,13 +339,12 @@ dpl <- visit.DPL %>%
 #'
 #' @examples
 #' \dontrun{
-
 #'     qcVisitDateTimelines()
 #'     qcVisitDateTimelines(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcVisitDateTimelines(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-  qcVisitDateTimelines <- function(park, site, field.season) {
-     visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+qcVisitDateTimelines <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
 
   grouping_vars <- c("Park", "FieldSeason", "SiteCode") # Set grouping vars here so that we can add the facet column if needed
   median_grouping_vars <- c("Park", "SiteName", "SiteCode")
