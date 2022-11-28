@@ -419,7 +419,6 @@ LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.
 #' @param data.name The name of the analysis view or the csv file containing the data. E.g. "CalibrationDO", "DischargeVolumetric". See details for full list of data name options.
 #'
 #' @return A tibble of filtered data.
-#' @export
 #'
 #' @details \code{data.name} options are: CalibrationDO, CalibrationpH, CalibrationSpCond, DischargeEstimated, DischargeFlowCondition, DischargeVolumetric, Disturbance, DisturbanceFlowModification, Invasives, Riparian, SensorRetrievalAttempts, SensorsCurrentlyDeployed, Site, Visit, VisitActivity, WaterQualityDO, WaterQualitypH, WaterQualitySpCond, WaterQualityTemperature, Wildlife
 #'
@@ -520,7 +519,7 @@ SaveDataToCsv <- function(dest.folder, create.folders = FALSE, overwrite = FALSE
   }
 }
 
-#' Raw data dump
+#' Raw data dump. With no parameters, it returns the data in the same form they are in when using LoadDesertSprings().
 #'
 #' 
 #'

@@ -521,7 +521,7 @@ WrangleAGOLData <- function(agol_layers) {
 }
 
 
-#' Read data from the Desert Springs AGOL feature layers.
+#' Read data from the Desert Springs AGOL feature layers. Returns the raw data in its current format on AGOL. Mostly used for data management purposes. 
 #'
 #' @param data_path URL to Desert Springs feature service on AGOL.
 #' @param lookup_path URL to feature service on AGOL containing Desert Springs lookup tables.
@@ -531,6 +531,7 @@ WrangleAGOLData <- function(agol_layers) {
 #' @param agol_password Password for headless AGOL account.
 #'
 #' @return A list of tibbles
+#' @export 
 #'
 FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
                             lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",

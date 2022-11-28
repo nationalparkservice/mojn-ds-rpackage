@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{GetRawData}
 \alias{GetRawData}
-\title{Raw data dump}
+\title{Raw data dump. With no parameters, it returns the data in the same form they are in when using LoadDesertSprings().}
 \usage{
 GetRawData(park, site, field.season)
 }
@@ -17,5 +17,5 @@ GetRawData(park, site, field.season)
 A list of dataframes containing raw desert springs data.
 }
 \description{
-Raw data dump
+Raw data dump. With no parameters, it returns the data in the same form they are in when using LoadDesertSprings().
 }

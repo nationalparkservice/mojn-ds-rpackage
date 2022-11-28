@@ -2,7 +2,7 @@
 % Please edit documentation in R/agol-utils.R
 \name{FetchAGOLLayers}
 \alias{FetchAGOLLayers}
-\title{Read data from the Desert Springs AGOL feature layers.}
+\title{Read data from the Desert Springs AGOL feature layers. Returns the raw data in its current format on AGOL. Mostly used for data management purposes.}
 \usage{
 FetchAGOLLayers(
  
@@ -34,5 +34,5 @@ FetchAGOLLayers(
 A list of tibbles
 }
 \description{
-Read data from the Desert Springs AGOL feature layers.
+Read data from the Desert Springs AGOL feature layers. Returns the raw data in its current format on AGOL. Mostly used for data management purposes.
 }
