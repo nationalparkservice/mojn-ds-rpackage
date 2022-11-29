@@ -14,10 +14,10 @@
 #'     qcCompleteness(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcCompleteness(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-  qcCompleteness <- function(park, site, field.season) {
+qcCompleteness <- function(park, site, field.season) {
     
-    completeness <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
-    site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  completeness <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
   
   df1 <- site %>%
@@ -88,9 +88,9 @@
 #'     qcCompletenessPlot()
 #'     qcCompletenessPlot(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-  qcCompletenessPlot <- function(park, site, field.season) {
+qcCompletenessPlot <- function(park, site, field.season) {
     
-    completecount <- qcCompleteness(park = park, site = site, field.season = field.season)
+  completecount <- qcCompleteness(park = park, site = site, field.season = field.season)
     
   df2 <- completecount %>%
         dplyr::mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep = " - ")) %>%
@@ -124,21 +124,21 @@
 #'     qcDPLCheck(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcDPLCheck(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-    qcDPLCheck <- function(park, site, field.season) {
+qcDPLCheck <- function(park, site, field.season) {
       
-      visit <- ReadAndFilterData(park = park, data.name = "Visit")
-      flowcondition <- ReadAndFilterData(park = park, data.name = "DischargeFlowCondition")
-      estimated <- ReadAndFilterData(park = park, data.name = "DischargeEstimated")
-      volumetric <- ReadAndFilterData(park = park, data.name = "DischargeVolumetric")
-      disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-      flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
-      invasives <- ReadAndFilterData(park = park, data.name = "Invasives")
-      riparian <- ReadAndFilterData(park = park, data.name = "Riparian")
-      wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
-      temp <- ReadAndFilterData(park = park, data.name = "WaterQualityTemperature")
-      ph <- ReadAndFilterData(park = park, data.name = "WaterQualitypH")
-      spcond <-ReadAndFilterData(park = park, data.name = "WaterQualitySpCond")
-      do <- ReadAndFilterData(park = park, data.name = "WaterQualityDO")
+  visit <- ReadAndFilterData(park = park, data.name = "Visit")
+  flowcondition <- ReadAndFilterData(park = park, data.name = "DischargeFlowCondition")
+  estimated <- ReadAndFilterData(park = park, data.name = "DischargeEstimated")
+  volumetric <- ReadAndFilterData(park = park, data.name = "DischargeVolumetric")
+  disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
+  flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
+  invasives <- ReadAndFilterData(park = park, data.name = "Invasives")
+  riparian <- ReadAndFilterData(park = park, data.name = "Riparian")
+  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+  temp <- ReadAndFilterData(park = park, data.name = "WaterQualityTemperature")
+  ph <- ReadAndFilterData(park = park, data.name = "WaterQualitypH")
+  spcond <-ReadAndFilterData(park = park, data.name = "WaterQualitySpCond")
+  do <- ReadAndFilterData(park = park, data.name = "WaterQualityDO")
 
 visit.DPL <- visit %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, VisitType, DPL) %>%
@@ -345,14 +345,16 @@ qcVisitsByDate <- function(park, site, field.season) {
 #'     qcVisitDateTimelines(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitDateTimelines <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
 
-  grouping_vars <- c("Park", "FieldSeason", "SiteCode") # Set grouping vars here so that we can add the facet column if needed
-  median_grouping_vars <- c("Park", "SiteName", "SiteCode")
+  grouping_vars <- c("Park", "FieldSeason", "SiteCode", "SampleFrame") # Set grouping vars here so that we can add the facet column if needed
+  median_grouping_vars <- c("Park", "SiteName", "SiteCode", "SampleFrame")
   
   visit.dates <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
+    dplyr::mutate(SampleFrame = as.factor(SampleFrame)) %>%
+    dplyr::mutate(SampleFrame = factor(SampleFrame, levels = c("Annual", "3Yr"))) %>%
     dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
     dplyr::mutate(MonthNum = as.integer(format(VisitDate, "%m"))) %>%
     dplyr::mutate(Day = as.integer(format(VisitDate, "%d"))) %>%
@@ -372,9 +374,9 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                      Max = max(Event_mmdd),
                      Min = min(Event_mmdd),
                      Spread = max(Event_mmdd) - min(Event_mmdd)) %>%
-    dplyr::mutate(med_tooltip = format(Median.Date, "Median: %b %d"),
-                  min_tooltip = format(Min, "Median: %b %d"),
-                  max_tooltip = format(Max, "Median: %b %d")) %>%
+    dplyr::mutate(med_tooltip = format(Median.Date, "%b %d"),
+                  min_tooltip = format(Min, "%b %d"),
+                  max_tooltip = format(Max, "%b %d")) %>%
     dplyr::ungroup()
 
   visit.dates.df <- as.data.frame(visit.dates)
@@ -412,10 +414,10 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                           date_labels = "%b %e",
                           limits = c(lubridate::floor_date(min(visit.dates$Event_mmdd), "month"),
                                      lubridate::ceiling_date(max(visit.dates$Event_mmdd), "month"))) +
-    ggplot2::scale_y_discrete(limits = rev)
+    ggplot2::scale_y_discrete(limits = rev) +
+    ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free")
   
   return(plt)
-  
 }
 
 
@@ -434,12 +436,12 @@ qcVisitDateTimelines <- function(park, site, field.season) {
 #'     qcNotSampled(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcNotSampled(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
-    qcNotSampled <- function(park, site, field.season) {
-      visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+qcNotSampled <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
       
-      notsampled <- visit %>%
-        dplyr::filter(MonitoringStatus != "Sampled") %>%
-        dplyr::select(-c("DPL", "SpringType"))
+  notsampled <- visit %>%
+    dplyr::filter(MonitoringStatus != "Sampled") %>%
+    dplyr::select(-c("DPL", "SpringType"))
   return(notsampled)
 }
 
@@ -489,9 +491,8 @@ qcRepeatVisits <- function(park, site, field.season) {
 #'     LocationMap(site = "LAKE_P_GET0066")
 #'     LocationMap(park = c("DEVA", "MOJA"))
 #' }
-    LocationMap <- function(park, site, field.season) {
-      site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
-
+LocationMap <- function(park, site, field.season) {
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
