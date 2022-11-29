@@ -415,7 +415,7 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                           limits = c(lubridate::floor_date(min(visit.dates$Event_mmdd), "month"),
                                      lubridate::ceiling_date(max(visit.dates$Event_mmdd), "month"))) +
     ggplot2::scale_y_discrete(limits = rev) +
-    ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free")
+    ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free", drop = TRUE)
   
   return(plt)
 }
