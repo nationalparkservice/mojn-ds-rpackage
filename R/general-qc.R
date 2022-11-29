@@ -322,7 +322,8 @@ qcVisitsByDate <- function(park, site, field.season) {
     dplyr::select(-SiteCode) %>%
     unique() %>%
     tidyr::pivot_wider(names_from = FieldSeason, values_from = SitesVisited, names_sort = TRUE) %>%
-    dplyr::select(-c("Month", "Day"))
+    dplyr::select(-c("Month", "Day")) %>%
+    dplyr::select(Date, rev(sort(names(.))))
   
   return(visit.dates)  
 }
