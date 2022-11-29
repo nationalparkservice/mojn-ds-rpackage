@@ -462,7 +462,7 @@ qcNotSampled <- function(park, site, field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcRepeatVisits <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park, site, field.season) 
+  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
   
   repeats <- visit %>%
     dplyr::group_by(SiteCode, FieldSeason) %>%
