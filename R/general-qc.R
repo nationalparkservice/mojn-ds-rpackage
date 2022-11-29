@@ -345,7 +345,7 @@ qcVisitsByDate <- function(park, site, field.season) {
 #'     qcVisitDateTimelines(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitDateTimelines <- function(park, site, field.season) {
-  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
 
   grouping_vars <- c("Park", "FieldSeason", "SiteCode", "SampleFrame") # Set grouping vars here so that we can add the facet column if needed
   median_grouping_vars <- c("Park", "SiteName", "SiteCode", "SampleFrame")
@@ -414,8 +414,8 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                           date_labels = "%b %e",
                           limits = c(lubridate::floor_date(min(visit.dates$Event_mmdd), "month"),
                                      lubridate::ceiling_date(max(visit.dates$Event_mmdd), "month"))) +
-    ggplot2::scale_y_discrete(limits = rev) +
-    ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free", drop = TRUE)
+    ggplot2::scale_y_discrete(limits = rev)
+    # + ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free", drop = TRUE) Add back in once ggplotly can handle space = "free"
   
   return(plt)
 }
