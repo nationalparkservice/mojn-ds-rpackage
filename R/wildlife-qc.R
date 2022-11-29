@@ -9,13 +9,12 @@
 #'
 #' @examples 
 #' \dontrun{
-#'     
 #'     qcWildlifeObservedNoTypes()
 #'     qcWildlifeObservedNoTypes(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcWildlifeObservedNoTypes(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-  qcWildlifeObservedNoTypes <- function(park, site, field.season) {
-    wildlife <- ReadAndFilterData(park = park,data.name = "Wildlife")
+qcWildlifeObservedNoTypes <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
   
   observed.notype <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -38,13 +37,12 @@
 #'
 #' @examples 
 #' \dontrun{
-#'     
 #'     qcWildlifeObservedNoEvidence()
 #'     qcWildlifeObservedNoEvidence(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcWildlifeObservedNoEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
 #' }
-  qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
-    wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
 
   type.noevidence <- wildlife %>%
     dplyr::filter(IsWildlifeObserved == "Yes",
@@ -61,6 +59,7 @@
   return(type.noevidence)
 }
 
+
 #' Table of springs with evidence of ungulate (sheep and deer) activity
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -72,13 +71,12 @@
 #'
 #' @examples 
 #' \dontrun{
-#'     
 #'     UngulatesEvidence()
 #'     UngulatesEvidence(site = "LAKE_P_COR0023", field.season = "2020")
 #'     UngulatesEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
 #' }
-    UngulatesEvidence <- function(park, site, field.season) {
-      wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+UngulatesEvidence <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
   
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
@@ -100,14 +98,13 @@
 #'
 #' @examples 
 #' \dontrun{
-#'     
 #'     UngulatesMap()
 #'     UngulatesMap(site = "LAKE_P_COR0023")
 #'     UngulatesMap(park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
 #' }
 UngulatesMap <- function(park, site, field.season) {
-  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
-  site <- ReadAndFilterData(park = park, data.name = "Site")
+  wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

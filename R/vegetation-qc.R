@@ -9,15 +9,14 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcVegPresentNoLifeforms()
 #'     qcVegPresentNoLifeforms(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcVegPresentNoLifeforms(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-  qcVegPresentNoLifeforms <- function(park, site, field.season) {
-    veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
+qcVegPresentNoLifeforms <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
-    vegnolife <- veg %>%
+  vegnolife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::filter(IsVegetationObserved == "Y" & is.na(LifeForm)) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsVegetationObserved, LifeForm) %>%
@@ -38,13 +37,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcNoVegLifeformsPresent()
 #'     qcNoVegLifeformsPresent(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcNoVegLifeformsPresent(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 qcNoVegLifeformsPresent <- function(park, site, field.season) {
-  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   noveglife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -67,13 +65,13 @@ qcNoVegLifeformsPresent <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcLifeformPresentNoRank()
 #'     qcLifeformPresentNoRank(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcLifeformPresentNoRank(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-  qcLifeformPresentNoRank <- function(park, site, field.season) {
-    veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
+qcLifeformPresentNoRank <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
+  
   lifenorank <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::filter(!is.na(LifeForm) & is.na(Rank)) %>%
@@ -95,13 +93,12 @@ qcNoVegLifeformsPresent <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcLifeformRankCheck()
 #'     qcLifeformRankCheck(site = "JOTR_P_NOR0083", field.season = "2021")
 #'     qcLifeformRankCheck(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
 #' }
-    qcLifeformRankCheck <- function(park, site, field.season) {
-      veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
+qcLifeformRankCheck <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   rankcheck <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -130,19 +127,17 @@ qcNoVegLifeformsPresent <- function(park, site, field.season) {
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     LifeformsPresence()
 #'     LifeformsPresence(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 LifeformsPresence <- function(park, site, field.season) {
-  veg <- ReadAndFilterData(park = park,  data.name = "Riparian")
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   veg.summary <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -166,13 +161,12 @@ LifeformsPresence <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     LifeformsPerSpringPlot()
 #'     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 LifeformsPerSpringPlot <- function(park, field.season) {
-  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)
@@ -341,13 +335,12 @@ LifeformsPerSpringPlot <- function(park, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     MostCommonLifeformsPlot()
 #'     MostCommonLifeformsPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 MostCommonLifeformsPlot <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
 
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)
@@ -490,13 +483,12 @@ MostCommonLifeformsPlot <- function(park, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     InvasivePlants()
 #'     InvasivePlants(site = "LAKE_P_HOR0042", field.season = "2020")
 #'     InvasivePlants(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 InvasivePlants <- function(park, site, field.season) {
-  invasives <- ReadAndFilterData(park = park,  data.name = "Invasives")
+  invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
 
   
   targetinvasives <- invasives %>%
@@ -519,14 +511,13 @@ InvasivePlants <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     InvasivePlantsMap()
 #'     InvasivePlantsMap(site = "LAKE_P_GET0066", field.season = "2019")
 #'     InvasivePlantsMap(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 InvasivePlantsMap <- function(park, site, field.season) {
-  invasives <- ReadAndFilterData(park = park,  data.name = "Invasives")
-  site <- ReadAndFilterData(park = park,  data.name = "Site")
+  invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

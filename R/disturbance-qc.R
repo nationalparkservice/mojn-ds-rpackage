@@ -9,15 +9,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcOverallDisturbance()
 #'     qcOverallDisturbance(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcOverallDisturbance(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
-#'     
 #' }
-  qcOverallDisturbance <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-
+qcOverallDisturbance <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
   
   overall <- disturbance %>%
     dplyr::filter((Overall < Roads & Roads != "NoData") |
@@ -48,15 +45,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcFlowModNoHuman()
 #'     qcFlowModNoHuman(site = "LAKE_P_WIL0061", field.season = "2016")
 #'     qcFlowModNoHuman(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  qcFlowModNoHuman <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-
+qcFlowModNoHuman <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
 
   nohuman <- disturbance %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, FlowModificationStatus) %>%
@@ -78,15 +72,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     FlowModStatus()
 #'     FlowModStatus(site = "DEVA_P_ARR0137", field.season = "2019")
 #'     FlowModStatus(park = c("JOTR", "LAKE"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  FlowModStatus <- function(park, site, field.season) {
-    flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
-
+FlowModStatus <- function(park, site, field.season) {
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
   
   status <- flowmod %>%
     dplyr::filter(stringr::str_detect(FlowModificationStatus, "Yes")) %>%
@@ -113,15 +104,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcFlowModDiscrepancies()
 #'     qcFlowModDiscrepancies(site = "DEVA_P_WAU0880")
 #'     qcFlowModDiscrepancies(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  qcFlowModDiscrepancies <- function(park, site, field.season) {
-    flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification") 
-
+qcFlowModDiscrepancies <- function(park, site, field.season) {
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification") 
   
   discrepancies <- flowmod %>%
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
@@ -149,16 +137,13 @@ return(discrepancies)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     FlowModCount()
 #'     FlowModCount(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  FlowModCount <- function(park, site, field.season) {
-    flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification") 
-    site <- ReadAndFilterData(park = park, data.name = "Site")
+FlowModCount <- function(park, site, field.season) {
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification") 
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
-  
   sampleframe <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
@@ -210,13 +195,11 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     FlowModPlot()
 #'     FlowModPlot(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  FlowModPlot <- function(park, site, field.season) {
-    percent <- FlowModCount(park = park, site = site, field.season = field.season)
+FlowModPlot <- function(park, site, field.season) {
+  percent <- FlowModCount(park = park, site = site, field.season = field.season)
 
 
   percent %<>% dplyr::filter(Park != "CAMO")
@@ -244,16 +227,13 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     DisturbanceCount()
 #'     DisturbanceCount(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  DisturbanceCount <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-    flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
-    site <- ReadAndFilterData(park = park, data.name = "Site")
-
+DisturbanceCount <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   sampleframe <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
@@ -298,15 +278,12 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     HumanUseObservations()
 #'     HumanUseObservations(site = "LAKE_P_DRI0002", field.season = "2019")
 #'     HumanUseObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  HumanUseObservations <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-
+HumanUseObservations <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
   
   humanobs <- disturbance %>%
     dplyr::filter(HumanUse > 0,
@@ -328,17 +305,14 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     HumanUsePlot()
 #'     HumanUsePlot(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  HumanUsePlot <- function(park, site, field.season) {
-    disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
+HumanUsePlot <- function(park, site, field.season) {
+  disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
   
   disturb  %<>%
     dplyr::filter(Park != "CAMO")
-
   
   humanplot <- ggplot2::ggplot(disturb, aes(x = Park, y = HumanUsePercent))+
     geom_bar(stat = "identity") +
@@ -359,15 +333,13 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     HumanUseMap()
 #'     HumanUseMap(site = "LAKE_P_DRI0002", field.season = "2019")
 #'     HumanUseMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  HumanUseMap <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-    site <- ReadAndFilterData(park = park, data.name = "Site")
+HumanUseMap <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
   
   coords <- site %>%
@@ -469,15 +441,12 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     LivestockObservations()
 #'     LivestockObservations(site = "MOJA_P_WIL0224", field.season = "2019")
 #'     LivestockObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  LivestockObservations <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-
+LivestockObservations <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
   
   livestockobs <- disturbance %>%
     dplyr::filter(Livestock > 0,
@@ -499,17 +468,14 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     LivestockPlot()
 #'     LivestockPlot(park = c("DEVA", "JOTR"))
-#'     
 #' }
-  LivestockPlot <- function(park, site, field.season) {
-    disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
+LivestockPlot <- function(park, site, field.season) {
+  disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
   
   disturb %<>%
     dplyr::filter(Park != "CAMO")
-
   
   livestockplot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
     geom_bar(stat = "identity") +
@@ -531,16 +497,13 @@ return(percent)
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     LivestockMap()
 #'     LivestockMap(site = "MOJA_P_WIL0224", field.season = "2019")
 #'     LivestockMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  LivestockMap <- function(park, site, field.season) {
-    disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-    site <- ReadAndFilterData(park = park, data.name = "Site")
-
+LivestockMap <- function(park, site, field.season) {
+  disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -633,7 +596,7 @@ return(percent)
 #################### Functions for Desert Springs PowerPoint -- not for final data package
 
 LivestockPlotX <- function(park, site, field.season) {
-  disturb <- DisturbanceCount(park, site, field.season)
+  disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
   
   disturb %<>%
     dplyr::filter(Park != "CAMO")
