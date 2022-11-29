@@ -469,7 +469,8 @@ qcRepeatVisits <- function(park, site, field.season) {
     dplyr::mutate(Duplicated = dplyr::n() > 1) %>%
     dplyr::filter(Duplicated == TRUE | VisitType != "Primary") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, VisitType, MonitoringStatus, Notes) %>%
-    dplyr::arrange(FieldSeason, SiteCode, VisitDate)
+    dplyr::arrange(FieldSeason, SiteCode, VisitDate) %>%
+    dplyr::ungroup()
   
   return(repeats)
    
