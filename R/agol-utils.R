@@ -41,8 +41,8 @@ WrangleAGOLData <- function(agol_layers) {
                   WildlifeCode = Wildlife,
                   OverallCode = Overall) %>%
     dplyr::mutate(EstimatedDischarge_L_per_sec = as.integer(EstimatedDischarge_L_per_sec)) %>%
-    dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_Site, name, SiteName = sitename, GRTSPanelID), by = c("SiteCode"= "name")) %>%
-    dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_GRTSPanel, ID, SampleFrame = name), by = c("GRTSPanelID" = "ID")) %>%
+    dplyr::left_join(dplyr::select(agol_layers$sites, name, SiteName = sitename, SiteCode, SampleFrame, PanelCode = PanelGroup), by = c("SiteCode" = "SiteCode")) %>%
+    dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_Panel, name, Panel = label), by = c("PanelCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_VisitType, name, VisitType = label), by = c("VisitTypeCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_MonitoringStatus, name, MonitoringStatus = label), by = c("Status" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_SpringType, name, SpringType = label), by = c("SpringTypeCode" = "name")) %>%
@@ -366,6 +366,7 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitDate,
                   FieldSeason,
                   SampleFrame,
+                  Panel,
                   VisitType,
                   MonitoringStatus,
                   SpringType,
