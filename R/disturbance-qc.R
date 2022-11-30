@@ -22,12 +22,12 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
                        "Wildlife",
                        "OtherNatural",
                        "Overall"),
-      funs(case_when(. == ">0 - 25%" ~ "1",
-                                     . == ">25 - 50%" ~ "2",
-                                     . == ">50 - 75%" ~ "3",
-                                     . == ">75 - 100%" ~ "4",
-                                     . == "0" ~ "0",
-                                     TRUE ~ "NoData")))
+                      dplyr::funs(case_when(. == ">0 - 25%" ~ "1",
+                                            . == ">25 - 50%" ~ "2",
+                                            . == ">50 - 75%" ~ "3",
+                                            . == ">75 - 100%" ~ "4",
+                                            . == "0" ~ "0",
+                                            TRUE ~ "NoData")))
 
   return(formatted)
 }
@@ -323,7 +323,13 @@ HumanUseObservations <- function(park, site, field.season) {
   humanobs <- disturbance %>%
     dplyr::filter(HumanUse > 0,
                   HumanUse != "NoData") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
+    dplyr::mutate(HumanUse = case_when(HumanUse == "1" ~ ">0 - 25%",
+                                       HumanUse == "2" ~ ">25 - 50%",
+                                       HumanUse == "3" ~ ">50 - 75%",
+                                       HumanUse == "4" ~ ">75 - 100%",
+                                       HumanUse == "0" ~ "0%",
+                                       TRUE ~ HumanUse))
   
   return(humanobs)
 }
@@ -485,7 +491,13 @@ LivestockObservations <- function(park, site, field.season) {
   livestockobs <- disturbance %>%
     dplyr::filter(Livestock > 0,
                   Livestock != "NoData") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
+    dplyr::mutate(Livestock = case_when(Livestock == "1" ~ ">0 - 25%",
+                                       Livestock == "2" ~ ">25 - 50%",
+                                       Livestock == "3" ~ ">50 - 75%",
+                                       Livestock == "4" ~ ">75 - 100%",
+                                       Livestock == "0" ~ "0%",
+                                       TRUE ~ Livestock))
   
   return(livestockobs)
 }
