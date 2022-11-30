@@ -1,9 +1,36 @@
 context("Disturbance")
 LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+
+
+test_that("qcDisturbanceFormatted works as expected", {
+  
+  actual_rows <- nrow(qcDisturbanceFormatted())
+  expect_equal(actual_rows, 872)
+  
+  actual_cols <- colnames(qcDisturbanceFormatted())
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Roads", "HumanUse", "PlantManagement", "HikingTrails", "Livestock", "OtherAnthropogenic", "Fire", "Flooding", "Wildlife", "OtherNatural", "Overall", "FlowModificationStatus", "VisitType", "Notes", "DPL")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcDisturbanceFormatted()
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_values <- qcDisturbanceFormatted() %>% dplyr::filter(SiteCode == "JOTR_P_BUZ0084", FieldSeason == "2017") %>% dplyr::select(SiteCode, FieldSeason, Roads, HumanUse, Flooding, Overall, FlowModificationStatus)
+  expected_values <- tibble::as_tibble_row(c(SiteCode = "JOTR_P_BUZ0084",
+                                             FieldSeason = "2017",
+                                             Roads = "0",
+                                             HumanUse = "NoData",
+                                             Flooding = "1",
+                                             Overall = "1",
+                                             FlowModificationStatus = "None"))
+  expect_equal(actual_values, expected_values)
+  
+})
+
+
 test_that("qcOverallDisturbance returns correct number of rows and columns", {
   
   actual_rows <- nrow(qcOverallDisturbance())
-  expect_equal(actual_rows, 1)
+  expect_equal(actual_rows, 5)
   
   actual_cols <- colnames(qcOverallDisturbance())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Roads", "HumanUse", "PlantManagement", "HikingTrails", "Livestock", "OtherAnthropogenic", "Fire", "Flooding", "Wildlife", "OtherNatural", "Overall")

@@ -1,41 +1,7 @@
 context("Completeness")
-
-# dummy.completeness <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA"),
-#                                      Subunit = c("DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "LAKE Unknown", "LAKE Unknown", "LAKE Unknown", "PARA Unknown"),
-#                                      SiteCode = c("DEVA_P_SPR001", "DEVA_P_SPR002", "DEVA_P_SPR003", "DEVA_P_SPR003", "LAKE_P_SPR001", "LAKE_P_SPR002", "LAKE_P_SPR003", "PARA_P_SPR001"),
-#                                      SiteName = c("DEVA 1", "DEVA 2", "DEVA 3", "DEVA 3", "LAKE 1", "LAKE 2", "LAKE 3", "PARA 1"),
-#                                      VisitDate = c("2018-12-03", "2019-01-21", "2018-12-04", "2019-01-21", "2019-11-20", "2019-11-20", "2019-12-05", "2019-04-17"),
-#                                      FieldSeason = c("2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019"),
-#                                      SampleFrame = c("Annual", "Over", "3Yr", "3Yr", "Rejected", "Annual", "Annual", "3Yr"),
-#                                      VisitType = c("Primary", "Primary", "Primary", "Replicate", "Primary", "Primary", "Primary", "Primary"),
-#                                      MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Not sampled - No spring found", "Sampled", "Sampled", "Sampled"),
-#                                      SpringType = c("Rheocrene", "Limnocrene", "Rheocrene", "Rheocrene", NA, "Rheocrene", "Rheocrene", "Hillslope"))
-# 
-# dir <- "temp-test-csv"
-# dir.create(dir)
-# readr::write_csv(dummy.completeness, file.path(dir, "Visit.csv"))
-# 
-# test_that("QcCompleteness works as expected", {
-#   expected <- tibble::tibble(Park = c("DEVA", "DEVA", "LAKE", "PARA"),
-#                              FieldSeason = c("2019", "2019", "2020", "2019"),
-#                              SampleFrame = c("Annual", "3Yr", "Annual", "3Yr"),
-#                              MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled"),
-#                              Count = as.integer(c(1, 1, 2, 1)),
-#                              Percent = c(1/20*100, 1/60*100, 2/10*100, 1/35*100))
-#   expected$Percent <- round(expected$Percent, 3)
-#   result <- QcCompleteness(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcCompleteness(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcCompleteness(path.to.data = dir, data.source = "local", field.season = "2019")
-#   result_CAMO <- QcCompleteness(path.to.data = dir, data.source = "local", park = "CAMO")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-#   expect_equal(nrow(result_CAMO), 0)
-# })
-
-# Remove temporary CSV files
-# unlink(dir, recursive = TRUE)
 LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+
+
 test_that("qcCompleteness works as expected", {
   
   actual_rows <- nrow(qcCompleteness())
@@ -86,14 +52,49 @@ test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns"
 })
 
 
-test_that("qcVisitDate returns correct number of rows and columns", {
+test_that("qcVisitsBySite works as expected", {
   
-  actual_rows <- nrow(qcVisitDate())
+  actual_rows <- nrow(qcVisitsBySite())
   expect_equal(actual_rows, 246)
   
-  actual_cols <- colnames(qcVisitDate())
+  actual_cols <- colnames(qcVisitsBySite())
   expected_cols <- c("Park", "SiteCode", "SiteName", "SampleFrame", "VisitDates")
   expect_equal(actual_cols, expected_cols)
+  
+  actual_character <- qcVisitsBySite()
+  expect_equal(class(actual_character$VisitDates), "character")
+  
+  actual_values <- qcVisitsBySite() %>% dplyr::filter(SiteCode == "LAKE_P_HOR0042") %>% dplyr::select(VisitDates)
+  expected_values <- tibble::as_tibble(as.character("Oct 25 (2021), Oct 27 (2020), Nov 1 (2017), Nov 4 (2019), Nov 27 (2018), Apr 5 (2016)")) %>% dplyr::rename(VisitDates = value)
+  expect_equal(actual_values, expected_values)
+  
+  
+})
+
+
+test_that("qcVisitsByDate works as expected", {
+  
+  actual_rows <- nrow(qcVisitsByDate())
+  expect_equal(actual_rows, 148)
+  
+  actual_cols <- colnames(qcVisitsByDate())
+  expected_cols <- c("Date", "WY2021", "WY2020", "WY2019", "WY2018", "WY2017", "WY2016")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_character <- qcVisitsByDate()
+  expect_equal(class(actual_character$Date), "character")
+  expect_equal(class(actual_character$WY2021), "character")
+  expect_equal(class(actual_character$WY2019), "character")
+  
+  actual_values <- qcVisitsByDate() %>% dplyr::filter(Date == "Nov 1")
+  expected_values <- tibble::as_tibble_row(c(Date = "Nov 1",
+                                             WY2021 = "DEVA_P_JAC0189",
+                                             WY2020 = NA_character_,
+                                             WY2019 = NA_character_,
+                                             WY2018 = NA_character_,
+                                             WY2017 = "LAKE_P_HOR0042, LAKE_P_SUG0011",
+                                             WY2016 = NA_character_))
+  expect_equal(actual_values, expected_values)
   
 })
 
