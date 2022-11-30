@@ -1,4 +1,4 @@
-#' Intermediate step: reformat disturbance categories into numerical values that can be compared
+#' Intermediate step used to reformat disturbance categories into numerical values that can be compared.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -22,12 +22,15 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
                        "Wildlife",
                        "OtherNatural",
                        "Overall"),
-      funs(case_when(. == ">0 - 25%" ~ "1",
-                                     . == ">25 - 50%" ~ "2",
-                                     . == ">50 - 75%" ~ "3",
-                                     . == ">75 - 100%" ~ "4",
-                                     . == "0" ~ "0",
-                                     TRUE ~ "NoData")))
+                      list(~dplyr::case_when(. == ">0 - 25%" ~ "1",
+                                             . == ">25 - 50%" ~ "2",
+                                             . == ">50 - 75%" ~ "3",
+                                             . == ">75 - 100%" ~ "4",
+                                             . == "0" ~ "0",
+                                             TRUE ~ "NoData"))) %>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
+                                                            FlowModificationStatus == "No Data" ~ "NoData",
+                                                            TRUE ~ FlowModificationStatus))
 
   return(formatted)
 }
@@ -53,15 +56,15 @@ qcOverallDisturbance <- function(park, site, field.season) {
   
   overall <- disturbance %>%
     dplyr::filter((Overall < Roads & Roads != "NoData") |
-                    (Overall < HumanUse & HumanUse != "NoData") |
-                    (Overall < PlantManagement & PlantManagement != "NoData") |
-                    (Overall < HikingTrails & HikingTrails != "NoData") |
-                    (Overall < Livestock & Livestock != "NoData") |
-                    (Overall < OtherAnthropogenic & OtherAnthropogenic != "NoData") |
-                    (Overall < Fire & Fire != "NoData") |
-                    (Overall < Flooding & Flooding != "NoData") |
-                    (Overall < Wildlife & Wildlife != "NoData") |
-                    (Overall < OtherNatural & OtherNatural != "NoData")) %>%
+                  (Overall < HumanUse & HumanUse != "NoData") |
+                  (Overall < PlantManagement & PlantManagement != "NoData") |
+                  (Overall < HikingTrails & HikingTrails != "NoData") |
+                  (Overall < Livestock & Livestock != "NoData") |
+                  (Overall < OtherAnthropogenic & OtherAnthropogenic != "NoData") |
+                  (Overall < Fire & Fire != "NoData") |
+                  (Overall < Flooding & Flooding != "NoData") |
+                  (Overall < Wildlife & Wildlife != "NoData") |
+                  (Overall < OtherNatural & OtherNatural != "NoData")) %>%
     dplyr::select(Park:Overall) %>%
     dplyr::arrange(FieldSeason, SiteCode)
   
@@ -114,6 +117,11 @@ qcFlowModNoHuman <- function(park, site, field.season) {
 FlowModStatus <- function(park, site, field.season) {
   flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
   
+  flowmod %<>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
+                                                            is.na(FlowModificationStatus) ~ "NoData",
+                                                            TRUE ~ FlowModificationStatus))
+  
   status <- flowmod %>%
     dplyr::filter(stringr::str_detect(FlowModificationStatus, "Yes")) %>%
     dplyr::select(-c("VisitType", "DPL")) %>%
@@ -146,6 +154,11 @@ FlowModStatus <- function(park, site, field.season) {
 qcFlowModDiscrepancies <- function(park, site, field.season) {
   flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification") 
   
+  flowmod %<>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
+                                                            is.na(FlowModificationStatus) ~ "NoData",
+                                                            TRUE ~ FlowModificationStatus))
+  
   discrepancies <- flowmod %>%
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
     unique() %>%
@@ -153,11 +166,44 @@ qcFlowModDiscrepancies <- function(park, site, field.season) {
     dplyr::mutate(FieldSeasons = paste0(FieldSeason, collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::select(-c("FieldSeason")) %>%
-    dplyr::filter(FlowModificationStatus != "No Data") %>%
+    dplyr::filter(FlowModificationStatus != "NoData") %>%
     unique() %>%
-    dplyr::filter(duplicated(SiteCode) | duplicated(SiteCode, fromLast = TRUE))
+    dplyr::filter(duplicated(SiteCode) | duplicated(SiteCode, fromLast = TRUE)) %>%
+    dplyr::arrange(SiteCode)
   
 return(discrepancies)
+}
+
+
+#' List of springs where no flow modification was observed but a modification type was selected or where flow modification was observed but no modification type was selected
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcFlowModTypes()
+#'     qcFlowModTypes(site = "DEVA_P_WAU0880")
+#'     qcFlowModTypes(park = c("MOJA", "LAKE"))
+#' }
+qcFlowModTypes <- function(park, site, field.season) {
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
+  
+  flowmod %<>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
+                                                            is.na(FlowModificationStatus) ~ "NoData",
+                                                            TRUE ~ FlowModificationStatus))
+  
+  nomod <- flowmod %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowModificationStatus, ModificationType) %>%
+    dplyr::filter((FlowModificationStatus %in% c("NoData", "None") & !is.na(ModificationType)) | (stringr::str_detect(FlowModificationStatus, "Yes") & is.na(ModificationType))) %>%
+    dplyr::arrange(FieldSeason, SiteCode)
+  
+  return(nomod)
 }
 
 
@@ -190,12 +236,14 @@ FlowModCount <- function(park, site, field.season) {
     dplyr::filter(VisitType %in% c("Primary", NA)) %>%
     dplyr::select(-c(VisitDate, FieldSeason, ModificationType, VisitType, DPL)) %>%
     unique() %>%
-    dplyr::mutate(FlowModificationStatus = ifelse(is.na(FlowModificationStatus), "No Data", FlowModificationStatus)) %>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "No data",
+                                                            is.na(FlowModificationStatus) ~ "No data",
+                                                            TRUE ~ FlowModificationStatus)) %>%
     dplyr::mutate(Rank = ifelse(FlowModificationStatus == "Yes - One or more active", 4,
                               ifelse(FlowModificationStatus == "Yes - All inactive", 3,
                                     ifelse(FlowModificationStatus == "Yes - Unknown if active", 2,
                                           ifelse(FlowModificationStatus == "None", 1, 
-                                              ifelse(FlowModificationStatus == "No Data", 0, NA)))))) %>%
+                                              ifelse(FlowModificationStatus == "No data", 0, NA)))))) %>%
     dplyr::group_by(Park, SiteCode, SiteName) %>%
     dplyr::slice(which.max(Rank)) %>%
     dplyr::ungroup() %>%
@@ -210,7 +258,7 @@ FlowModCount <- function(park, site, field.season) {
   total <- aggregate(Count ~ Park, count, sum) %>%
     dplyr::rename(Total = Count)
     
- percent <- count %>%
+  percent <- count %>%
     dplyr::left_join(total, by = "Park") %>%
     dplyr::mutate(Percent = round((Count / Total) * 100, 1)) %>%
     dplyr::select(-Total)
@@ -236,14 +284,14 @@ return(percent)
 FlowModPlot <- function(park, site, field.season) {
   percent <- FlowModCount(park = park, site = site, field.season = field.season)
 
-
   percent %<>% dplyr::filter(Park != "CAMO")
   
-  plot <- ggplot2::ggplot(percent, aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
+  plot <- ggplot2::ggplot(percent, ggplot2::aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
     geom_bar(stat = "identity") +
     scale_fill_manual(values = c("No data" = "gray",
                                  "None" = "seagreen",
                                  "Yes - All inactive" = "gold",
+                                 "Yes - Unknown if active" = "darkorange1",
                                  "Yes - One or more active" = "firebrick"),
                       name = "Flow Modification")
     
@@ -323,7 +371,13 @@ HumanUseObservations <- function(park, site, field.season) {
   humanobs <- disturbance %>%
     dplyr::filter(HumanUse > 0,
                   HumanUse != "NoData") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
+    dplyr::mutate(HumanUse = case_when(HumanUse == "1" ~ ">0 - 25%",
+                                       HumanUse == "2" ~ ">25 - 50%",
+                                       HumanUse == "3" ~ ">50 - 75%",
+                                       HumanUse == "4" ~ ">75 - 100%",
+                                       HumanUse == "0" ~ "0%",
+                                       TRUE ~ HumanUse))
   
   return(humanobs)
 }
@@ -485,7 +539,13 @@ LivestockObservations <- function(park, site, field.season) {
   livestockobs <- disturbance %>%
     dplyr::filter(Livestock > 0,
                   Livestock != "NoData") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
+    dplyr::mutate(Livestock = case_when(Livestock == "1" ~ ">0 - 25%",
+                                       Livestock == "2" ~ ">25 - 50%",
+                                       Livestock == "3" ~ ">50 - 75%",
+                                       Livestock == "4" ~ ">75 - 100%",
+                                       Livestock == "0" ~ "0%",
+                                       TRUE ~ Livestock))
   
   return(livestockobs)
 }
