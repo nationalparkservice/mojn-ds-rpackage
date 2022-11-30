@@ -227,7 +227,7 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- Disturbance -----
   data$Disturbance <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, Notes = DisturbanceNotes, DPL)
   
   # ----- DisturbanceFlowModification -----
   flow_mod <- agol_layers$disturbance_flow_mod %>%
@@ -350,7 +350,8 @@ WrangleAGOLData <- function(agol_layers) {
                   GRTSDraw,
                   GRTSOrder, 
                   SiteStatus,
-                  SampleFrame, 
+                  SampleFrame,
+                  Panel = PanelGroup,
                   SiteProtectedStatus,
                   Lat_WGS84,
                   Lon_WGS84,
