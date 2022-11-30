@@ -22,12 +22,12 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
                        "Wildlife",
                        "OtherNatural",
                        "Overall"),
-                      dplyr::funs(case_when(. == ">0 - 25%" ~ "1",
-                                            . == ">25 - 50%" ~ "2",
-                                            . == ">50 - 75%" ~ "3",
-                                            . == ">75 - 100%" ~ "4",
-                                            . == "0" ~ "0",
-                                            TRUE ~ "NoData")))
+                      list(~case_when(. == ">0 - 25%" ~ "1",
+                                      . == ">25 - 50%" ~ "2",
+                                      . == ">50 - 75%" ~ "3",
+                                      . == ">75 - 100%" ~ "4",
+                                      . == "0" ~ "0",
+                                      TRUE ~ "NoData")))
 
   return(formatted)
 }

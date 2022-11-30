@@ -2,7 +2,7 @@
 % Please edit documentation in R/disturbance-qc.R
 \name{qcDisturbanceFormatted}
 \alias{qcDisturbanceFormatted}
-\title{Reformat disturbance categories into numerical values that can be compared. Intermediate step.}
+\title{Intermediate step: reformat disturbance categories into numerical values that can be compared}
 \usage{
 qcDisturbanceFormatted(park, site, field.season)
 }
@@ -17,5 +17,5 @@ qcDisturbanceFormatted(park, site, field.season)
 Tibble
 }
 \description{
-Reformat disturbance categories into numerical values that can be compared. Intermediate step.
+Intermediate step: reformat disturbance categories into numerical values that can be compared
 }
