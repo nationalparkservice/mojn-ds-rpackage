@@ -21,7 +21,6 @@ Return list of visits with vegetation observed, no lifeform present
 }
 \examples{
 \dontrun{
-    
     qcVegPresentNoLifeforms()
     qcVegPresentNoLifeforms(site = "LAKE_P_GET0066", field.season = "2019")
     qcVegPresentNoLifeforms(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

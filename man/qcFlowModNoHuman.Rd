@@ -21,10 +21,8 @@ Flow modification exists, but no Human Use disturbance recorded
 }
 \examples{
 \dontrun{
-    
     qcFlowModNoHuman()
     qcFlowModNoHuman(site = "LAKE_P_WIL0061", field.season = "2016")
     qcFlowModNoHuman(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

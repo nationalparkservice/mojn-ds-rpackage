@@ -19,7 +19,6 @@ Bar plot showing the most common life form categories at springs by park
 }
 \examples{
 \dontrun{
-    
     MostCommonLifeformsPlot()
     MostCommonLifeformsPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 }

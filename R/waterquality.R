@@ -9,7 +9,6 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqMedian()
 #'     WqMedian(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMedian(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
@@ -83,13 +82,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcWqSanity()
 #'     qcWqSanity(site = "LAKE_P_HOT0065", field.season = "2019")
 #'     qcWqSanity(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-  qcWqSanity <- function(park, site, field.season) {
-    wq.sanity.predata <- WqMedian(park, site, field.season)
+qcWqSanity <- function(park, site, field.season) {
+  wq.sanity.predata <- WqMedian(park = park, site = site, field.season = field.season)
 
   temp.sanity <- wq.sanity.predata %>%
     dplyr::filter(TemperatureMedian_C > 30) %>%
@@ -150,13 +148,12 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcWqFlags()
 #'     qcWqFlags(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcWqFlags(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcWqFlags <- function(park, site, field.season) {
-  wq.flags.predata <- WqMedian(park, site, field.season)
+  wq.flags.predata <- WqMedian(park = park, site = site, field.season = field.season)
 
   temp.flags <- wq.flags.predata %>%
     dplyr::filter(TemperatureFlag %in% c("I", "W", "C")) %>%
@@ -212,7 +209,7 @@ qcWqFlags <- function(park, site, field.season) {
 #'     qcWqLong(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcWqLong <- function(park, site, field.season) {
-  wq.cleaned.data <- WqMedian(park, site, field.season)
+  wq.cleaned.data <- WqMedian(park = park, site = site, field.season = field.season)
 
   temp.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(TemperatureFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
@@ -255,7 +252,6 @@ qcWqLong <- function(park, site, field.season) {
                   !is.na(Value))
 
   return(wq.cleaned)
-  
 }
 
 
@@ -271,12 +267,11 @@ qcWqLong <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqStats()
 #'     WqStats(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 WqStats <- function(park, site, field.season) {
-  wq.stats.predata <- qcWqLong(park, site, field.season)
+  wq.stats.predata <- qcWqLong(park = park, site = site, field.season = field.season)
   wq.stats <- wq.stats.predata %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarize(stats = list(quantile(Value, type = 6, na.rm = TRUE)),
@@ -311,12 +306,11 @@ WqStats <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqPlotTemp()
 #'     WqPlotTemp(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
-    wq.plot <- qcWqLong(park, site, field.season) %>%
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "Temperature") %>%
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
@@ -360,14 +354,15 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
 #'     WqPlotSpCond()
 #'     WqPlotSpCond(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-WqPlotSpCond <- function(park, site, field.season,include.title = FALSE) {
-    wq.plot <- qcWqLong(park, site, field.season) %>%
+WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "SpCond") %>%
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
     GetSampleSizes(Park, FieldSeason) #
+  
   wq.plot.spcond <- FormatPlot(
     data = wq.plot,
     x.col = FieldSeason,
@@ -384,7 +379,6 @@ WqPlotSpCond <- function(park, site, field.season,include.title = FALSE) {
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.spcond)
-  
 }
 
 
@@ -398,8 +392,8 @@ WqPlotSpCond <- function(park, site, field.season,include.title = FALSE) {
 #' @return Box plots of specific conductance data for each park and field season.
 #' @export
 #'
-WqPlotSpCondmS <- function(park, site, field.season,include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
+WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
@@ -435,12 +429,11 @@ WqPlotSpCondmS <- function(park, site, field.season,include.title = FALSE) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqPlotPH()
 #'     WqPlotPH(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-WqPlotPH <- function(park, site, field.season,include.title = FALSE) {
-    wq.plot <- qcWqLong(park, site, field.season) %>%
+WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "pH") %>%
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
@@ -476,8 +469,8 @@ WqPlotPH <- function(park, site, field.season,include.title = FALSE) {
 #' @return Box plots of dissolved oxygen (percent) data for each park and field season.
 #' @export
 #'
-WqPlotDOPct <- function(park, site, field.season,include.title = FALSE) {
-   wq.plot <- qcWqLong(park, site, field.season) %>%
+WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO" & Units == "%" & Park != "CAMO" & !is.na(Median)) %>%
     GetSampleSizes(Park, FieldSeason)
   
@@ -516,8 +509,8 @@ WqPlotDOPct <- function(park, site, field.season,include.title = FALSE) {
 #'     WqPlotDOmgL()
 #'     WqPlotDOmgL(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-WqPlotDOmgL <- function(park, site, field.season,include.title = FALSE) {
-    wq.plot <- qcWqLong(park, site, field.season) %>%
+WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO",
                   Units == "mg/L") %>%
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
@@ -541,7 +534,6 @@ WqPlotDOmgL <- function(park, site, field.season,include.title = FALSE) {
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
   return(wq.plot.do.mgl)
-  
 }
 
 
@@ -556,12 +548,11 @@ WqPlotDOmgL <- function(park, site, field.season,include.title = FALSE) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqPlotDOPct()
 #'     WqPlotDOPct(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
+  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO" & Units == "%") %>%
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
                                     Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
@@ -599,17 +590,16 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqPlotGrid()
 #'     WqPlotGrid(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #'     WqPlotGrid(path.to.data = "path/to/data" = "local")
 #'     CloseDatabaseection()
 #' }
   WqPlotGrid <- function(park, site, field.season) {
-    wq.plot.temp <- WqPlotTemp(park, site, field.season)
-    wq.plot.ph <- WqPlotPH( park, site, field.season)
-    wq.plot.spcond.ms <- WqPlotSpCondmS(park, site, field.season)
-    wq.plot.do.mgl <- WqPlotDOmgL(park, site, field.season)
+    wq.plot.temp <- WqPlotTemp(park = park, site = site, field.season = field.season)
+    wq.plot.ph <- WqPlotPH(park = park, site = site, field.season = field.season)
+    wq.plot.spcond.ms <- WqPlotSpCondmS(park = park, site = site, field.season = field.season)
+    wq.plot.do.mgl <- WqPlotDOmgL(park = park, site = site, field.season = field.season)
   
   wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond, wq.plot.ph, wq.plot.do.mgl, ncol = 1)
 
@@ -627,14 +617,12 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcLocalDOCheck()
 #'     qcLocalDOCheck(site = "PARA_P_COY0069")
 #'     qcLocalDOCheck(park = c("LAKE", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 qcLocalDOCheck <- function(park, site, field.season) {
-  
-  do <- ReadAndFilterData(park, site, field.season, data.name = "CalibrationDO")
+  do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
   
   do.check <- do %>%
     dplyr::filter(99.5 > PostCalibrationReading_percent | 100.5 < PostCalibrationReading_percent) %>%
@@ -648,7 +636,6 @@ qcLocalDOCheck <- function(park, site, field.season) {
   
   
   return(do.check)
-  
 }
 
 
@@ -663,15 +650,12 @@ qcLocalDOCheck <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcSpCondStandardCheck()
 #'     qcSpCondStandardCheck(site = "LAKE_P_GET0066")
 #'     qcSpCondStandardCheck(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
 #' }
 qcSpCondStandardCheck <- function(park, site, field.season) {
-  
-  sc <- ReadAndFilterData(park, site, field.season,  data.name = "CalibrationSpCond")
-  
+  sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
   med <- WqMedian(park, site, field.season)
   
   sc.sel <- sc %>%
@@ -691,8 +675,8 @@ qcSpCondStandardCheck <- function(park, site, field.season) {
     dplyr::arrange(SiteCode, FieldSeason)
   
   return(sc.joined)
-  
 }
+
 
 #' Check that instruments were calibrated within 1 day of site visit
 #'
@@ -705,15 +689,14 @@ qcSpCondStandardCheck <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcCalibrationTimes()
 #'     qcCalibrationTimes(site = "LAKE_P_GET0066")
 #'     qcCalibrationTimes(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
 #' }
 qcCalibrationTimes <- function(park, site, field.season = "database") {
-  ph <- ReadAndFilterData(park, site, field.season, data.name = "CalibrationpH")
-  sc <- ReadAndFilterData(park, site, field.season, data.name = "CalibrationSpCond")
-  do <- ReadAndFilterData(park, site, field.season, data.name = "CalibrationDO")
+  ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationpH")
+  sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
+  do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
 
   ph_data <- ph %>%
     dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, pHInstrument) %>%
@@ -769,14 +752,14 @@ qcCalibrationTimes <- function(park, site, field.season = "database") {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqMapTemp()
 #'     WqMapTemp(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapTemp(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 WqMapTemp <- function(park, site, field.season) {
-  data <- qcWqLong(park, site, field.season)
+  data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
@@ -874,8 +857,9 @@ WqMapTemp <- function(park, site, field.season) {
                                           wqmaptemp))
   
   return(wqdatamaptemp)
-  
 }
+
+
 #' Map of specific conductance at springs with surface water
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -887,13 +871,12 @@ WqMapTemp <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqMapSpCond()
 #'     WqMapSpCond(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapSpCond(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 WqMapSpCond <- function(park, site, field.season) {
-  data <- qcWqLong(park, site, field.season)
+  data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -997,7 +980,6 @@ WqMapSpCond <- function(park, site, field.season) {
 }
 
 
-
 #' Map of pH at springs with surface water
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -1009,14 +991,13 @@ WqMapSpCond <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqMapPH()
 #'     WqMapPH(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapPH(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 WqMapPH <- function(park, site, field.season = "database") {
-  data <- qcWqLong(park, site, field.season)
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
+  data <- qcWqLong(park = park, site = site, field.season = field.season)
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1116,7 +1097,6 @@ WqMapPH <- function(park, site, field.season = "database") {
                                             wqmapph))
   
   return(wqdatamapph)
-  
 }
 
 
@@ -1131,14 +1111,13 @@ WqMapPH <- function(park, site, field.season = "database") {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     WqMapDO()
 #'     WqMapDO(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapDO(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 WqMapDO <- function(park, site, field.season = "database") {
-  data <- qcWqLong(park, site, field.season)
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
+  data <- qcWqLong(park = park, site = site, field.season = field.season)
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1237,7 +1216,6 @@ WqMapDO <- function(park, site, field.season = "database") {
                                         wqmapdo))
   
   return(wqdatamapdo)
-  
 }
 
 

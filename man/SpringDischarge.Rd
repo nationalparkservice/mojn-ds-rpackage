@@ -21,10 +21,8 @@ Join flow condition, estimated discharge, and volumetric discharge data into one
 }
 \examples{
 \dontrun{
-    
     SpringDischarge()
     SpringDischarge(site = "LAKE_P_GRA0058", field.season = "2019")
     SpringDischarge(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

@@ -21,10 +21,8 @@ List of springs that have been given different flow modification status in diffe
 }
 \examples{
 \dontrun{
-    
     qcFlowModDiscrepancies()
     qcFlowModDiscrepancies(site = "DEVA_P_WAU0880")
     qcFlowModDiscrepancies(park = c("DEVA", "JOTR"))
-    
 }
 }

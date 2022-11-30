@@ -21,10 +21,8 @@ Volumetric method was used, but there is no container volume, percent of flow, o
 }
 \examples{
 \dontrun{
-    
     qcVolumetricMissing()
     qcVolumetricMissing(site = "LAKE_P_GRA0058", field.season = "2019")
     qcVolumetricMissing(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

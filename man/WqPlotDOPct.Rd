@@ -29,7 +29,6 @@ Generate box plots for percent dissolved oxygen for each park and year. Includes
 }
 \examples{
 \dontrun{
-    
     WqPlotDOPct()
     WqPlotDOPct(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 }

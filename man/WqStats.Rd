@@ -21,7 +21,6 @@ Calculate quartile values for each water quality parameter for each park and yea
 }
 \examples{
 \dontrun{
-    
     WqStats()
     WqStats(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 }

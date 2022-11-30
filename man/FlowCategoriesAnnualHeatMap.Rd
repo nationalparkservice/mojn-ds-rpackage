@@ -21,10 +21,8 @@ Summary heat map of flow categories for annual springs
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesAnnualHeatMap()
     FlowCategoriesAnnualHeatMap(site = "LAKE_P_GRA0058", field.season = "2019")
     FlowCategoriesAnnualHeatMap(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

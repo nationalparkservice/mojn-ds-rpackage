@@ -21,9 +21,7 @@ Bar plot with percent of springs with human use
 }
 \examples{
 \dontrun{
-    
     HumanUsePlot()
     HumanUsePlot(park = c("DEVA", "JOTR"))
-    
 }
 }

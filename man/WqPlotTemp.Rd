@@ -23,7 +23,6 @@ Generate box plots for water temperature for each park and 3-year cycle. Include
 }
 \examples{
 \dontrun{
-    
     WqPlotTemp()
     WqPlotTemp(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 }

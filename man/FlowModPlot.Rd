@@ -21,9 +21,7 @@ Bar plot with percent of springs with active and historic flow modification
 }
 \examples{
 \dontrun{
-    
     FlowModPlot()
     FlowModPlot(park = c("DEVA", "JOTR"))
-    
 }
 }

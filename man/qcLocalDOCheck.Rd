@@ -21,7 +21,6 @@ Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen p
 }
 \examples{
 \dontrun{
-    
     qcLocalDOCheck()
     qcLocalDOCheck(site = "PARA_P_COY0069")
     qcLocalDOCheck(park = c("LAKE", "PARA"), field.season = c("2017", "2019", "2020"))

@@ -21,10 +21,8 @@ Overall disturbance is less than any other disturbance category
 }
 \examples{
 \dontrun{
-    
     qcOverallDisturbance()
     qcOverallDisturbance(site = "LAKE_P_GET0066", field.season = "2019")
     qcOverallDisturbance(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
-    
 }
 }

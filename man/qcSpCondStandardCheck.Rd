@@ -21,7 +21,6 @@ Check specific conductance calibrations for the use of low conductivity standard
 }
 \examples{
 \dontrun{
-    
     qcSpCondStandardCheck()
     qcSpCondStandardCheck(site = "LAKE_P_GET0066")
     qcSpCondStandardCheck(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))

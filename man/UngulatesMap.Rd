@@ -21,7 +21,6 @@ Map of springs with evidence of ungulate (sheep and deer) activity
 }
 \examples{
 \dontrun{
-    
     UngulatesMap()
     UngulatesMap(site = "LAKE_P_COR0023")
     UngulatesMap(park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))

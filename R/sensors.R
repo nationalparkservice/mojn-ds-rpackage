@@ -10,16 +10,16 @@
 #' 
 #' @examples
 #' \dontrun{
-#'     
 #'     qcSensorSummary()
 #'     qcSensorSummary(park = "DEVA", deployment.field.season = c("2018", "2020", "2021"))
-#'     
 #' }
-  qcSensorSummary <- function(park, deployment.field.season) {
-    attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
-    deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
+qcSensorSummary <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
+  
   # Number of sensors that have been deployed but no retrieval (successful or unsuccessful) has been attempted
   deployed.only
+  
   no.attempt <- deployed.only %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::select(Park, DeploymentFieldSeason = FieldSeason) %>%
@@ -83,14 +83,13 @@
 #' 
 #' @examples 
 #' \dontrun{
-#'     
 #'     qcSensorHeatmap()
 #'     qcSensorHeatmap(park = c("JOTR", "MOJA"))
-#'     
 #' }
-  qcSensorHeatmap <- function(park) {
-    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
-    visit <- ReadAndFilterData(park = park, data.name = "Visit")
+qcSensorHeatmap <- function(park) {
+  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+  visit <- ReadAndFilterData(park = park, data.name = "Visit")
+  
   sampleframe <- visit %>%
     dplyr::select(SiteCode, SampleFrame)
   
@@ -132,17 +131,14 @@
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcSensorsNotDeployed()
 #'     qcSensorsNotDeployed(site = "MOJA_P_UNN0014")
 #'     qcSensorsNotDeployed(park = c("DEVA", "JOTR"), deployment.field.season = c("2017", "2018", "2021"))
-#'     
 #' }
 qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
-  
-  visit <- ReadAndFilterData(site, field.season = deployment.field.season)
-  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season)
-  deployed <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
+  attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
   
   annual_springs <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
@@ -186,7 +182,6 @@ qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
     dplyr::relocate(VisitDate, .after = FieldSeason)
   
   return(notdeployed)
-  
 }
 
 
@@ -201,16 +196,14 @@ qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #'     
 #' }
 qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
-  
-  visit <- ReadAndFilterData(park, site, field.season = deployment.field.season)
-  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season)
+  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
+  attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   annual_springs <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
@@ -237,7 +230,6 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
                   VisitDate = RetrievalDate)
   
   return(notrecovered)
-  
 }
 
 
@@ -251,14 +243,13 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  qcSensorProblems <- function(park, deployment.field.season) {
-    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+qcSensorProblems <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
     dplyr::relocate(DownloadResult, .after = SensorRetrieved) %>%
@@ -268,7 +259,6 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
     dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(problems)
-  
 }
 
 
@@ -282,14 +272,13 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-    qcSensorDownloads <- function(park, deployment.field.season) {
-      attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+qcSensorDownloads <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
     dplyr::select(-SensorProblem, -RetrievalVisitType, -DeploymentVisitType) %>%
@@ -298,7 +287,6 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
     dplyr::relocate(SiteName, .after = "SiteCode")
   
   return(nodata)
-   
 }
 
 
@@ -311,23 +299,20 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-#' 
 qcMissingSensors <- function(park, deployment.field.season) {
-  deployed <- ReadAndFilterData(park = park, data.name = "SensorsCurrentlyDeployed")
-  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  
   missing <- attempts %>%
     dplyr::filter((SensorRetrieved == "Y" & SensorProblem == "Missing") | (SensorRetrieved == "N" & SensorProblem != "Missing")) %>%
     dplyr::arrange(SiteCode, DeploymentFieldSeason) %>%
     dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate, RetrievalFieldSeason, RetrievalDate, SensorRetrieved, DownloadResult, SensorProblem, SensorNumber, SerialNumber, Notes)
   
   return(missing)
-   
 }
 
 
@@ -341,14 +326,12 @@ qcMissingSensors <- function(park, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
-  qcSensorDates <- function(park, deployment.field.season) {
-    attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+qcSensorDates <- function(park, deployment.field.season) {
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
 
   error <- attempts %>%
     dplyr::filter(DeploymentDate == RetrievalDate) %>%
@@ -359,6 +342,7 @@ qcMissingSensors <- function(park, deployment.field.season) {
   return(error)
   
 }
+
 
 #' Sensors with unknown ID or serial number
 #'
@@ -371,14 +355,12 @@ qcMissingSensors <- function(park, deployment.field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     
 #'     qcRepeatVisits()
 #'     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-#'     
 #' }
 qcUnknownSensorIDs <- function(park, site, deployment.field.season) {
-  sensors <- ReadAndFilterData(park, site, field.season = deployment.field.season) %>%
+  sensors <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsAllDeployments") %>%
     dplyr::relocate(Park, .before = "SiteCode") %>%
     dplyr::relocate(SensorNumber, .after = "FieldSeason") %>%
     dplyr::relocate(SerialNumber, .after = "SensorNumber") %>%

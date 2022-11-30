@@ -21,10 +21,8 @@ Spring is not dry, estimated discharge = 0 or volumetric discharge = 0
 }
 \examples{
 \dontrun{
-    
     qcSpringNotDryNoDischarge()
     qcSpringNotDryNoDischarge(site = "LAKE_P_GRA0058", field.season = "2019")
     qcSpringNotDryNoDischarge(park = c("DEVA", "JOTR"), field.season = c("2017", "2019", "2020"))
-    
 }
 }

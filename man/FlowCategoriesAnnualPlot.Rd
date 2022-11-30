@@ -21,9 +21,7 @@ Summary bar plot of flow categories for annual springs
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesAnnualPlot()
     FlowCategoriesAnnualPlot(park = c("DEVA", "MOJA"), field.season = c("2016", "2018", "2021"))
-    
 }
 }

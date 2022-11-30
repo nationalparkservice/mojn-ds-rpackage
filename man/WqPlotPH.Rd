@@ -23,7 +23,6 @@ Generate box plots for pH for each park and year. Includes annual and 3Yr spring
 }
 \examples{
 \dontrun{
-    
     WqPlotPH()
     WqPlotPH(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 }

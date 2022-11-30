@@ -23,10 +23,8 @@ Map of spring flow categories for latest field season at each park
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesMap(interactive = "no")
     FlowCategoriesMap(interactive = "yes", site = "LAKE_P_GRA0058", field.season = "2019")
     FlowCategoriesMap(interactive = "yes", park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

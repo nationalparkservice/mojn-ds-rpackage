@@ -19,10 +19,8 @@ Sensors were retrieved with problems or caveats
 }
 \examples{
 \dontrun{
-    
     qcRepeatVisits()
     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

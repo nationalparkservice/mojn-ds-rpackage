@@ -21,7 +21,6 @@ Map of water temperature at springs with surface water
 }
 \examples{
 \dontrun{
-    
     WqMapTemp()
     WqMapTemp(site = "LAKE_P_GET0066", field.season = "2019")
     WqMapTemp(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

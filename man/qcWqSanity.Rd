@@ -21,7 +21,6 @@ Perform sanity check and compile list of potentially incorrect or outlier water 
 }
 \examples{
 \dontrun{
-    
     qcWqSanity()
     qcWqSanity(site = "LAKE_P_HOT0065", field.season = "2019")
     qcWqSanity(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))

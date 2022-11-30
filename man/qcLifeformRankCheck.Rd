@@ -21,7 +21,6 @@ Return list of visits where multiple lifeforms have the same rank, and rank gaps
 }
 \examples{
 \dontrun{
-    
     qcLifeformRankCheck()
     qcLifeformRankCheck(site = "JOTR_P_NOR0083", field.season = "2021")
     qcLifeformRankCheck(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))

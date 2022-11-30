@@ -19,9 +19,7 @@ Summarize sensor retrieval and download attempts by park and season
 }
 \examples{
 \dontrun{
-    
     qcSensorSummary()
     qcSensorSummary(park = "DEVA", deployment.field.season = c("2018", "2020", "2021"))
-    
 }
 }

@@ -21,7 +21,6 @@ Compile list of water quality values that have data quality flags.
 }
 \examples{
 \dontrun{
-    
     qcWqFlags()
     qcWqFlags(site = "LAKE_P_GET0066", field.season = "2019")
     qcWqFlags(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))

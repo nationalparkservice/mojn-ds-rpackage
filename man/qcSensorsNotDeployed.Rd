@@ -21,10 +21,8 @@ Springs where a sensor was not deployed during a field season
 }
 \examples{
 \dontrun{
-    
     qcSensorsNotDeployed()
     qcSensorsNotDeployed(site = "MOJA_P_UNN0014")
     qcSensorsNotDeployed(park = c("DEVA", "JOTR"), deployment.field.season = c("2017", "2018", "2021"))
-    
 }
 }

@@ -21,9 +21,7 @@ Table with count and percent of springs with human use and livestock disturbance
 }
 \examples{
 \dontrun{
-    
     DisturbanceCount()
     DisturbanceCount(park = c("DEVA", "JOTR"))
-    
 }
 }

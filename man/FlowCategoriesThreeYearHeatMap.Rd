@@ -21,10 +21,8 @@ Summary heat map of flow categories for 3-yr springs
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesThreeYearHeatMap()
     FlowCategoriesThreeYearHeatMap(site = "PARA_P_WHI0054", field.season = "2020")
     FlowCategoriesThreeYearHeatMap(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }
