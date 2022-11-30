@@ -21,7 +21,6 @@ Check that instruments were calibrated within 1 day of site visit
 }
 \examples{
 \dontrun{
-    
     qcCalibrationTimes()
     qcCalibrationTimes(site = "LAKE_P_GET0066")
     qcCalibrationTimes(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))

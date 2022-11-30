@@ -21,9 +21,7 @@ Summary bar plot of flow categories for 3-yr springs
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesThreeYearPlot()
     FlowCategoriesThreeYearPlot(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2019"))
-    
 }
 }

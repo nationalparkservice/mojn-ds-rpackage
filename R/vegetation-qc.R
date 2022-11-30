@@ -165,8 +165,8 @@ LifeformsPresence <- function(park, site, field.season) {
 #'     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 LifeformsPerSpringPlot <- function(park, field.season) {
-  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
+  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
   
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)

@@ -21,7 +21,6 @@ Map of specific conductance at springs with surface water
 }
 \examples{
 \dontrun{
-    
     WqMapSpCond()
     WqMapSpCond(site = "LAKE_P_GET0066", field.season = "2019")
     WqMapSpCond(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

@@ -21,10 +21,8 @@ List of springs with active or historical flow modification
 }
 \examples{
 \dontrun{
-    
     FlowModStatus()
     FlowModStatus(site = "DEVA_P_ARR0137", field.season = "2019")
     FlowModStatus(park = c("JOTR", "LAKE"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

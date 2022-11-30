@@ -21,7 +21,6 @@ Calculate median values for each water quality parameter for each site visit.
 }
 \examples{
 \dontrun{
-    
     WqMedian()
     WqMedian(site = "LAKE_P_GET0066", field.season = "2019")
     WqMedian(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))

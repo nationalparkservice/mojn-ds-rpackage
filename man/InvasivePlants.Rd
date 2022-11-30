@@ -21,7 +21,6 @@ Table of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (n
 }
 \examples{
 \dontrun{
-    
     InvasivePlants()
     InvasivePlants(site = "LAKE_P_HOR0042", field.season = "2020")
     InvasivePlants(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

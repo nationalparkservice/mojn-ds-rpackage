@@ -21,7 +21,6 @@ Table with summary of life form presence and rank
 }
 \examples{
 \dontrun{
-    
     LifeformsPresence()
     LifeformsPresence(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 }

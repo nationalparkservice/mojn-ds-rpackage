@@ -21,7 +21,6 @@ Wildlife observed, no wildlife type specified
 }
 \examples{
 \dontrun{
-    
     qcWildlifeObservedNoTypes()
     qcWildlifeObservedNoTypes(site = "LAKE_P_GET0066", field.season = "2019")
     qcWildlifeObservedNoTypes(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))

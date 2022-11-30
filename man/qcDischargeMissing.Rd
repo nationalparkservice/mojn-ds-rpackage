@@ -21,10 +21,8 @@ Volumetric or estimated discharge data are missing
 }
 \examples{
 \dontrun{
-    
     qcDischargeMissing()
     qcDischargeMissing(site = "LAKE_P_GET0066", field.season = "2016")
     qcDischargeMissing(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

@@ -21,9 +21,7 @@ Summary table of flow categories for discontinuous springbrooks: dry, wet soil, 
 }
 \examples{
 \dontrun{
-    
     FlowCategoriesDiscontinuous()
     FlowCategoriesDiscontinuous(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

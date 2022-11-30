@@ -19,7 +19,6 @@ Bar plot showing the distribution of the number of life form categories at sprin
 }
 \examples{
 \dontrun{
-    
     LifeformsPerSpringPlot()
     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 }

@@ -17,9 +17,7 @@ Plot sensor retrieval results over time as a heatmap.
 }
 \examples{
 \dontrun{
-    
     qcSensorHeatmap()
     qcSensorHeatmap(park = c("JOTR", "MOJA"))
-    
 }
 }

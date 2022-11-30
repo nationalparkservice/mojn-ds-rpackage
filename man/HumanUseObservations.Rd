@@ -21,10 +21,8 @@ Table with human use observations
 }
 \examples{
 \dontrun{
-    
     HumanUseObservations()
     HumanUseObservations(site = "LAKE_P_DRI0002", field.season = "2019")
     HumanUseObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

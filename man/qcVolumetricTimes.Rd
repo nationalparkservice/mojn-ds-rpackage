@@ -21,10 +21,8 @@ Volumetric method was used, but the median fill time is less than 5 seconds
 }
 \examples{
 \dontrun{
-    
     qcVolumetricTimes()
     qcVolumetricTimes(site = "LAKE_P_GRA0058", field.season = "2019")
     qcVolumetricTimes(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2019"))
-    
 }
 }

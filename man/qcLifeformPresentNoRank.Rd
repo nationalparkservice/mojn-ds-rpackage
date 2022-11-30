@@ -21,7 +21,6 @@ Return list of visits with lifeform present, no rank
 }
 \examples{
 \dontrun{
-    
     qcLifeformPresentNoRank()
     qcLifeformPresentNoRank(site = "LAKE_P_GET0066", field.season = "2019")
     qcLifeformPresentNoRank(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

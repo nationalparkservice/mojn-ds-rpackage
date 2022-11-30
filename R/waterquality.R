@@ -876,7 +876,7 @@ WqMapTemp <- function(park, site, field.season) {
 #'     WqMapSpCond(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 WqMapSpCond <- function(park, site, field.season) {
-  data <- qcWqLong(ppark = park, site = site, field.season = field.season)
+  data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   coords <- site %>%
     dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

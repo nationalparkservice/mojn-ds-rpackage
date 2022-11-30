@@ -21,7 +21,6 @@ Table of springs with evidence of ungulate (sheep and deer) activity
 }
 \examples{
 \dontrun{
-    
     UngulatesEvidence()
     UngulatesEvidence(site = "LAKE_P_COR0023", field.season = "2020")
     UngulatesEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))

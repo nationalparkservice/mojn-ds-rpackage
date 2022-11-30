@@ -21,9 +21,7 @@ Bar plot with percent of springs with livestock disturbance
 }
 \examples{
 \dontrun{
-    
     LivestockPlot()
     LivestockPlot(park = c("DEVA", "JOTR"))
-    
 }
 }

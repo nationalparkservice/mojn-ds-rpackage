@@ -21,9 +21,7 @@ Box plot of springbrook lengths for annual springs at each park and field season
 }
 \examples{
 \dontrun{
-    
     SpringbrookLengthsAnnualPlot()
     SpringbrookLengthsAnnualPlot(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

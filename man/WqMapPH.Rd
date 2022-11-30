@@ -21,7 +21,6 @@ Map of pH at springs with surface water
 }
 \examples{
 \dontrun{
-    
     WqMapPH()
     WqMapPH(site = "LAKE_P_GET0066", field.season = "2019")
     WqMapPH(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

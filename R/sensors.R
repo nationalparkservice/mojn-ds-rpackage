@@ -248,7 +248,7 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcSensorProblems <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   problems <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", !(SensorProblem %in% c("None", "Missing"))) %>%
@@ -277,7 +277,7 @@ qcSensorProblems <- function(park, deployment.field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcSensorDownloads <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   nodata <- attempts %>%
     dplyr::filter(SensorRetrieved == "Y", DownloadResult == "ND") %>%
@@ -304,8 +304,8 @@ qcSensorDownloads <- function(park, deployment.field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcMissingSensors <- function(park, deployment.field.season) {
-  deployed <- ReadAndFilterData(park = park, data.name = "SensorsCurrentlyDeployed")
-  attempts <- ReadAndFilterData(park, site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployed <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   missing <- attempts %>%
     dplyr::filter((SensorRetrieved == "Y" & SensorProblem == "Missing") | (SensorRetrieved == "N" & SensorProblem != "Missing")) %>%
@@ -331,7 +331,7 @@ qcMissingSensors <- function(park, deployment.field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcSensorDates <- function(park, deployment.field.season) {
-  attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
+  attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
 
   error <- attempts %>%
     dplyr::filter(DeploymentDate == RetrievalDate) %>%

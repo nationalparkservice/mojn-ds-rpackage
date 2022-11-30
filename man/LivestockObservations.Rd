@@ -21,10 +21,8 @@ Table with livestock observations
 }
 \examples{
 \dontrun{
-    
     LivestockObservations()
     LivestockObservations(site = "MOJA_P_WIL0224", field.season = "2019")
     LivestockObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

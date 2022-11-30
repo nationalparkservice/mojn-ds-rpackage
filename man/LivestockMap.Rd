@@ -21,10 +21,8 @@ Map of livestock disturbance observations
 }
 \examples{
 \dontrun{
-    
     LivestockMap()
     LivestockMap(site = "MOJA_P_WIL0224", field.season = "2019")
     LivestockMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

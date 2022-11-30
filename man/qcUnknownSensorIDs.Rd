@@ -21,10 +21,8 @@ Sensors with unknown ID or serial number
 }
 \examples{
 \dontrun{
-    
     qcRepeatVisits()
     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

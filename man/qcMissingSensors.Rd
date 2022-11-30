@@ -19,11 +19,8 @@ Sensors were retrieved but missing, or sensors were not retrieved and not missin
 }
 \examples{
 \dontrun{
-    
     qcRepeatVisits()
     qcRepeatVisits(site = "LAKE_P_GET0066", field.season = "2019")
     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
-
 }

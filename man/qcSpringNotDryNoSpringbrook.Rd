@@ -21,10 +21,8 @@ Spring is not dry, springbrook dimensions = 0
 }
 \examples{
 \dontrun{
-    
     qcSpringNotDryNoSpringbrook()
     qcSpringNotDryNoSpringbrook(site = "DEVA_P_ARR0137", field.season = "2019")
     qcSpringNotDryNoSpringbrook(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    
 }
 }

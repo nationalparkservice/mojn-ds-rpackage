@@ -21,7 +21,6 @@ Map of dissolved oxygen concentration at springs with surface water
 }
 \examples{
 \dontrun{
-    
     WqMapDO()
     WqMapDO(site = "LAKE_P_GET0066", field.season = "2019")
     WqMapDO(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

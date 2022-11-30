@@ -21,7 +21,6 @@ Wildlife observed and wildlife type specified, no evidence recorded
 }
 \examples{
 \dontrun{
-    
     qcWildlifeObservedNoEvidence()
     qcWildlifeObservedNoEvidence(site = "LAKE_P_GET0066", field.season = "2019")
     qcWildlifeObservedNoEvidence(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))

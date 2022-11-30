@@ -21,10 +21,8 @@ Volumetric method was used, but there are fewer than five fill times
 }
 \examples{
 \dontrun{
-    
     qcVolumetricFillEvents()
     qcVolumetricFillEvents(site = "MOJA_P_MAR0147", field.season = "2019")
     qcVolumetricFillEvents(park = c("DEVA", "MOJA"), field.season = c("2017", "2019", "2021"))
-    
 }
 }

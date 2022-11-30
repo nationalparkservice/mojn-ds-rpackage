@@ -21,7 +21,6 @@ Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non
 }
 \examples{
 \dontrun{
-    
     InvasivePlantsMap()
     InvasivePlantsMap(site = "LAKE_P_GET0066", field.season = "2019")
     InvasivePlantsMap(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))

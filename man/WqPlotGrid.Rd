@@ -21,7 +21,6 @@ Generate grid of box plots for core water quality parameters for each park and y
 }
 \examples{
 \dontrun{
-    
     WqPlotGrid()
     WqPlotGrid(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
     WqPlotGrid(path.to.data = "path/to/data" = "local")
