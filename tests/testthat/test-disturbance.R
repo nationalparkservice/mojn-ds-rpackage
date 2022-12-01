@@ -42,16 +42,16 @@ test_that("qcOverallDisturbance returns correct number of rows and columns", {
 })
 
 
-test_that("qcFlowModNoHuman returns correct number of rows and columns", {
+test_that("qcFlowModNoHumanUse returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcFlowModNoHuman())
-  expect_equal(actual_rows, 32)
+  actual_rows <- nrow(qcFlowModNoHumanUse())
+  expect_equal(actual_rows, 36)
   
-  actual_cols <- colnames(qcFlowModNoHuman())
+  actual_cols <- colnames(qcFlowModNoHumanUse())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "HumanUse", "FlowModificationStatus")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcFlowModNoHuman()
+  actual_date <- qcFlowModNoHumanUse()
   expect_equal(class(actual_date$VisitDate), "Date")
   
 })
@@ -88,6 +88,22 @@ test_that("qcFlowModDiscrepancies works as expected", {
   actual_fs <- qcFlowModDiscrepancies() %>% dplyr::filter(SiteCode == "MOJA_P_TAL0187", FlowModificationStatus == "None") %>% dplyr::select(FlowModificationStatus, FieldSeasons)
   expected_fs <- tibble::as_tibble_row(c(FlowModificationStatus = as.character("None"), FieldSeasons = as.character("2016, 2019, 2020, 2021")))
   expect_equal(actual_fs, expected_fs)
+  
+})
+
+
+test_that("qcFlowModTypes works as expected", {
+  
+  actual_rows <- nrow(qcFlowModTypes())
+  expect_equal(actual_rows, 1)
+  
+  actual_cols <- colnames(qcFlowModTypes())
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowModificationStatus", "ModificationType")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_type <- qcFlowModTypes() %>% dplyr::filter(SiteCode == "MOJA_P_TAL0187", FieldSeason == "2016") %>% dplyr::select(FlowModificationStatus, ModificationType)
+  expected_type <- tibble::as_tibble_row(c(FlowModificationStatus = as.character("None"), ModificationType = as.character("Dam")))
+  expect_equal(actual_type, expected_type)
   
 })
 
@@ -136,11 +152,11 @@ test_that("DisturbanceCount works as expected", {
   expect_equal(typeof(actual_dbl$HumanUsePercent), "double")
   
   actual_count <- DisturbanceCount() %>% dplyr::filter(Park == "MOJA") %>% dplyr::select(LivestockCount, HumanUseCount)
-  expected_count <- tibble::as_tibble_row(c(LivestockCount = as.integer(21), HumanUseCount = as.integer(32)))
+  expected_count <- tibble::as_tibble_row(c(LivestockCount = as.integer(24), HumanUseCount = as.integer(33)))
   expect_equal(actual_count, expected_count)
   
   actual_percent <- DisturbanceCount() %>% dplyr::filter(Park == "MOJA") %>% dplyr::select(LivestockPercent, HumanUsePercent)
-  expected_percent <- tibble::as_tibble_row(c(LivestockPercent = round(as.double(21*100/45), 1), HumanUsePercent = round(as.double(32*100/45), 1)))
+  expected_percent <- tibble::as_tibble_row(c(LivestockPercent = round(as.double(24*100/45), 1), HumanUsePercent = round(as.double(33*100/45), 1)))
   expect_equal(actual_percent, expected_percent)
   
 })
@@ -149,7 +165,7 @@ test_that("DisturbanceCount works as expected", {
 test_that("HumanUseObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(HumanUseObservations())
-  expect_equal(actual_rows, 293)
+  expect_equal(actual_rows, 364)
   
   actual_cols <- colnames(HumanUseObservations())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "HumanUse", "Notes")
@@ -164,7 +180,7 @@ test_that("HumanUseObservations returns correct number of rows and columns", {
 test_that("LivestockObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(LivestockObservations())
-  expect_equal(actual_rows, 123)
+  expect_equal(actual_rows, 151)
   
   actual_cols <- colnames(LivestockObservations())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Livestock", "Notes")

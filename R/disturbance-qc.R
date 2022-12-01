@@ -1,4 +1,4 @@
-#' Intermediate step used to reformat disturbance categories into numerical values that can be compared.
+#' Intermediate step used to reformat disturbance categories into numerical values that can be read by other functions.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -9,8 +9,14 @@
 #'
 qcDisturbanceFormatted <- function(park, site, field.season) {
   disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  
+  status <- visit %>%
+    dplyr::select(SiteCode, VisitDate, VisitType, MonitoringStatus)
   
   formatted <- disturbance %>%
+    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
     dplyr::mutate_at(c("Roads",
                        "HumanUse",
                        "PlantManagement",
@@ -36,6 +42,33 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
 }
 
 
+#' Intermediate step used to reformat flow modification types that can be read by other functions.
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+qcFlowModFormatted <- function(park, site, field.season) {
+  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  
+  status <- visit %>%
+    dplyr::select(SiteCode, VisitDate, VisitType, MonitoringStatus)
+  
+  formatted <- flowmod %>%
+    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
+    dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
+                                                            FlowModificationStatus == "No Data" ~ "NoData",
+                                                            TRUE ~ FlowModificationStatus))
+  
+  return(formatted)
+}
+
+
 #' Overall disturbance is less than any other disturbance category
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -52,9 +85,9 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
 #'     qcOverallDisturbance(park = c("DEVA", "JOTR"), field.season = c("2017", "2020", "2021"))
 #' }
 qcOverallDisturbance <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   
-  overall <- disturbance %>%
+  overall <- formatted %>%
     dplyr::filter((Overall < Roads & Roads != "NoData") |
                   (Overall < HumanUse & HumanUse != "NoData") |
                   (Overall < PlantManagement & PlantManagement != "NoData") |
@@ -64,7 +97,8 @@ qcOverallDisturbance <- function(park, site, field.season) {
                   (Overall < Fire & Fire != "NoData") |
                   (Overall < Flooding & Flooding != "NoData") |
                   (Overall < Wildlife & Wildlife != "NoData") |
-                  (Overall < OtherNatural & OtherNatural != "NoData")) %>%
+                  (Overall < OtherNatural & OtherNatural != "NoData") |
+                  (Overall == "NoData" & !(FieldSeason %in% c("2016", "2017")))) %>%
     dplyr::select(Park:Overall) %>%
     dplyr::arrange(FieldSeason, SiteCode)
   
@@ -87,10 +121,10 @@ qcOverallDisturbance <- function(park, site, field.season) {
 #'     qcFlowModNoHuman(site = "LAKE_P_WIL0061", field.season = "2016")
 #'     qcFlowModNoHuman(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-qcFlowModNoHuman <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+qcFlowModNoHumanUse <- function(park, site, field.season) {
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   
-  nohuman <- disturbance %>%
+  nohuman <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, FlowModificationStatus) %>%
     dplyr::filter(HumanUse == "0" & stringr::str_detect(FlowModificationStatus, "Yes")) %>%
     dplyr::arrange(FieldSeason, SiteCode)
@@ -115,14 +149,9 @@ qcFlowModNoHuman <- function(park, site, field.season) {
 #'     FlowModStatus(park = c("JOTR", "LAKE"), field.season = c("2017", "2018", "2021"))
 #' }
 FlowModStatus <- function(park, site, field.season) {
-  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
+  formatted <- qcFlowModFormatted(park = park, site = site, field.season = field.season)
   
-  flowmod %<>%
-    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
-                                                            is.na(FlowModificationStatus) ~ "NoData",
-                                                            TRUE ~ FlowModificationStatus))
-  
-  status <- flowmod %>%
+  status <- formatted %>%
     dplyr::filter(stringr::str_detect(FlowModificationStatus, "Yes")) %>%
     dplyr::select(-c("VisitType", "DPL")) %>%
     dplyr::arrange(SiteCode) %>%
@@ -152,14 +181,9 @@ FlowModStatus <- function(park, site, field.season) {
 #'     qcFlowModDiscrepancies(park = c("DEVA", "JOTR"))
 #' }
 qcFlowModDiscrepancies <- function(park, site, field.season) {
-  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification") 
+  formatted <- qcFlowModFormatted(park = park, site = site, field.season = field.season)
   
-  flowmod %<>%
-    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
-                                                            is.na(FlowModificationStatus) ~ "NoData",
-                                                            TRUE ~ FlowModificationStatus))
-  
-  discrepancies <- flowmod %>%
+  discrepancies <- formatted %>%
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
     unique() %>%
     dplyr::group_by(Park, SiteCode, SiteName, FlowModificationStatus) %>%
@@ -191,16 +215,12 @@ return(discrepancies)
 #'     qcFlowModTypes(park = c("MOJA", "LAKE"))
 #' }
 qcFlowModTypes <- function(park, site, field.season) {
-  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
-  
-  flowmod %<>%
-    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "NoData",
-                                                            is.na(FlowModificationStatus) ~ "NoData",
-                                                            TRUE ~ FlowModificationStatus))
-  
-  nomod <- flowmod %>%
+  formatted <- qcFlowModFormatted(park = park, site = site, field.season = field.season)
+
+  nomod <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowModificationStatus, ModificationType) %>%
-    dplyr::filter((FlowModificationStatus %in% c("NoData", "None") & !is.na(ModificationType)) | (stringr::str_detect(FlowModificationStatus, "Yes") & is.na(ModificationType))) %>%
+    dplyr::filter((FlowModificationStatus %in% c("NoData", "None") & !is.na(ModificationType)) |
+                  (stringr::str_detect(FlowModificationStatus, "Yes") & is.na(ModificationType))) %>%
     dplyr::arrange(FieldSeason, SiteCode)
   
   return(nomod)
@@ -222,7 +242,7 @@ qcFlowModTypes <- function(park, site, field.season) {
 #'     FlowModCount(park = c("DEVA", "JOTR"))
 #' }
 FlowModCount <- function(park, site, field.season) {
-  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification") 
+  formatted <- qcFlowModFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
   sampleframe <- site %>%
@@ -232,11 +252,12 @@ FlowModCount <- function(park, site, field.season) {
     unique()
   
   count <- sampleframe %>%
-    dplyr::left_join(flowmod, by = c("Park", "SiteCode", "SiteName")) %>%
-    dplyr::filter(VisitType %in% c("Primary", NA)) %>%
+    dplyr::full_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::filter(VisitType %in% c("Primary", NA),
+                  MonitoringStatus == "Sampled") %>%
     dplyr::select(-c(VisitDate, FieldSeason, ModificationType, VisitType, DPL)) %>%
     unique() %>%
-    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "No Data" ~ "No data",
+    dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "NoData" ~ "No data",
                                                             is.na(FlowModificationStatus) ~ "No data",
                                                             TRUE ~ FlowModificationStatus)) %>%
     dplyr::mutate(Rank = ifelse(FlowModificationStatus == "Yes - One or more active", 4,
@@ -287,13 +308,13 @@ FlowModPlot <- function(park, site, field.season) {
   percent %<>% dplyr::filter(Park != "CAMO")
   
   plot <- ggplot2::ggplot(percent, ggplot2::aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
-    geom_bar(stat = "identity") +
-    scale_fill_manual(values = c("No data" = "gray",
-                                 "None" = "seagreen",
-                                 "Yes - All inactive" = "gold",
-                                 "Yes - Unknown if active" = "darkorange1",
-                                 "Yes - One or more active" = "firebrick"),
-                      name = "Flow Modification")
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::scale_fill_manual(values = c("No data" = "gray",
+                                          "None" = "seagreen",
+                                          "Yes - All inactive" = "gold",
+                                          "Yes - Unknown if active" = "darkorange1",
+                                          "Yes - One or more active" = "firebrick"),
+                               name = "Flow Modification")
     
   return(plot)
 }
@@ -314,8 +335,7 @@ FlowModPlot <- function(park, site, field.season) {
 #'     DisturbanceCount(park = c("DEVA", "JOTR"))
 #' }
 DisturbanceCount <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
-  flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   sampleframe <- site %>%
@@ -325,7 +345,7 @@ DisturbanceCount <- function(park, site, field.season) {
     unique()
   
   disturb <- sampleframe %>%
-    dplyr::left_join(disturbance, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
     dplyr::filter(VisitType %in% c("Primary", NA)) %>%
     dplyr::select(-c(VisitType, DPL)) %>%
     unique() %>%
@@ -366,18 +386,18 @@ DisturbanceCount <- function(park, site, field.season) {
 #'     HumanUseObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 HumanUseObservations <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   
-  humanobs <- disturbance %>%
+  humanobs <- formatted %>%
     dplyr::filter(HumanUse > 0,
                   HumanUse != "NoData") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
-    dplyr::mutate(HumanUse = case_when(HumanUse == "1" ~ ">0 - 25%",
-                                       HumanUse == "2" ~ ">25 - 50%",
-                                       HumanUse == "3" ~ ">50 - 75%",
-                                       HumanUse == "4" ~ ">75 - 100%",
-                                       HumanUse == "0" ~ "0%",
-                                       TRUE ~ HumanUse))
+    dplyr::mutate(HumanUse = dplyr::case_when(HumanUse == "1" ~ ">0 - 25%",
+                                              HumanUse == "2" ~ ">25 - 50%",
+                                              HumanUse == "3" ~ ">50 - 75%",
+                                              HumanUse == "4" ~ ">75 - 100%",
+                                              HumanUse == "0" ~ "0%",
+                                              TRUE ~ HumanUse))
   
   return(humanobs)
 }
@@ -427,13 +447,13 @@ HumanUsePlot <- function(park, site, field.season) {
 #'     HumanUseMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 #' }
 HumanUseMap <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
-  humandata <- disturbance %>%
+  humandata <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
     dplyr::mutate(Observed = dplyr::case_when(HumanUse == "0" ~ "No",
                                               HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
@@ -534,18 +554,18 @@ HumanUseMap <- function(park, site, field.season) {
 #'     LivestockObservations(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 LivestockObservations <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   
-  livestockobs <- disturbance %>%
+  livestockobs <- formatted %>%
     dplyr::filter(Livestock > 0,
                   Livestock != "NoData") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
-    dplyr::mutate(Livestock = case_when(Livestock == "1" ~ ">0 - 25%",
-                                       Livestock == "2" ~ ">25 - 50%",
-                                       Livestock == "3" ~ ">50 - 75%",
-                                       Livestock == "4" ~ ">75 - 100%",
-                                       Livestock == "0" ~ "0%",
-                                       TRUE ~ Livestock))
+    dplyr::mutate(Livestock = dplyr::case_when(Livestock == "1" ~ ">0 - 25%",
+                                               Livestock == "2" ~ ">25 - 50%",
+                                               Livestock == "3" ~ ">50 - 75%",
+                                               Livestock == "4" ~ ">75 - 100%",
+                                               Livestock == "0" ~ "0%",
+                                               TRUE ~ Livestock))
   
   return(livestockobs)
 }
@@ -596,13 +616,13 @@ LivestockPlot <- function(park, site, field.season) {
 #'     LivestockMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 #' }
 LivestockMap <- function(park, site, field.season) {
-  disturbance <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
+  formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
     dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
-  livestockdata <- disturbance %>%
+  livestockdata <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
     dplyr::mutate(Observed = dplyr::case_when(Livestock == "0" ~ "No",
                                               Livestock %in% c("1", "2", "3", "4") ~ "Yes",
