@@ -21,7 +21,8 @@ VolumetricMedian  <- function(park, site, field.season) {
   
   summarized <- calculated %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s), Count = dplyr::n()) %>%
+    dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s),
+                     Count = sum(!is.na(FillTime_seconds))) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
     dplyr::ungroup()
   
@@ -258,7 +259,7 @@ qcVolumetricFillEvents <- function(park, site, field.season) {
   median <- VolumetricMedian(park = park, site = site, field.season = field.season)
 
   fills <- median %>%
-    dplyr::filter(Count < 5) %>%
+    dplyr::filter(0 < Count & Count < 5) %>%
     dplyr::mutate(Discharge_L_per_s = round(Discharge_L_per_s, 3))
   
   return(fills)
@@ -313,7 +314,7 @@ qcContinuousLength <- function(park, site, field.season) {
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
 
   discontinuous <- joined %>%
-    dplyr::filter((SpringbrookLengthFlag == ">50 m" & DiscontinuousSpringbrookLengthFlag == "Measured") | (SpringbrookLengthFlag == "Measured" & DiscontinuousSpringbrookLengthFlag == "Measured" & (SpringbrookLength_m > DiscontinuousSpringbrookLength_m)))
+    dplyr::filter((SpringbrookLengthFlag == "Length > 50 meters" & DiscontinuousSpringbrookLengthFlag == "Measured") | (SpringbrookLengthFlag == "Length <= 50 meters and was measured." & DiscontinuousSpringbrookLengthFlag == "Measured" & (SpringbrookLength_m > DiscontinuousSpringbrookLength_m)))
 
   return(discontinuous)  
 }
@@ -338,11 +339,11 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
-    dplyr::mutate(FlowCategory = ifelse(SpringbrookLengthFlag == ">50m", "> 50 m",
+    dplyr::mutate(FlowCategory = ifelse(SpringbrookLengthFlag == "Length > 50 meters", "> 50 m",
                                     ifelse(FlowCondition == "dry", "Dry",
                                       ifelse(FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)), "Wet Soil",
                                         ifelse(SpringbrookLength_m > 0 & SpringbrookLength_m < 10, "< 10 m",
-                                            ifelse(SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50), "10 - 50 m", NA)))))) %>%
+                                            ifelse(SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50), "10 - 50 m", NA)))))) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
@@ -373,13 +374,12 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
-    dplyr::filter(SiteCode != "JOTR_P_BLA0045") %>%
     dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
                                                   FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
-                                                  TRUE ~ "NA")) %>%
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
+                                                  TRUE ~ "No Data")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, FlowCategory) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
@@ -408,21 +408,23 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
 FlowCategoriesAnnualPlot <- function(park, site, field.season) {
   data <- FlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
   
-  data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
+  data$FlowCategory <- factor(data$FlowCategory, levels = c("No Data", "> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
-    geom_bar(stat = "identity") +
-    facet_grid(~Park) +
-    scale_fill_manual(values = c("Dry" = "red",
-                                 "Wet Soil" = "gold",
-                                 "< 10 m" = "lightskyblue",
-                                 "10 - 50 m" = "royalblue1",
-                                 "> 50 m" = "navy")) +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(angle = 90)) +
-    labs(x = "Field Season",
-         y = "Number of Springs", 
-         fill = "Flow Category")
+  plot <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "Annual"),
+                          ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::facet_grid(~Park) +
+    ggplot2::scale_fill_manual(values = c("No Data" = "gray50",
+                                          "Dry" = "red",
+                                          "Wet Soil" = "gold",
+                                          "< 10 m" = "lightskyblue",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy")) +
+    ggplot2::theme(legend.position = "bottom",
+                   axis.text.x = ggplot2::element_text(angle = 90)) +
+    ggplot2::labs(x = "Field Season",
+                  y = "Number of Springs", 
+                  fill = "Flow Category")
   
   return(plot)
 }
@@ -445,21 +447,22 @@ FlowCategoriesAnnualPlot <- function(park, site, field.season) {
 FlowCategoriesThreeYearPlot <- function(park, site, field.season) {
   data <- FlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
   
-  data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
+  data$FlowCategory <- factor(data$FlowCategory, levels = c("No Data", "> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  plot <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
-    geom_bar(stat = "identity") +
-    facet_grid(~Park, scales = "free", space = "free_x") +
-    scale_fill_manual(values = c("Dry" = "red",
-                                 "Wet Soil" = "gold",
-                                 "< 10 m" = "lightskyblue",
-                                 "10 - 50 m" = "royalblue1",
-                                 "> 50 m" = "navy")) +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(angle = 90)) +
-    labs(x = "Field Season",
-         y = "Number of Springs", 
-         fill = "Flow Category")
+  plot <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "3Yr", Park != "CAMO"),
+                          ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::facet_grid(~Park, scales = "free", space = "free_x") +
+    ggplot2::scale_fill_manual(values = c("Dry" = "red",
+                                          "Wet Soil" = "gold",
+                                          "< 10 m" = "lightskyblue",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy")) +
+    ggplot2::theme(legend.position = "bottom",
+                   axis.text.x = ggplot2::element_text(angle = 90)) +
+    ggplot2::labs(x = "Field Season",
+                  y = "Number of Springs", 
+                  fill = "Flow Category")
   
   return(plot)
 }
@@ -488,25 +491,25 @@ FlowCategoriesAnnualHeatMap <- function(park, site, field.season) {
     dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
                                                   FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "NA"))
     
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "Annual"), aes(x = FieldSeason, 
-                                                                           y = reorder(SiteCode, desc(SiteCode)),
-                                                                           fill = FlowCategory,
-                                                                           text = paste("Site Name: ", SiteName,
-                                                                                        "<br>Site Code:", SiteCode,
-                                                                                        "<br>Field Season:", FieldSeason,
-                                                                                        "<br>Flow Category:", FlowCategory))) + 
-    geom_tile(color = "white") + 
-    scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
-    labs(x = "Field Season",
-         y = "Annual Spring") +
-    theme(legend.position = "bottom") +
-    facet_grid(Park~., scales = "free", space = "free_y")
+  heatmap <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "Annual"), ggplot2::aes(x = FieldSeason, 
+                                                                                           y = reorder(SiteCode, desc(SiteCode)),
+                                                                                           fill = FlowCategory,
+                                                                                           text = paste("Site Name: ", SiteName,
+                                                                                                        "<br>Site Code:", SiteCode,
+                                                                                                        "<br>Field Season:", FieldSeason,
+                                                                                                        "<br>Flow Category:", FlowCategory))) + 
+    ggplot2::geom_tile(color = "white") + 
+    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
+    ggplot2::labs(x = "Field Season",
+                  y = "Annual Spring") +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::facet_grid(Park~., scales = "free", space = "free_y")
   
   return(heatmap)
 }
@@ -535,8 +538,8 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
     dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
                                                   FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "NA")) %>%
     dplyr::mutate(Visit = ifelse((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018"), "First",
                             ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021"), "Second",
@@ -544,19 +547,20 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
-  heatmap <- ggplot2::ggplot(data %>% filter(SampleFrame == "3Yr", Park != "CAMO"), aes(x = Visit, 
-                                                                                        y = reorder(SiteCode, desc(SiteCode)),
-                                                                                        fill = FlowCategory,
-                                                                                        text = paste("Site Name: ", SiteName,
-                                                                                                     "<br>Site Code:", SiteCode,
-                                                                                                     "<br>Field Season:", FieldSeason,
-                                                                                                     "<br>Flow Category:", FlowCategory))) + 
-    geom_tile(color = "white") + 
-    scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
-    labs(x = "Revisit Cycle",
-         y = "Three-Year Spring") +
-    theme(legend.position = "bottom") +
-    facet_grid(Park~., scales = "free", space = "free_y")
+  heatmap <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "3Yr", Park != "CAMO"),
+                             ggplot2::aes(x = Visit, 
+                                          y = reorder(SiteCode, desc(SiteCode)),
+                                          fill = FlowCategory,
+                                          text = paste("Site Name: ", SiteName,
+                                                       "<br>Site Code:", SiteCode,
+                                                       "<br>Field Season:", FieldSeason,
+                                                       "<br>Flow Category:", FlowCategory))) + 
+    ggplot2::geom_tile(color = "white") + 
+    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
+    ggplot2::labs(x = "Revisit Cycle",
+                  y = "Three-Year Spring") +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::facet_grid(Park~., scales = "free", space = "free_y")
   
   return(heatmap)
 }

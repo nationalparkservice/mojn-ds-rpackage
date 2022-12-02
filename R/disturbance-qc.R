@@ -17,6 +17,7 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
   formatted <- disturbance %>%
     dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
     dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
+    dplyr::select(-MonitoringStatus) %>%
     dplyr::mutate_at(c("Roads",
                        "HumanUse",
                        "PlantManagement",
@@ -61,6 +62,7 @@ qcFlowModFormatted <- function(park, site, field.season) {
   formatted <- flowmod %>%
     dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
     dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
+    dplyr::select(-MonitoringStatus) %>%
     dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
                                                             FlowModificationStatus == "No Data" ~ "NoData",
                                                             TRUE ~ FlowModificationStatus))
@@ -246,15 +248,14 @@ FlowModCount <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
   sampleframe <- site %>%
-    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
-    dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame")) %>%
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
+    dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame", "Panel")) %>%
     unique()
   
   count <- sampleframe %>%
-    dplyr::full_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
-    dplyr::filter(VisitType %in% c("Primary", NA),
-                  MonitoringStatus == "Sampled") %>%
+    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::filter(VisitType %in% c("Primary", NA)) %>%
     dplyr::select(-c(VisitDate, FieldSeason, ModificationType, VisitType, DPL)) %>%
     unique() %>%
     dplyr::mutate(FlowModificationStatus = dplyr::case_when(FlowModificationStatus == "NoData" ~ "No data",
@@ -339,9 +340,9 @@ DisturbanceCount <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   sampleframe <- site %>%
-    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & SiteStatus == "T-S") %>%
-    dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame")) %>%
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
+    dplyr::select(-c("GRTSOrder", "SiteStatus", "SampleFrame", "Panel")) %>%
     unique()
   
   disturb <- sampleframe %>%
@@ -451,7 +452,7 @@ HumanUseMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   humandata <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
@@ -460,7 +461,7 @@ HumanUseMap <- function(park, site, field.season) {
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
@@ -620,7 +621,7 @@ LivestockMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   livestockdata <- formatted %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
@@ -629,7 +630,7 @@ LivestockMap <- function(park, site, field.season) {
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::inner_join(coords, by = "SiteCode") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   

@@ -5,7 +5,7 @@ LoadDesertSprings(here::here("tests", "testthat", "test_data"))
 test_that("qcDisturbanceFormatted works as expected", {
   
   actual_rows <- nrow(qcDisturbanceFormatted())
-  expect_equal(actual_rows, 872)
+  expect_equal(actual_rows, 828)
   
   actual_cols <- colnames(qcDisturbanceFormatted())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Roads", "HumanUse", "PlantManagement", "HikingTrails", "Livestock", "OtherAnthropogenic", "Fire", "Flooding", "Wildlife", "OtherNatural", "Overall", "FlowModificationStatus", "VisitType", "Notes", "DPL")
@@ -22,6 +22,28 @@ test_that("qcDisturbanceFormatted works as expected", {
                                              Flooding = "1",
                                              Overall = "1",
                                              FlowModificationStatus = "None"))
+  expect_equal(actual_values, expected_values)
+  
+})
+
+
+test_that("qcFlowModFormatted works as expected", {
+  
+  actual_rows <- nrow(qcFlowModFormatted())
+  expect_equal(actual_rows, 803)
+  
+  actual_cols <- colnames(qcFlowModFormatted())
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowModificationStatus", "ModificationType", "VisitType", "DPL")
+  expect_equal(actual_cols, expected_cols)
+  
+  actual_date <- qcFlowModFormatted()
+  expect_equal(class(actual_date$VisitDate), "Date")
+  
+  actual_values <- qcFlowModFormatted() %>% dplyr::filter(SiteCode == "LAKE_P_SAU0022", FieldSeason == "2019") %>% dplyr::select(SiteCode, FieldSeason, FlowModificationStatus, ModificationType)
+  expected_values <- tibble::as_tibble(data.frame(SiteCode = c("LAKE_P_SAU0022", "LAKE_P_SAU0022", "LAKE_P_SAU0022"),
+                                                  FieldSeason = c("2019", "2019", "2019"),
+                                                  FlowModificationStatus = c("Yes - One or more active", "Yes - One or more active", "Yes - One or more active"),
+                                                  ModificationType = c("Pipe", "Dam", "Excavation")))
   expect_equal(actual_values, expected_values)
   
 })
@@ -45,7 +67,7 @@ test_that("qcOverallDisturbance returns correct number of rows and columns", {
 test_that("qcFlowModNoHumanUse returns correct number of rows and columns", {
   
   actual_rows <- nrow(qcFlowModNoHumanUse())
-  expect_equal(actual_rows, 36)
+  expect_equal(actual_rows, 35)
   
   actual_cols <- colnames(qcFlowModNoHumanUse())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "HumanUse", "FlowModificationStatus")
@@ -165,7 +187,7 @@ test_that("DisturbanceCount works as expected", {
 test_that("HumanUseObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(HumanUseObservations())
-  expect_equal(actual_rows, 364)
+  expect_equal(actual_rows, 361)
   
   actual_cols <- colnames(HumanUseObservations())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "HumanUse", "Notes")
@@ -180,7 +202,7 @@ test_that("HumanUseObservations returns correct number of rows and columns", {
 test_that("LivestockObservations returns correct number of rows and columns", {
   
   actual_rows <- nrow(LivestockObservations())
-  expect_equal(actual_rows, 151)
+  expect_equal(actual_rows, 149)
   
   actual_cols <- colnames(LivestockObservations())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Livestock", "Notes")
