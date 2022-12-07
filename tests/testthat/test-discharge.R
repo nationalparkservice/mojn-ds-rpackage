@@ -1,5 +1,7 @@
 context("Discharge")
 LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+
+
 test_that("VolumetricMedian works as expected", {
   
   actual_rows <- nrow(VolumetricMedian())
@@ -27,7 +29,7 @@ test_that("SpringDischarge returns expected number of rows and columns", {
   expect_equal(actual_rows, 680)
   
   actual_cols <- colnames(SpringDischarge())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- SpringDischarge()
@@ -48,7 +50,7 @@ test_that("qcSpringDryWater returns expected number of rows and columns", {
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcSpringDryWater())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSpringDryWater()
@@ -68,7 +70,7 @@ test_that("qcSpringNotDryNoDischarge returns expected number of rows and columns
   expect_equal(actual_rows, 6)
   
   actual_cols <- colnames(qcSpringNotDryNoDischarge())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSpringNotDryNoDischarge()
@@ -89,7 +91,7 @@ test_that("qcSpringNotDryNoSpringbrook returns expected number of rows and colum
   expect_equal(actual_rows, 15)
   
   actual_cols <- colnames(qcSpringNotDryNoSpringbrook())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSpringNotDryNoSpringbrook()
@@ -130,7 +132,7 @@ test_that("qcDischargeMissing returns expected number of rows and columns", {
   expect_equal(actual_rows, 218)
   
   actual_cols <- colnames(qcDischargeMissing())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcDischargeMissing()
@@ -217,7 +219,7 @@ test_that("qcContinuousLength returns expected number of rows and columns", {
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcContinuousLength())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcContinuousLength()

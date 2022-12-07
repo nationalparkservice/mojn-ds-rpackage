@@ -137,49 +137,33 @@ qcSensorHeatmap <- function(park) {
 #' }
 qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
   visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
+  deployments <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsAllDeployments")
   attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   deployed <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
   
   annual_springs <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
-    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel) %>%
+    dplyr::filter(SampleFrame == "Annual" & Panel == "Panel Annual") %>%
     unique() %>%
-    dplyr::select(-SampleFrame)
+    dplyr::select(-c("SampleFrame", "Panel"))
   
-  all_springs <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName) %>%
-    unique()
-  
-  deployments_past <- attempts %>%
-    dplyr::select(Park, SiteCode, SiteName, DeploymentDate, DeploymentFieldSeason)
-  
-  deployments_recent <- deployed %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::rename(DeploymentDate = VisitDate,
-                  DeploymentFieldSeason = FieldSeason)
-  
-  deployments <- rbind(deployments_past, deployments_recent) %>%
-    unique()
-  
-  all_visits <- visit %>%
-    dplyr::filter(SampleFrame == "Annual") %>%
-    dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitDate) %>%
-    dplyr::rename(DeploymentFieldSeason = FieldSeason)
+  all_deployments <- deployments %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SensorNumber) %>%
+    dplyr::rename(DeploymentFieldSeason = FieldSeason,
+                  DeploymentDate = VisitDate)
   
   notdeployed <- annual_springs %>%
-    dplyr::full_join(deployments, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::full_join(all_deployments, by = c("Park", "SiteCode", "SiteName")) %>%
     tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
     dplyr::select(-Park, -SiteName) %>%
-    dplyr::left_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
+    dplyr::right_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
     dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
     dplyr::filter(!is.na(Park),
                   is.na(DeploymentDate)) %>%
     dplyr::filter(!(Park == "DEVA" & DeploymentFieldSeason %in% c("2016", "2017")),
                   !(Park == "JOTR" & DeploymentFieldSeason == "2016")) %>%
     dplyr::arrange(DeploymentFieldSeason, SiteCode) %>%
-    dplyr::left_join(all_visits, by = c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason")) %>%
-    dplyr::rename(FieldSeason = DeploymentFieldSeason) %>%
-    dplyr::relocate(VisitDate, .after = FieldSeason)
+    dplyr::select(-DeploymentDate)
   
   return(notdeployed)
 }
@@ -206,25 +190,27 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
   attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   annual_springs <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
-    dplyr::filter(SampleFrame == "Annual") %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel) %>%
+    dplyr::filter(SampleFrame == "Annual",
+                  Panel == "Panel Annual") %>%
     unique() %>%
-    dplyr::select(-SampleFrame)
+    dplyr::select(-c("SampleFrame", "Panel"))
   
   all_springs <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, SampleFrame) %>%
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel) %>%
     unique()
   
   notrecovered <- attempts %>%
+    dplyr::select(-c("Park", "SiteName")) %>%
     tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
-    dplyr::select(-Park, -SiteName) %>%
     dplyr::left_join(all_springs, by = "SiteCode") %>%
-    dplyr::select(Park, SiteCode, SiteName, RetrievalFieldSeason, RetrievalDate, SensorNumber, SerialNumber, SampleFrame, SensorRetrieved, Notes) %>%
+    dplyr::filter(RetrievalFieldSeason != "2023") %>% #temporary
+    dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, RetrievalFieldSeason, RetrievalDate, RetrievalVisitType, SensorNumber, SerialNumber, SensorRetrieved, SensorProblem, Notes) %>%
     dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
                   !(Park == "JOTR" & RetrievalFieldSeason == "2017")) %>%
-    dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved)) %>%
-    dplyr::filter(!(SampleFrame != "Annual" & is.na(RetrievalDate))) %>%
-    dplyr::select(-SensorRetrieved, -SampleFrame) %>%
+    dplyr::filter(SensorRetrieved == "N" | is.na(SensorRetrieved) | SensorProblem == "Missing") %>%
+    dplyr::filter(Panel == "Panel Annual") %>%
+    dplyr::select(-SampleFrame, -Panel) %>%
     dplyr::arrange(SiteCode, RetrievalFieldSeason) %>%
     dplyr::rename(FieldSeason = RetrievalFieldSeason,
                   VisitDate = RetrievalDate)

@@ -16,39 +16,43 @@
 #' }
 qcCompleteness <- function(park, site, field.season) {
     
-  completeness <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
 
   
   df1 <- site %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
-                  SiteStatus == "T-S") %>%
+                  Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::select(Park,
                   SiteCode,
                   SiteName,
                   SampleFrame)
   
-  df2 <- completeness %>%
+  df2 <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
                   VisitType == "Primary",
                   MonitoringStatus == "Sampled") %>%
-    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, MonitoringStatus) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
                                                Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
                                                Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
                                                Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
                                                TRUE ~ "N")) %>%
-    # dplyr::filter(Triennial == "Y") %>%
+    dplyr::mutate(Annual = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Y",
+                                            TRUE ~ "N")) %>%
+    dplyr::filter(Triennial == "Y" | Annual == "Y") %>%
     dplyr::ungroup() %>%
     dplyr::select(Park, FieldSeason, SampleFrame) %>%
     unique()
   
   expected <- df1 %>%
-    dplyr::left_join(df2)
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"))
   
-  samplestatus <- completeness %>%
+  samplestatus <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
                   VisitType == "Primary",
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
@@ -265,7 +269,10 @@ qcVisitsBySite <- function(park, site, field.season) {
   visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
   
   visit.dates <- visit %>%
-    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::filter(VisitType == "Primary",
+                  MonitoringStatus == "Sampled",
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("Panel Annual", "Panel A", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
     dplyr::mutate(VisitDate = as.POSIXct(VisitDate)) %>%
     dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
@@ -305,7 +312,10 @@ qcVisitsByDate <- function(park, site, field.season) {
   visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
 
   visit.dates <- visit %>%
-    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::filter(VisitType == "Primary",
+                  MonitoringStatus == "Sampled",
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("Panel Annual", "Panel A", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::select(SiteCode, VisitDate, FieldSeason, SampleFrame) %>%
     dplyr::mutate(VisitDate = as.POSIXct(VisitDate)) %>%
     dplyr::mutate(Month = as.factor(format(VisitDate, "%b"))) %>%
@@ -351,7 +361,10 @@ qcVisitDateTimelines <- function(park, site, field.season) {
   median_grouping_vars <- c("Park", "SiteName", "SiteCode", "SampleFrame")
   
   visit.dates <- visit %>%
-    dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled", SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::filter(VisitType == "Primary",
+                  MonitoringStatus == "Sampled",
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame) %>%
     dplyr::mutate(SampleFrame = as.factor(SampleFrame)) %>%
     dplyr::mutate(SampleFrame = factor(SampleFrame, levels = c("Annual", "3Yr"))) %>%
@@ -437,11 +450,52 @@ qcVisitDateTimelines <- function(park, site, field.season) {
 #'     qcNotSampled(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcNotSampled <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
-      
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  
+  df1 <- site %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("A", "B", "C", "D")) %>%
+    dplyr::select(Park,
+                  SiteCode,
+                  SiteName,
+                  SampleFrame)
+  
+  df2 <- visit %>%
+    dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
+                  VisitType == "Primary",
+                  MonitoringStatus == "Sampled") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, MonitoringStatus) %>%
+    dplyr::group_by(Park, FieldSeason) %>%
+    dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
+                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
+                                               Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
+                                               Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
+                                               TRUE ~ "N")) %>%
+    dplyr::mutate(Annual = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Y",
+                                            TRUE ~ "N")) %>%
+    dplyr::filter(Triennial == "Y" | Annual == "Y") %>%
+    dplyr::ungroup() %>%
+    dplyr::select(Park, FieldSeason, SampleFrame) %>%
+    unique()
+  
+  expected <- df1 %>%
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"))
+  
   notsampled <- visit %>%
-    dplyr::filter(MonitoringStatus != "Sampled") %>%
-    dplyr::select(-c("DPL", "SpringType", "Subunit"))
+    dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
+                  VisitType == "Primary",
+                  MonitoringStatus == "Sampled") %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
+    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason")) %>%
+    dplyr::mutate(MonitoringStatus = dplyr::case_when(is.na(MonitoringStatus) ~ "Not Sampled",
+                                                      TRUE ~ MonitoringStatus)) %>%
+    dplyr::filter(MonitoringStatus == "Not Sampled") %>%
+    dplyr::arrange(Park, FieldSeason, SampleFrame, SiteCode) %>%
+    dplyr::select(-MonitoringStatus)
+  
   return(notsampled)
 }
 
@@ -462,12 +516,12 @@ qcNotSampled <- function(park, site, field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcRepeatVisits <- function(park, site, field.season) {
-  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
   
   repeats <- visit %>%
     dplyr::group_by(SiteCode, FieldSeason) %>%
     dplyr::mutate(Duplicated = dplyr::n() > 1) %>%
-    dplyr::filter(Duplicated == TRUE | VisitType != "Primary") %>%
+    dplyr::filter(Duplicated == TRUE) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, VisitType, MonitoringStatus, Notes) %>%
     dplyr::arrange(FieldSeason, SiteCode, VisitDate) %>%
     dplyr::ungroup()
@@ -496,9 +550,9 @@ LocationMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
-    dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" ~ "Annual",
-                                                       SampleFrame == "3Yr" ~ "3Yr",
+    dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
+    dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" & Panel == "A" ~ "Annual",
+                                                       SampleFrame == "3Yr" & Panel %in% c("A", "B", "C", "D") ~ "3Yr",
                                                        TRUE ~ "Other")) %>%
     dplyr::mutate(SampleFrameRadius = dplyr::case_when(SampleFrameSimple == "Annual" ~ 5,
                                                        SampleFrameSimple == "3Yr" ~ 5,
@@ -540,6 +594,7 @@ LocationMap <- function(park, site, field.season) {
                               lat = ~Lat_WGS84,
                               popup = paste ("Name: ", coords$SiteName, "<br>",
                                              "Sample Frame: ", coords$SampleFrame, "<br>",
+                                             "Panel: ", coords$Panel, "<br>",
                                              "Latitude (UTM): ", coords$X_UTM_NAD83_11N, "<br>",
                                              "Longitude (UTM): ", coords$Y_UTM_NAD83_11N, "<br>",
                                              "Latitude (Decimal Degrees): ", coords$Lat_WGS84, "<br>",
