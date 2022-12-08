@@ -188,6 +188,7 @@ qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
 qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
   visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
   attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
+  deployments <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsAllDeployments")
   
   annual_springs <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel) %>%
@@ -200,11 +201,14 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel) %>%
     unique()
   
+  all_deployments <- deployments %>%
+    dplyr::select(SiteCode, VisitDate, FieldSeason, SerialNumber)
+  
   notrecovered <- attempts %>%
     dplyr::select(-c("Park", "SiteName")) %>%
     tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
     dplyr::left_join(all_springs, by = "SiteCode") %>%
-    dplyr::filter(RetrievalFieldSeason != "2023") %>% #temporary
+    # dplyr::filter(RetrievalFieldSeason != "2023") %>% #temporary
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, RetrievalFieldSeason, RetrievalDate, RetrievalVisitType, SensorNumber, SerialNumber, SensorRetrieved, SensorProblem, Notes) %>%
     dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
                   !(Park == "JOTR" & RetrievalFieldSeason == "2017")) %>%

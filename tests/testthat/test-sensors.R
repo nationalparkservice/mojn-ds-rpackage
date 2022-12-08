@@ -114,16 +114,12 @@ test_that("qcSensorsNotDeployed returns correct number of rows and columns", {
   expect_equal(actual_rows, 13)
   
   actual_cols <- colnames(qcSensorsNotDeployed())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "FieldSeason", "VisitDate", "DeploymentDate")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "DeploymentFieldSeason")
   expect_equal(actual_cols, expected_cols)
-  
-  actual_date <- qcSensorsNotDeployed()
-  expect_equal(class(actual_date$VisitDate), "Date")
-  expect_equal(class(actual_date$DeploymentDate), "Date")
-  
-  actual_deployment <- qcSensorsNotDeployed() %>% dplyr::filter(SiteCode == "PARA_P_LIN0020") %>% dplyr::select(FieldSeason, DeploymentDate)
-  expected_deployment <- tibble::tibble(FieldSeason = c("2016", "2020"),
-                                        DeploymentDate = as.Date(c(NA, NA)))  
+ 
+  actual_deployment <- qcSensorsNotDeployed() %>% dplyr::filter(SiteCode == "PARA_P_LIN0020") %>% dplyr::select(SiteCode, DeploymentFieldSeason)
+  expected_deployment <- tibble::tibble(SiteCode = c("PARA_P_LIN0020", "PARA_P_LIN0020"),
+                                        DeploymentFieldSeason = c("2016", "2020"))  
   expect_equal(actual_deployment, expected_deployment)
   
 })
@@ -132,10 +128,10 @@ test_that("qcSensorsNotDeployed returns correct number of rows and columns", {
 test_that("qcSensorsNotRecovered returns correct number of rows and columns", {
   
   actual_rows <- nrow(qcSensorsNotRecovered())
-  expect_equal(actual_rows, 102)
+  expect_equal(actual_rows, 103)
   
   actual_cols <- colnames(qcSensorsNotRecovered())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "FieldSeason", "VisitDate", "SensorNumber", "SerialNumber", "Notes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "FieldSeason", "VisitDate", "RetrievalVisitType", "SensorNumber", "SerialNumber", "SensorRetrieved", "SensorProblem", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSensorsNotRecovered()

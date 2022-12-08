@@ -14,8 +14,8 @@ ReadAGOL(
     calibration_db =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
   agol_username = "mojn_hydro",
- 
-    agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account",
+  agol_password =
+    rstudioapi::askForPassword(paste("Please enter the password for AGOL account",
     agol_username))
 )
 }

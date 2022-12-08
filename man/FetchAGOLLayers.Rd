@@ -5,14 +5,14 @@
 \title{Read data from the Desert Springs AGOL feature layers. Returns the raw data in its current format on AGOL. Mostly used for data management purposes.}
 \usage{
 FetchAGOLLayers(
- 
-    data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
- 
-    lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
- 
-    sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
- 
-    calibration_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
+  data_path =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
+  lookup_path =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
+  sites_path =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+  calibration_path =
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
   agol_username = "mojn_hydro",
   agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")
 )
