@@ -55,7 +55,7 @@ test_that("qcSensorProblems returns correct number of rows and columns", {
 test_that("qcSensorDownloads returns correct number of rows and columns", {
   
   actual_rows <- nrow(qcSensorDownloads())
-  expect_equal(actual_rows, 11)
+  expect_equal(actual_rows, 12)
   
   actual_cols <- colnames(qcSensorDownloads())
   expected_cols <- c("Park", "SiteCode", "SiteName", "SensorNumber", "SerialNumber", "DeploymentDate", "DeploymentFieldSeason", "RetrievalDate", "RetrievalFieldSeason", "SensorRetrieved", "DownloadResult", "Notes")
