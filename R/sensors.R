@@ -112,7 +112,7 @@ qcSensorHeatmap <- function(park) {
                                                   "<br>Deployment Field Season:", DeploymentFieldSeason,
                                                   "<br>Sensor Result:", SensorResult))) + 
          geom_tile(aes(fill = reorder(SensorResult, SensorResultOrder)), color = "white") + 
-         scale_fill_manual(values = c("seagreen", "gold", "firebrick"), name = "Outcome") +
+         scale_fill_manual(values = c("seagreen", "goldenrod2", "orchid4"), name = "Outcome") +
          xlab("Deployment Field Season") +
          ylab("Spring Site Code") +
          theme(legend.position = "bottom")
@@ -303,7 +303,7 @@ qcSensorDiscrepancies <- function(park, deployment.field.season) {
   missing <- attempts %>%
     dplyr::filter((SensorRetrieved == "Y" & SensorProblem == "Missing") |
                   (SensorRetrieved == "N" & SensorProblem != "Missing") |
-                  (SensorRetrieved == "N" & SensorDownloaded = "Y")) %>%
+                  (SensorRetrieved == "N" & DownloadResult == "Y")) %>%
     dplyr::arrange(SiteCode, DeploymentFieldSeason) %>%
     dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate, RetrievalFieldSeason, RetrievalDate, SensorRetrieved, DownloadResult, SensorProblem, SensorNumber, SerialNumber, Notes)
   
@@ -331,10 +331,10 @@ qcUnknownSensorIDs <- function(park, site, deployment.field.season) {
   attempts <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   
   a <- attempts %>%
-    dplyr::select(Park, SiteName, SiteCode, SensorNumber, SerialNumber, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason)
+    dplyr::select(Park, SiteName, SiteCode, SensorNumber, SerialNumber, DeploymentDate, DeploymentFieldSeason, RetrievalDate, RetrievalFieldSeason, Notes)
   
   a_cut <- a %>%
-    dplyr::select(-RetrievalDate, RetrievalFieldSeason)
+    dplyr::select(-RetrievalDate, RetrievalFieldSeason, Notes)
   
   d <- deployments %>%
     dplyr::select(Park, SiteName, SiteCode, SensorNumber, SerialNumber, VisitDate, FieldSeason) %>%
@@ -342,7 +342,8 @@ qcUnknownSensorIDs <- function(park, site, deployment.field.season) {
                   DeploymentFieldSeason = FieldSeason) %>%
     dplyr::anti_join(a_cut) %>%
     dplyr::mutate(RetrievalDate = lubridate::as_date(NA),
-                  RetrievalFieldSeason = as.character(NA))
+                  RetrievalFieldSeason = as.character(NA),
+                  Notes = as.character(NA))
     
   sensors <- rbind(a, d)
 

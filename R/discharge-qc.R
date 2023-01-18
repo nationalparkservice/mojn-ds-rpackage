@@ -457,16 +457,18 @@ FlowCategoriesAnnualPlot <- function(park, site, field.season) {
   
   plot <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "Annual"),
                           ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
-    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::geom_bar(stat = "identity",
+                      color = "white") +
     ggplot2::facet_grid(~Park) +
-    ggplot2::scale_fill_manual(values = c("No Data" = "gray50",
-                                          "Dry" = "red",
-                                          "Wet Soil" = "gold",
-                                          "< 10 m" = "lightskyblue",
+    ggplot2::scale_fill_manual(values = c("No Data" = "gray70",
+                                          "Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
                                           "10 - 50 m" = "royalblue1",
                                           "> 50 m" = "navy")) +
     ggplot2::theme(legend.position = "bottom",
-                   axis.text.x = ggplot2::element_text(angle = 90)) +
+                   axis.text.x = ggplot2::element_text(angle = 90,
+                                                       vjust = 0.5)) +
     ggplot2::labs(x = "Field Season",
                   y = "Number of Springs", 
                   fill = "Flow Category")
@@ -496,11 +498,13 @@ FlowCategoriesThreeYearPlot <- function(park, site, field.season) {
   
   plot <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "3Yr", Park != "CAMO"),
                           ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
-    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::geom_bar(stat = "identity",
+                      color = "white") +
     ggplot2::facet_grid(~Park, scales = "free", space = "free_x") +
-    ggplot2::scale_fill_manual(values = c("Dry" = "red",
-                                          "Wet Soil" = "gold",
-                                          "< 10 m" = "lightskyblue",
+    ggplot2::scale_fill_manual(values = c("No Data" = "gray70",
+                                          "Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
                                           "10 - 50 m" = "royalblue1",
                                           "> 50 m" = "navy")) +
     ggplot2::theme(legend.position = "bottom",
@@ -551,7 +555,7 @@ FlowCategoriesAnnualHeatMap <- function(park, site, field.season) {
                                                                                                         "<br>Field Season:", FieldSeason,
                                                                                                         "<br>Flow Category:", FlowCategory))) + 
     ggplot2::geom_tile(color = "white") + 
-    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
+    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"), name = "Flow Category") +
     ggplot2::labs(x = "Field Season",
                   y = "Annual Spring") +
     ggplot2::theme(legend.position = "bottom") +
@@ -604,7 +608,7 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
                                                        "<br>Field Season:", FieldSeason,
                                                        "<br>Flow Category:", FlowCategory))) + 
     ggplot2::geom_tile(color = "white") + 
-    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "lightskyblue", "gold", "red"), name = "Flow Category") +
+    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"), name = "Flow Category") +
     ggplot2::labs(x = "Revisit Cycle",
                   y = "Three-Year Spring") +
     ggplot2::theme(legend.position = "bottom") +
@@ -678,7 +682,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   
   flowcat %<>% dplyr::arrange(FieldSeason, dplyr::desc(FlowCategory))
   
-  pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "lightskyblue", "gold", "red"),
+  pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"),
                               domain = flowcat$FlowCategory)
   
   # Make NPS map Attribution

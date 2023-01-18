@@ -101,11 +101,12 @@ qcCompletenessPlot <- function(park, site, field.season) {
         dplyr::filter(Park != "CAMO")
   
   completeness.plot <- ggplot(df2, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
-    geom_bar(position = "stack", stat = "identity") +
+    geom_bar(position = "stack", stat = "identity", color = "white") +
     xlab("Park") +
     ylab("Number of Springs Monitored") + 
     facet_grid(~Park, space = "free_x") +
-    theme(axis.text.x = element_text(angle = 90)) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.position = "bottom") +
     scale_y_continuous(breaks = seq(0, 80, 10)) +
     scale_fill_manual(values = c("rosybrown2", "firebrick", "lightblue", "steelblue"))
 
@@ -355,7 +356,7 @@ qcVisitsByDate <- function(park, site, field.season) {
 #'     qcVisitDateTimelines(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitDateTimelines <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
 
   grouping_vars <- c("Park", "FieldSeason", "SiteCode", "SampleFrame") # Set grouping vars here so that we can add the facet column if needed
   median_grouping_vars <- c("Park", "SiteName", "SiteCode", "SampleFrame")
@@ -378,8 +379,7 @@ qcVisitDateTimelines <- function(park, site, field.season) {
     dplyr::mutate(VisitMonthDay = lubridate::ymd(paste(Year, Month, Day, sep ="-")),
                   pt_tooltip = paste(Date, as.character(lubridate::year(VisitDate))),
                   Event_mmdd = as.Date(paste0(as.character(lubridate::month(VisitMonthDay)), '-', as.character(lubridate::day(VisitMonthDay)), '-', as.character(Year)), format = "%m-%d-%Y")) %>%
-    dplyr::arrange(VisitDate) %>%
-    dplyr::filter(SiteCode != "JOTR_P_BLA0045")
+    dplyr::arrange(VisitDate)
   
   median.dates <- visit.dates %>%
     dplyr::group_by(dplyr::across(median_grouping_vars)) %>%
@@ -407,8 +407,10 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                                                                    "Site Code: ", SiteCode, "<br>",
                                                                    "Visit Date: ", pt_tooltip, "<br>",
                                                                    "Field Season: ", FieldSeason)),
-                                         alpha = 0.7)) + # Using text aesthetic to make tooltips work with plotly. This generates a warning so we have to suppress it.
+                                         alpha = 0.7,
+                                         size = 3)) + # Using text aesthetic to make tooltips work with plotly. This generates a warning so we have to suppress it.
     ggplot2::geom_line(alpha = 0.4) +
+    ggplot2::scale_color_viridis_d(option = "viridis") +
     suppressWarnings(ggplot2::geom_point(ggplot2::aes(x = Median.Date,
                                                       shape = "median",
                                                       text = paste0("Site Name: ", SiteName, "<br>",
@@ -418,7 +420,7 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                                                                     "Earliest: ", min_tooltip, "<br>",
                                                                     "Latest: ", max_tooltip)),
                                          data = median.dates,
-                                         size = 1,
+                                         size = 2,
                                          alpha = 0.7)) +
     ggplot2::scale_shape_manual(values = c("median" = 3)) + # Do this so that the median symbol shows up in the legend
     ggplot2::labs(color = "FieldSeason",
@@ -427,8 +429,8 @@ qcVisitDateTimelines <- function(park, site, field.season) {
                           date_labels = "%b %e",
                           limits = c(lubridate::floor_date(min(visit.dates$Event_mmdd), "month"),
                                      lubridate::ceiling_date(max(visit.dates$Event_mmdd), "month"))) +
-    ggplot2::scale_y_discrete(limits = rev)
-    # + ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free", drop = TRUE) Add back in once ggplotly can handle space = "free"
+    ggplot2::scale_y_discrete(limits = rev) +
+    ggplot2::facet_grid(SampleFrame ~ ., scales = "free", space = "free", drop = TRUE) # Add back in once ggplotly can handle space = "free"
   
   return(plt)
 }

@@ -339,8 +339,8 @@ LifeformsPerSpringPlot <- function(park, field.season) {
 #'     MostCommonLifeformsPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 MostCommonLifeformsPlot <- function(park, field.season) {
-  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
-  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
+  veg <- desertsprings:::ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
+  site <- desertsprings:::ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
 
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)
@@ -455,14 +455,20 @@ MostCommonLifeformsPlot <- function(park, field.season) {
                                                 text = paste("Lifeform Category: ", LifeFormCategory,
                                                              "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
+    ggplot2::geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
     coord_flip() +
     theme(panel.grid.major.y = element_blank(),
           axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5),
           legend.position = "bottom") +
     ylab("Number of Observations at Springs") +
     xlab("Vegetation Life Form Category") +
-    scale_y_continuous(expand = expansion(mult = c(0, .1))) +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1))) +
+    ggplot2::geom_text(aes(label = paste0(Observations, " (", FieldSeason, ")")),
+                       position = ggplot2::position_dodge(width = 1),
+                       vjust = 0.4,
+                       hjust = -0.2,
+                       size = 4,
+                       show.legend = FALSE) +
     facet_grid(Park~.,
                scales = "free")
   
