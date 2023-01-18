@@ -4,7 +4,7 @@
 \alias{WqMapPH}
 \title{Map of pH at springs with surface water}
 \usage{
-WqMapPH(park, site, field.season = "database")
+WqMapPH(park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}

@@ -312,10 +312,10 @@ WqStats <- function(park, site, field.season) {
 WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "Temperature") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
     GetSampleSizes(Park, FieldSeason)
     
   wq.plot.temp <- FormatPlot(
@@ -357,10 +357,10 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
 WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "SpCond") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
     GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.spcond <- FormatPlot(
@@ -435,10 +435,10 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
 WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "pH") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
@@ -513,10 +513,10 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO",
                   Units == "mg/L") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.mgl <- FormatPlot(
@@ -554,10 +554,10 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
 WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO" & Units == "%") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2024"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.pct <- FormatPlot(
@@ -995,7 +995,7 @@ WqMapSpCond <- function(park, site, field.season) {
 #'     WqMapPH(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapPH(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-WqMapPH <- function(park, site, field.season = "database") {
+WqMapPH <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -1115,7 +1115,7 @@ WqMapPH <- function(park, site, field.season = "database") {
 #'     WqMapDO(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMapDO(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-WqMapDO <- function(park, site, field.season = "database") {
+WqMapDO <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   

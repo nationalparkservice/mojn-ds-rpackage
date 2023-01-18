@@ -4,7 +4,7 @@
 \alias{WqMapDO}
 \title{Map of dissolved oxygen concentration at springs with surface water}
 \usage{
-WqMapDO(park, site, field.season = "database")
+WqMapDO(park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
