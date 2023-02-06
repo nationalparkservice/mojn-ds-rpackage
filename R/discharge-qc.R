@@ -459,7 +459,6 @@ FlowCategoriesAnnualPlot <- function(park, site, field.season) {
                           ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
     ggplot2::geom_bar(stat = "identity",
                       color = "white") +
-    ggplot2::facet_grid(~Park) +
     ggplot2::scale_fill_manual(values = c("No Data" = "gray70",
                                           "Dry" = "firebrick",
                                           "Wet Soil" = "goldenrod2",
@@ -471,9 +470,14 @@ FlowCategoriesAnnualPlot <- function(park, site, field.season) {
                                                        vjust = 0.5)) +
     ggplot2::labs(x = "Field Season",
                   y = "Number of Springs", 
-                  fill = "Flow Category")
+                  fill = "Flow Category") +
+    ggplot2::scale_y_continuous(breaks=seq(0,20,2))
   
-  return(plot)
+  if (length(unique(data$Park)) == 1) {
+    return(plot)
+  } else {
+    return(plot + ggplot2::facet_grid(~Park))
+  }
 }
 
 
@@ -500,7 +504,6 @@ FlowCategoriesThreeYearPlot <- function(park, site, field.season) {
                           ggplot2::aes(x = FieldSeason, y = Count, fill = FlowCategory)) +
     ggplot2::geom_bar(stat = "identity",
                       color = "white") +
-    ggplot2::facet_grid(~Park, scales = "free", space = "free_x") +
     ggplot2::scale_fill_manual(values = c("No Data" = "gray70",
                                           "Dry" = "firebrick",
                                           "Wet Soil" = "goldenrod2",
@@ -511,9 +514,14 @@ FlowCategoriesThreeYearPlot <- function(park, site, field.season) {
                    axis.text.x = ggplot2::element_text(angle = 90)) +
     ggplot2::labs(x = "Field Season",
                   y = "Number of Springs", 
-                  fill = "Flow Category")
+                  fill = "Flow Category") +
+    ggplot2::scale_y_continuous(breaks=seq(0,80,10))
   
-  return(plot)
+  if (length(unique(data$Park)) == 1) {
+    return(plot)
+  } else {
+    return(plot + ggplot2::facet_grid(~Park, scales = "free", space = "free_x"))
+  }
 }
 
 
@@ -555,13 +563,21 @@ FlowCategoriesAnnualHeatMap <- function(park, site, field.season) {
                                                                                                         "<br>Field Season:", FieldSeason,
                                                                                                         "<br>Flow Category:", FlowCategory))) + 
     ggplot2::geom_tile(color = "white") + 
-    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"), name = "Flow Category") +
+    ggplot2::scale_fill_manual(values = c("Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy"),
+                               name = "Flow Category") +
     ggplot2::labs(x = "Field Season",
                   y = "Annual Spring") +
-    ggplot2::theme(legend.position = "bottom") +
-    ggplot2::facet_grid(Park~., scales = "free", space = "free_y")
+    ggplot2::theme(legend.position = "bottom")
   
-  return(heatmap)
+  if (length(unique(data$Park)) == 1) {
+    return(heatmap)
+  } else {
+    return(heatmap + ggplot2::facet_grid(Park~., scales = "free", space = "free_y"))
+  }
 }
 
 
@@ -608,13 +624,22 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
                                                        "<br>Field Season:", FieldSeason,
                                                        "<br>Flow Category:", FlowCategory))) + 
     ggplot2::geom_tile(color = "white") + 
-    ggplot2::scale_fill_manual(values = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"), name = "Flow Category") +
+    ggplot2::scale_fill_manual(values = c("Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy"),
+                               name = "Flow Category") +
     ggplot2::labs(x = "Revisit Cycle",
                   y = "Three-Year Spring") +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::facet_grid(Park~., scales = "free", space = "free_y")
   
-  return(heatmap)
+  if (length(unique(data$Park)) == 1) {
+    return(heatmap)
+  } else {
+    return(heatmap + ggplot2::facet_grid(Park~., scales = "free", space = "free_y"))
+  }
 }
 
 
@@ -646,8 +671,8 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
                                                   FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLength_m > 0 & DiscontinuousSpringbrookLength_m < 10) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLength_m > 0 & SpringbrookLength_m < 10) ~ "< 10 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Measured" & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Measured" & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
-                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == ">50m") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == ">50m") ~ "> 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
+                                                  (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "NA")) %>%
     dplyr::filter(FlowCategory != "NA") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory, SpringbrookLength_m, DiscontinuousSpringbrookLength_m, VolDischarge_L_per_s, DischargeClass_L_per_s) %>%
@@ -682,7 +707,11 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   
   flowcat %<>% dplyr::arrange(FieldSeason, dplyr::desc(FlowCategory))
   
-  pal <- leaflet::colorFactor(palette = c("navy", "royalblue1", "#ABC1FF", "goldenrod2", "firebrick"),
+  pal <- leaflet::colorFactor(palette = c("Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy"),
                               domain = flowcat$FlowCategory)
   
   # Make NPS map Attribution
@@ -701,8 +730,8 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(flowcat)
   year_filter <- crosstalk::filter_slider("year",
@@ -710,14 +739,16 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
                                           sd,
                                           column = ~Year,
                                           ticks = TRUE,
-                                          width = width,
+                                          # width = width,
                                           step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
                                           dragRange = TRUE)
   
-  flowmap <- leaflet::leaflet(sd, height = height, width = width) %>%
+  flowmap <- leaflet::leaflet(sd
+                              # , height = height, width = width
+                              ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%

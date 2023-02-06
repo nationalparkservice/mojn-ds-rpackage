@@ -322,7 +322,7 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
@@ -331,10 +331,13 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
     y.lab = "Temperature (C)"
     ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
 
-  return(wq.plot.temp)
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.temp)
+  } else {
+    return(wq.plot.temp + ggplot2::facet_grid(~Park, scales = "free"))
+  }
 }
 
 
@@ -367,18 +370,21 @@ WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     x.lab = "Field Season",
     y.lab = "Specific Cond. (uS/cm)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
     # ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
-  return(wq.plot.spcond)
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.spcond)
+  } else {
+    return(wq.plot.spcond + ggplot2::facet_grid(~Park, scales = "free"))
+  }
 }
 
 
@@ -401,7 +407,7 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Median / 1000,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
@@ -410,10 +416,13 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
     y.lab = "Specific Conductance (mS/cm)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::scale_y_log10(breaks = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), labels = c(0.2, 0.5, 1, 2, 5, 10, 25, 100), limits = c(0.2, 100))
   
-  return(wq.plot.spcond.ms)
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.spcond.ms)
+  } else {
+    return(wq.plot.spcond.ms + ggplot2::facet_grid(~Park, scales = "free"))
+  }
 }
 
 
@@ -445,53 +454,22 @@ WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     x.lab = "Park",
     y.lab = "pH"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
-  return(wq.plot.ph)
-  
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.ph)
+  } else {
+    return(wq.plot.pH + ggplot2::facet_grid(~Park, scales = "free"))
+  }  
 }
 
-#' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
-#'
-#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param include.title Include plot title? Defaults to TRUE
-#'
-#' @return Box plots of dissolved oxygen (percent) data for each park and field season.
-#' @export
-#'
-WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
-  wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
-    dplyr::filter(Parameter == "DO" & Units == "%" & Park != "CAMO" & !is.na(Median)) %>%
-    GetSampleSizes(Park, FieldSeason)
-  
-  wq.plot.do.pct <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Median,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Dissolved Oxygen Percent", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
-    y.lab = "Dissolved Oxygen (%)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::ylim(0, 100)
-  
-  return(wq.plot.do.pct)
-}
 
 #' Generate box plots for concentration dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 #'
@@ -523,17 +501,20 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     x.lab = "Park",
     y.lab = "Dissolved Oxygen (mg/L)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
   
-  return(wq.plot.do.mgl)
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.do.mgl)
+  } else {
+    return(wq.plot.do.mgl + ggplot2::facet_grid(~Park, scales = "free"))
+  }
 }
 
 
@@ -564,17 +545,21 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    facet.col = Park,
+    # facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
     x.lab = "Park",
     y.lab = "Dissolved Oxygen (%)"
   ) +
     ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5)) + 
+    ggplot2::ylim(0, 100)
   
-  return(wq.plot.do.pct)
+  if (length(unique(wq.plot$Park)) == 1) {
+    return(wq.plot.do.pct)
+  } else {
+    return(wq.plot.do.pct + ggplot2::facet_grid(~Park, scales = "free"))
+  }
 }
 
 
@@ -807,8 +792,8 @@ WqMapTemp <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -816,14 +801,16 @@ WqMapTemp <- function(park, site, field.season) {
                                            sd,
                                            column = ~Year,
                                            ticks = TRUE,
-                                           width = width,
+                                           # width = width,
                                            step = 1,
                                            sep = "",
                                            pre = "WY",
                                            post = NULL,
                                            dragRange = TRUE)
   
-  wqmaptemp <- leaflet::leaflet(sd, height = height, width = width) %>%
+  wqmaptemp <- leaflet::leaflet(sd
+                                # , height = height, width = width
+                                ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
@@ -926,8 +913,8 @@ WqMapSpCond <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -935,14 +922,16 @@ WqMapSpCond <- function(park, site, field.season) {
                                           sd,
                                           column = ~Year,
                                           ticks = TRUE,
-                                          width = width,
+                                          # width = width,
                                           step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
                                           dragRange = TRUE)
   
-  wqmapspcond <- leaflet::leaflet(sd, height = height, width = width) %>%
+  wqmapspcond <- leaflet::leaflet(sd
+                                  # , height = height, width = width
+                                  ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
@@ -1047,8 +1036,8 @@ WqMapPH <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -1056,14 +1045,16 @@ WqMapPH <- function(park, site, field.season) {
                                           sd,
                                           column = ~Year,
                                           ticks = TRUE,
-                                          width = width,
+                                          # width = width,
                                           step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
                                           dragRange = TRUE)
   
-  wqmapph <- leaflet::leaflet(sd, height = height, width = width) %>%
+  wqmapph <- leaflet::leaflet(sd
+                              # , height = height, width = width
+                              ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
@@ -1166,8 +1157,8 @@ WqMapDO <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -1175,14 +1166,16 @@ WqMapDO <- function(park, site, field.season) {
                                           sd,
                                           column = ~Year,
                                           ticks = TRUE,
-                                          width = width,
+                                          # width = width,
                                           step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
                                           dragRange = TRUE)
   
-  wqmapdo <- leaflet::leaflet(sd, height = height, width = width) %>%
+  wqmapdo <- leaflet::leaflet(sd
+                              # , height = height, width = width
+                              ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%

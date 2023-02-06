@@ -5,26 +5,18 @@
 \title{Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.}
 \usage{
 WqPlotDOPct(park, site, field.season, include.title = FALSE)
-
-WqPlotDOPct(park, site, field.season, include.title = FALSE)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
-
-\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 
 \item{include.title}{Include plot title? Defaults to TRUE}
 }
 \value{
-Box plots of dissolved oxygen (percent) data for each park and field season.
-
 ggplot box plots
 }
 \description{
-Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
-
 Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 }
 \examples{

@@ -563,8 +563,8 @@ InvasivePlantsMap <- function(park, site, field.season) {
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 700
+  # height <- 700
   
   sd <- crosstalk::SharedData$new(invasivesdata)
   year_filter <- crosstalk::filter_slider("year",
@@ -572,14 +572,16 @@ InvasivePlantsMap <- function(park, site, field.season) {
                                           sd,
                                           column = ~Year,
                                           ticks = TRUE,
-                                          width = width,
+                                          # width = width,
                                           step = 1,
                                           sep = "",
                                           pre = "WY",
                                           post = NULL,
                                           dragRange = TRUE)
   
-  invmap <- leaflet::leaflet(sd, height = height, width = width) %>%
+  invmap <- leaflet::leaflet(sd
+                             # , height = height, width = width
+                             ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
