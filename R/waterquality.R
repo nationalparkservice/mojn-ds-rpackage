@@ -322,15 +322,16 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
-    facet.as.subtitle = include.title,
+    facet.as.subtitle = FALSE,
+    # plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
+    # facet.as.subtitle = include.title,
     x.lab = "Field Season",
     y.lab = "Temperature (C)"
     ) +
-    ggplot2::geom_boxplot() + 
+    ggplot2::geom_boxplot() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5))
 
   if (length(unique(wq.plot$Park)) == 1) {
@@ -370,9 +371,10 @@ WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
+    facet.as.subtitle = FALSE,
     x.lab = "Field Season",
     y.lab = "Specific Cond. (uS/cm)"
   ) +
@@ -407,11 +409,10 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Median / 1000,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Specific Conductance", ""),
-    facet.as.subtitle = include.title,
+    facet.as.subtitle = FALSE,
     x.lab = "Field Season",
     y.lab = "Specific Conductance (mS/cm)"
   ) +
@@ -454,9 +455,10 @@ WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
+    facet.as.subtitle = FALSE,
     x.lab = "Park",
     y.lab = "pH"
   ) +
@@ -466,7 +468,7 @@ WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
   if (length(unique(wq.plot$Park)) == 1) {
     return(wq.plot.ph)
   } else {
-    return(wq.plot.pH + ggplot2::facet_grid(~Park, scales = "free"))
+    return(wq.plot.ph + ggplot2::facet_grid(~Park, scales = "free"))
   }  
 }
 
@@ -501,9 +503,10 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
+    facet.as.subtitle = FALSE,
     x.lab = "Park",
     y.lab = "Dissolved Oxygen (mg/L)"
   ) +
@@ -545,9 +548,10 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
     data = wq.plot,
     x.col = FieldSeason,
     y.col = Value,
-    # facet.col = Park,
+    facet.col = Park,
     sample.size.col = SampleSizeLabel,
     sample.size.loc = "xaxis",
+    facet.as.subtitle = FALSE,
     x.lab = "Park",
     y.lab = "Dissolved Oxygen (%)"
   ) +
