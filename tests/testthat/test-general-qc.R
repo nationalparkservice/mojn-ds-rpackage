@@ -4,8 +4,8 @@ LoadDesertSprings(dir)
 
 test_that("qcCompleteness works as expected", {
   
-  actual_rows <- nrow(qcCompleteness())
-  expect_equal(actual_rows, 63)
+  actual_rows <- nrow(qcCompleteness(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 56)
   
   actual_cols <- colnames(qcCompleteness())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "MonitoringStatus", "Count", "Percent")
@@ -42,7 +42,7 @@ test_that("qcDPLCheck returns correct number of rows and columns", {
 
 test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns", {
 
-  actual_rows <- nrow(qcSpringTypeDiscrepancies())
+  actual_rows <- nrow(qcSpringTypeDiscrepancies(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 81)
   
   actual_cols <- colnames(qcSpringTypeDiscrepancies())
@@ -54,7 +54,7 @@ test_that("qcSpringTypeDiscrepancies returns correct number of rows and columns"
 
 test_that("qcVisitsBySite works as expected", {
   
-  actual_rows <- nrow(qcVisitsBySite())
+  actual_rows <- nrow(qcVisitsBySite(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 249)
   
   actual_cols <- colnames(qcVisitsBySite())
@@ -73,8 +73,8 @@ test_that("qcVisitsBySite works as expected", {
 
 test_that("qcVisitsByDate works as expected", {
   
-  actual_rows <- nrow(qcVisitsByDate())
-  expect_equal(actual_rows, 158)
+  actual_rows <- nrow(qcVisitsByDate(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 156)
   
   actual_cols <- colnames(qcVisitsByDate())
   expected_cols <- c("Date", "WY2023", "WY2022", "WY2021", "WY2020", "WY2019", "WY2018", "WY2017", "WY2016")
@@ -114,7 +114,7 @@ test_that("qcNotSampled returns correct number of rows and columns", {
 
 test_that("qcRepeatVisits returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcRepeatVisits())
+  actual_rows <- nrow(qcRepeatVisits(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 12)
   
   actual_cols <- colnames(qcRepeatVisits())

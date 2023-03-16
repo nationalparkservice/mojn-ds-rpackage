@@ -4,7 +4,7 @@ LoadDesertSprings(dir)
 
 test_that("qcVegPresentNoLifeforms returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcVegPresentNoLifeforms())
+  actual_rows <- nrow(qcVegPresentNoLifeforms(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcVegPresentNoLifeforms())
@@ -16,7 +16,7 @@ test_that("qcVegPresentNoLifeforms returns correct number of rows and columns", 
 
 test_that("qcNoVegLifeformsPresent returns correct number of rows and columns", {
  
-  actual_rows <- nrow(qcNoVegLifeformsPresent())
+  actual_rows <- nrow(qcNoVegLifeformsPresent(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcNoVegLifeformsPresent())
@@ -28,7 +28,7 @@ test_that("qcNoVegLifeformsPresent returns correct number of rows and columns", 
 
 test_that("qcLifeformPresentNoRank works as expected", {
 
-  actual_rows <- nrow(qcLifeformPresentNoRank())
+  actual_rows <- nrow(qcLifeformPresentNoRank(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcLifeformPresentNoRank())
@@ -43,8 +43,8 @@ test_that("qcLifeformPresentNoRank works as expected", {
 
 test_that("qcLifeformRankCheck works as expected", {
 
-  actual_rows <- nrow(qcLifeformRankCheck())
-  expect_equal(actual_rows, 29)
+  actual_rows <- nrow(qcLifeformRankCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 43)
   
   actual_cols <- colnames(qcLifeformRankCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Rank", "Count", "Diff", "LifeForms")
@@ -64,8 +64,8 @@ test_that("qcLifeformRankCheck works as expected", {
 
 test_that("LifeformsPresence works as expected", {
 
-  actual_rows <- nrow(LifeformsPresence())
-  expect_equal(actual_rows, 267)
+  actual_rows <- nrow(LifeformsPresence(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 317)
   
   actual_cols <- colnames(LifeformsPresence())
   expected_cols <- c("Park", "FieldSeason", "LifeForm", "Observations")
@@ -83,8 +83,8 @@ test_that("LifeformsPresence works as expected", {
 
 test_that("InvasivePlants works as expected", {
   
-  actual_rows <- nrow(InvasivePlants())
-  expect_equal(actual_rows, 142)
+  actual_rows <- nrow(InvasivePlants(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 213)
   
   actual_cols <- colnames(InvasivePlants())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "USDAPlantsCode", "ScientificName", "InRiparianVegBuffer", "Notes")

@@ -4,8 +4,8 @@ LoadDesertSprings(dir)
 
 test_that("WqMedian works as expected", {
 
-  actual_rows <- nrow(WqMedian() %>% dplyr::filter(Park == "LAKE"))
-  expect_equal(actual_rows, 64)
+  actual_rows <- nrow(WqMedian(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")) %>% dplyr::filter(Park == "LAKE"))
+  expect_equal(actual_rows, 86)
   
   actual_cols <- colnames(WqMedian())
   expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "TemperatureFlag", "TemperatureFlagNote", "TemperatureMedian_C", "TemperatureCount", "SpCondFlag", "SpCondFlagNote", "SpCondMedian_microS_per_cm", "SpCondCount", "pHFlag", "pHFlagNote", "pHMedian", "pHCount", "DOFlag", "DOFlagNote", "DOMedian_Percent", "DOPercentCount", "DOMedian_mg_per_L", "DOmgLCount")
@@ -30,8 +30,8 @@ test_that("WqMedian works as expected", {
 
 test_that("qcWqSanity works as expected", {
   
-  actual_rows <- nrow(qcWqSanity())
-  expect_equal(actual_rows, 80)
+  actual_rows <- nrow(qcWqSanity(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 109)
   
   actual_cols <- colnames(qcWqSanity())
   expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "SanityNote")
@@ -52,8 +52,8 @@ test_that("qcWqSanity works as expected", {
 
 test_that("qcWqFlags works as expected", {
   
-  actual_rows <- nrow(qcWqFlags())
-  expect_equal(actual_rows, 106)
+  actual_rows <- nrow(qcWqFlags(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 158)
   
   actual_cols <- colnames(qcWqFlags())
   expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "Flag", "FlagNote")
@@ -99,8 +99,8 @@ test_that("qcWqLong works as expected", {
 
 test_that("WqStats works as expected", {
   
-  actual_rows <- nrow(WqStats())
-  expect_equal(actual_rows, 135)
+  actual_rows <- nrow(WqStats(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 160)
   
   actual_cols <- colnames(WqStats())
   expected_cols <- c("Park", "FieldSeason", "Parameter", "Units", "Minimum", "FirstQuartile", "Median", "ThirdQuartile", "Maximum", "Count")
@@ -118,8 +118,8 @@ test_that("WqStats works as expected", {
 
 test_that("qcLocalDOCheck returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcLocalDOCheck())
-  expect_equal(actual_rows, 165)
+  actual_rows <- nrow(qcLocalDOCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 152)
   
   actual_cols <- colnames(qcLocalDOCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "DOInstrument", "PreCalDO_percent", "PostCalDO_percent")
@@ -136,8 +136,8 @@ test_that("qcLocalDOCheck returns correct number of rows and columns", {
 
 test_that("qcSpCondStandardCheck works as expected", {
   
-  actual_rows <- nrow(qcSpCondStandardCheck())
-  expect_equal(actual_rows, 21)
+  actual_rows <- nrow(qcSpCondStandardCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 24)
   
   actual_cols <- colnames(qcSpCondStandardCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SpCondInstrument", "SpCondMedian", "SpCondStandard")
