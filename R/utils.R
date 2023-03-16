@@ -369,7 +369,7 @@ LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.
                                             lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
                                             sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
                                             calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
-                                            use_default_sql = FALSE, sql_drv = odbc::odbc(), ...) {
+                                            use_default_sql = FALSE, sql_drv = odbc::odbc(), agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username)), ...) {
   
   # Figure out the format of the data
   agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"
@@ -383,7 +383,7 @@ LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.
   is_folder <- dir.exists(data_path[1])
   
   if (is_agol) {  # Read from AGOL feature layer
-           data <- ReadAGOL(data_path)
+           data <- ReadAGOL(data_path, agol_username, agol_password)
   } else if (is_db) {  # Read from SQL Server database
     data <- ReadSqlDatabase()
   } else if (is_zip | is_folder) {  # Read from folder of CSV's (may be zipped)

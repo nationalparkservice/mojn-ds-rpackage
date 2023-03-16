@@ -1,5 +1,5 @@
 context("Vegetation")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("qcVegPresentNoLifeforms returns correct number of rows and columns", {

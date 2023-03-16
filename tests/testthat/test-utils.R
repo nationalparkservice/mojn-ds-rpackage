@@ -1,5 +1,5 @@
 context("Utility functions")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("GetSiteName retrieves the correct spring name for the spring code provided", {

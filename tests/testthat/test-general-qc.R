@@ -1,5 +1,5 @@
 context("Completeness")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("qcCompleteness works as expected", {

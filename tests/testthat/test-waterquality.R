@@ -1,5 +1,5 @@
 context("Water_quality")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("WqMedian works as expected", {

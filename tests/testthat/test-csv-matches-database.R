@@ -1,22 +1,13 @@
 context("Reading from database and csv")
 
-# Write temporary csv files
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
-dir <- here::here("tests", "testthat", "temp-test-csv")
-SaveDataToCsv(dir, create.folders = TRUE, overwrite = TRUE)
-
-
 data.names <- names(GetColSpec())
 
 for (d.name in data.names) {
   test_that(paste0(d.name, ".csv matches data read from database"), {
     db <- ReadAndFilterData(data.name = d.name)
-    LoadDesertSprings(here::here("tests", "testthat", "temp-test-csv"))
+    LoadDesertSprings(dir)
     csv <- ReadAndFilterData(data.name = d.name)
     
     expect_dataframe_equal(db, csv)
   })
 }
-
-# Remove temporary csv's
-unlink(dir, recursive = TRUE)

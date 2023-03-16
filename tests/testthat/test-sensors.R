@@ -1,5 +1,5 @@
 context("Sensor functions")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("qcSensorSummary works as expected", {

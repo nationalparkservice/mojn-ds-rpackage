@@ -1,5 +1,5 @@
 context("Disturbance")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(dir)
 
 
 test_that("qcDisturbanceFormatted works as expected", {
