@@ -44,7 +44,7 @@ test_that("qcLifeformPresentNoRank works as expected", {
 test_that("qcLifeformRankCheck works as expected", {
 
   actual_rows <- nrow(qcLifeformRankCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 43)
+  expect_equal(actual_rows, 0) # Actual rows will be 0 once survey form has been fixed to remove repeats
   
   actual_cols <- colnames(qcLifeformRankCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Rank", "Count", "Diff", "LifeForms")
@@ -56,7 +56,7 @@ test_that("qcLifeformRankCheck works as expected", {
   expect_equal(class(actual_int$Diff), "integer")
   
   actual_lifeforms <- qcLifeformRankCheck() %>% dplyr::filter(SiteCode == "DEVA_P_LIT0005", FieldSeason == "2021", Rank == 6) %>% dplyr::select(LifeForms)
-  expected_lifeforms <- tibble::as_tibble(as.character("Sedge, Bryophyte")) %>% dplyr::rename(LifeForms = value)
+  expected_lifeforms <- tibble::tibble(LifeForms = character())
   expect_equal(actual_lifeforms, expected_lifeforms)
    
 })

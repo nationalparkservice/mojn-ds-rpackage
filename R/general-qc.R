@@ -241,7 +241,7 @@ qcSpringTypeDiscrepancies <- function(park, site, field.season) {
     dplyr::arrange(SiteCode, VisitDate) %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SpringType) %>%
     dplyr::group_by(Park, SiteCode, SiteName, SpringType) %>%
-    dplyr::mutate(FieldSeasons = paste0(FieldSeason, collapse = ", ")) %>%
+    dplyr::mutate(FieldSeasons = paste0(sort(FieldSeason), collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::select(-c("FieldSeason")) %>%
     unique() %>%

@@ -63,6 +63,8 @@ qcFlowModFormatted <- function(park, site, field.season) {
     dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
     dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
     dplyr::select(-MonitoringStatus) %>%
+    dplyr::mutate(ModificationType = dplyr::case_when(ModificationType == "Exc" ~ "Excavation",
+                                                       TRUE ~ ModificationType)) %>%
     dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
                                                             FlowModificationStatus == "No Data" ~ "NoData",
                                                             TRUE ~ FlowModificationStatus))
@@ -189,7 +191,7 @@ qcFlowModDiscrepancies <- function(park, site, field.season) {
     dplyr::select(-c("VisitDate", "ModificationType", "VisitType", "DPL")) %>%
     unique() %>%
     dplyr::group_by(Park, SiteCode, SiteName, FlowModificationStatus) %>%
-    dplyr::mutate(FieldSeasons = paste0(FieldSeason, collapse = ", ")) %>%
+    dplyr::mutate(FieldSeasons = paste0(sort(FieldSeason), collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::select(-c("FieldSeason")) %>%
     dplyr::filter(FlowModificationStatus != "NoData") %>%

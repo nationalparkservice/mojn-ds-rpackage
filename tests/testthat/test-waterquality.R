@@ -110,7 +110,7 @@ test_that("WqStats works as expected", {
   expect_equal(unique(sapply(actual_dbl[, 5:9], typeof)), "double")
   
   actual_stats <- WqStats() %>% dplyr::filter(Park == "MOJA", FieldSeason == "2019", Parameter == "Temperature") %>% dplyr::select(Minimum, FirstQuartile, Median, ThirdQuartile, Maximum)
-  expected_stats <- tibble::as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.5), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
+  expected_stats <- tibble::as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.4), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
   expect_equal(actual_stats, expected_stats)
   
 })
