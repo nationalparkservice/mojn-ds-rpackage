@@ -55,9 +55,9 @@ SpringDischarge <- function(park, site, field.season) {
     dplyr::select(SiteCode, VisitDate, SampleFrame, Panel)
   
   joined <- discharge %>%
-    dplyr::left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
-    dplyr::left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason")) %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate")) %>%
+    dplyr::left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL"), multiple = "all") %>%
+    dplyr::left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason"), multiple = "all") %>%
+    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate"), multiple = "all") %>%
     dplyr::select(-DPL) %>%
     dplyr::relocate(SampleFrame, .after = FieldSeason) %>%
     dplyr::relocate(Panel, .after = SampleFrame) %>%
@@ -91,7 +91,6 @@ SpringDischarge <- function(park, site, field.season) {
 #'     qcSpringDryWater(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcSpringDryWater <- function(park, site, field.season) {
-    
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
    
   dry <- joined %>%
@@ -363,7 +362,7 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
                                                   SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50) ~ "10 - 50 m",
                                                   TRUE ~ "No Data")) %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
-    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel")) %>%
+    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all") %>%
     tidyr::complete(tidyr::nesting(Park, SiteCode, SiteName, SampleFrame, Panel), FieldSeason) %>%
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
@@ -419,7 +418,7 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "No Data")) %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
-    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel")) %>%
+    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all") %>%
     tidyr::complete(tidyr::nesting(Park, SiteCode, SiteName, SampleFrame, Panel), FieldSeason) %>%
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
@@ -608,15 +607,19 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "NA")) %>%
-    dplyr::mutate(Visit = ifelse((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018"), "First",
-                            ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021"), "Second",
-                               ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2024"), "Third", NA)))) %>%
-    dplyr::filter(!is.na(Visit))
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023")))
+    # dplyr::mutate(Visit = ifelse((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018"), "First",
+    #                         ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021"), "Second",
+    #                            ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2024"), "Third", NA)))) %>%
+    # dplyr::filter(!is.na(Visit))
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
   heatmap <- ggplot2::ggplot(data %>% dplyr::filter(SampleFrame == "3Yr", Park != "CAMO"),
-                             ggplot2::aes(x = Visit, 
+                             ggplot2::aes(x = FieldSeason, 
                                           y = reorder(SiteCode, dplyr::desc(SiteCode)),
                                           fill = FlowCategory,
                                           text = paste("Site Name: ", SiteName,
@@ -630,11 +633,10 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
                                           "10 - 50 m" = "royalblue1",
                                           "> 50 m" = "navy"),
                                name = "Flow Category") +
-    ggplot2::labs(x = "Revisit Cycle",
+    ggplot2::labs(x = "Field Season",
                   y = "Three-Year Spring") +
-    ggplot2::theme(legend.position = "bottom") +
-    ggplot2::facet_grid(Park~., scales = "free", space = "free_y")
-  
+    ggplot2::theme(legend.position = "bottom")
+
   if (length(unique(data$Park)) == 1) {
     return(heatmap)
   } else {
@@ -678,7 +680,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory, SpringbrookLength_m, DiscontinuousSpringbrookLength_m, VolDischarge_L_per_s, DischargeClass_L_per_s) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::left_join(coords, by = "SiteCode") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
@@ -707,11 +709,11 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   
   flowcat %<>% dplyr::arrange(FieldSeason, dplyr::desc(FlowCategory))
   
-  pal <- leaflet::colorFactor(palette = c("Dry" = "firebrick",
-                                          "Wet Soil" = "goldenrod2",
-                                          "< 10 m" = "#ABC1FF",
-                                          "10 - 50 m" = "royalblue1",
-                                          "> 50 m" = "navy"),
+  pal <- leaflet::colorFactor(palette = rev(c("Dry" = "firebrick",
+                                              "Wet Soil" = "goldenrod2",
+                                              "< 10 m" = "#ABC1FF",
+                                              "10 - 50 m" = "royalblue1",
+                                              "> 50 m" = "navy")),
                               domain = flowcat$FlowCategory)
   
   # Make NPS map Attribution
@@ -780,7 +782,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   
   if (!missing(interactive)) {
     if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season)) {
+      if(missing(field.season) | length(field.season) > 1) {
         flowmap <- crosstalk::bscols(list(year_filter,
                                      flowmap))
       } else {

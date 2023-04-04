@@ -48,7 +48,7 @@ qcCompleteness <- function(park, site, field.season) {
     unique()
   
   expected <- df1 %>%
-    dplyr::left_join(df2, by = c("Park", "SampleFrame"))
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all")
   
   samplestatus <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
@@ -56,7 +56,7 @@ qcCompleteness <- function(park, site, field.season) {
                   VisitType == "Primary",
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
-    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason")) %>%
+    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason"), multiple = "all") %>%
     dplyr::mutate(MonitoringStatus = dplyr::case_when(is.na(MonitoringStatus) ~ "Not Sampled",
                                                       TRUE ~ MonitoringStatus)) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, MonitoringStatus) %>%
@@ -198,18 +198,18 @@ do.DPL <- do %>%
   dplyr::distinct()
 
 dpl <- visit.DPL %>%
-  dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
-  dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType")) %>%
+  dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
   unique() %>%
   dplyr::filter_all(dplyr::any_vars(. %in% c("Raw", "Provisional"))) %>%
   dplyr::arrange(FieldSeason, Park, SiteCode)
@@ -483,7 +483,7 @@ qcNotSampled <- function(park, site, field.season) {
     unique()
   
   expected <- df1 %>%
-    dplyr::left_join(df2, by = c("Park", "SampleFrame"))
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all")
   
   notsampled <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
@@ -491,11 +491,11 @@ qcNotSampled <- function(park, site, field.season) {
                   VisitType == "Primary",
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, MonitoringStatus) %>%
-    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason")) %>%
+    dplyr::right_join(expected, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "FieldSeason"), multiple = "all") %>%
     dplyr::mutate(MonitoringStatus = dplyr::case_when(is.na(MonitoringStatus) ~ "Not Sampled",
                                                       TRUE ~ MonitoringStatus)) %>%
     dplyr::filter(MonitoringStatus == "Not Sampled") %>%
-    dplyr::arrange(Park, FieldSeason, SampleFrame, SiteCode) %>%
+    dplyr::arrange(FieldSeason, Park, SampleFrame, SiteCode) %>%
     dplyr::select(-MonitoringStatus)
   
   return(notsampled)

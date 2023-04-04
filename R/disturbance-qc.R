@@ -15,7 +15,7 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
     dplyr::select(SiteCode, VisitDate, VisitType, MonitoringStatus)
   
   formatted <- disturbance %>%
-    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
+    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType"), multiple = "all") %>%
     dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
     dplyr::select(-MonitoringStatus) %>%
     dplyr::mutate_at(c("Roads",
@@ -60,7 +60,7 @@ qcFlowModFormatted <- function(park, site, field.season) {
     dplyr::select(SiteCode, VisitDate, VisitType, MonitoringStatus)
   
   formatted <- flowmod %>%
-    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType")) %>%
+    dplyr::left_join(status, by = c("SiteCode", "VisitDate", "VisitType"), multiple = "all") %>%
     dplyr::filter(MonitoringStatus == "Sampled", VisitType == "Primary") %>%
     dplyr::select(-MonitoringStatus) %>%
     dplyr::mutate(ModificationType = dplyr::case_when(ModificationType == "Exc" ~ "Excavation",
@@ -256,7 +256,7 @@ FlowModCount <- function(park, site, field.season) {
     unique()
   
   count <- sampleframe %>%
-    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName"), multiple = "all") %>%
     dplyr::filter(VisitType %in% c("Primary", NA)) %>%
     dplyr::select(-c(VisitDate, FieldSeason, ModificationType, VisitType, DPL)) %>%
     unique() %>%
@@ -283,7 +283,7 @@ FlowModCount <- function(park, site, field.season) {
     dplyr::rename(Total = Count)
     
   percent <- count %>%
-    dplyr::left_join(total, by = "Park") %>%
+    dplyr::left_join(total, by = "Park", multiple = "all") %>%
     dplyr::mutate(Percent = round((Count / Total) * 100, 1)) %>%
     dplyr::select(-Total)
 
@@ -356,7 +356,7 @@ DisturbanceCount <- function(park, site, field.season) {
     unique()
   
   disturb <- sampleframe %>%
-    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::left_join(formatted, by = c("Park", "SiteCode", "SiteName"), multiple = "all") %>%
     dplyr::filter(VisitType %in% c("Primary", NA)) %>%
     dplyr::select(-c(VisitType, DPL)) %>%
     unique() %>%
@@ -474,7 +474,7 @@ HumanUseMap <- function(park, site, field.season) {
                                               HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
-    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
@@ -649,7 +649,7 @@ LivestockMap <- function(park, site, field.season) {
                                               Livestock %in% c("1", "2", "3", "4") ~ "Yes",
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
-    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)

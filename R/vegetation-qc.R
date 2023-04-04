@@ -172,7 +172,7 @@ LifeformsPerSpringPlot <- function(park, field.season) {
   site %<>% dplyr::select(SiteCode, SampleFrame)
   
   veg.sums <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -196,7 +196,7 @@ LifeformsPerSpringPlot <- function(park, field.season) {
 ###################  
     
   veg.sums.all <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -259,7 +259,7 @@ LifeformsPerSpringPlot <- function(park, field.season) {
 ################### 
     
   veg.sums.year <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -433,7 +433,7 @@ MostCommonLifeformsPlot <- function(park, field.season) {
   #####
   
   veg.types.year <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr"),
                   !is.na(LifeForm),
@@ -530,7 +530,7 @@ InvasivePlantsMap <- function(park, site, field.season) {
   
   invasivesdata <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
-    dplyr::inner_join(coords, by = c("SiteCode")) %>%
+    dplyr::inner_join(coords, by = c("SiteCode"), multiple = "all") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
                                                InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",

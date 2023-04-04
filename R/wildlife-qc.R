@@ -112,7 +112,7 @@ UngulatesMap <- function(park, site, field.season) {
   ungulatedata <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
-    dplyr::inner_join(coords, by = "SiteCode") %>%
+    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Observed = dplyr::case_when(WildlifeType == "Ungulate" ~ "Yes",
                                               is.na(WildlifeType) ~ "No",

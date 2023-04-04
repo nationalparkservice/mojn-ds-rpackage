@@ -20,8 +20,8 @@ QcFlowCat <- function(park, site, field.season) {
   
   # Join volumetric and estimated discharge to flow condition.
   flowcondition.joined <- flowcondition %>%
-    dplyr::left_join(dplyr::select(volumetric.discharge, VolumetricDischarge_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
-    dplyr::left_join(dplyr::select(estimated, DischargeClass_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")) %>%
+    dplyr::left_join(dplyr::select(volumetric.discharge, VolumetricDischarge_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL"), multiple = "all") %>%
+    dplyr::left_join(dplyr::select(estimated, DischargeClass_L_per_s, c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL")), by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL"), multiple = "all") %>%
     dplyr::relocate(VolumetricDischarge_L_per_s, .after = SpringbrookWidth_m) %>%
     dplyr::relocate(DischargeClass_L_per_s, .after = VolumetricDischarge_L_per_s)
     
@@ -75,7 +75,7 @@ QcFlowTidy <- function(park, site, field.season) {
   flow.visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
   
   fc.tidy <- fc.cat.data %>%
-    dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate")) %>%
+    dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%
     dplyr::filter(VisitType == "Primary", SampleFrame %in% c("Annual", "3Yr"))
   
   return(fc.tidy)

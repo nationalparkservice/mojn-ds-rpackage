@@ -34,7 +34,7 @@ qcSensorSummary <- function(park, deployment.field.season) {
     dplyr::group_by(Park, SiteCode, SensorNumber, SerialNumber, DeploymentDate) %>%
     dplyr::summarize(RetrievalDate = max(RetrievalDate, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    dplyr::inner_join(attempts, by = c("Park", "SiteCode", "SensorNumber", "SerialNumber", "DeploymentDate", "RetrievalDate"))
+    dplyr::inner_join(attempts, by = c("Park", "SiteCode", "SensorNumber", "SerialNumber", "DeploymentDate", "RetrievalDate"), multiple = "all")
 
   deployed <- latest.attempts %>%
     dplyr::filter(DeploymentVisitType == "Primary") %>%
@@ -42,7 +42,7 @@ qcSensorSummary <- function(park, deployment.field.season) {
     dplyr::group_by(Park, DeploymentFieldSeason) %>%
     dplyr::summarise(RetrievalAttempted = dplyr::n()) %>%
     dplyr::ungroup() %>%
-    dplyr::full_join(no.attempt, by = c("Park", "DeploymentFieldSeason")) %>%
+    dplyr::full_join(no.attempt, by = c("Park", "DeploymentFieldSeason"), multiple = "all") %>%
     tidyr::replace_na(list(NoRetrievalAttempted = 0, RetrievalAttempted = 0)) %>%
     dplyr::mutate(Deployed = RetrievalAttempted + NoRetrievalAttempted)
 
@@ -61,8 +61,8 @@ qcSensorSummary <- function(park, deployment.field.season) {
     dplyr::ungroup()
 
   summary <- deployed %>%
-    dplyr::full_join(retrieved, by = c("Park", "DeploymentFieldSeason")) %>%
-    dplyr::full_join(downloaded, by = c("Park", "DeploymentFieldSeason")) %>%
+    dplyr::full_join(retrieved, by = c("Park", "DeploymentFieldSeason"), multiple = "all") %>%
+    dplyr::full_join(downloaded, by = c("Park", "DeploymentFieldSeason"), multiple = "all") %>%
     tidyr::replace_na(list(Retrieved = 0, Downloaded = 0)) %>%
     dplyr::select(Park, DeploymentFieldSeason, Deployed, NoRetrievalAttempted, RetrievalAttempted, Retrieved, Downloaded) %>%
     dplyr::arrange(Park, DeploymentFieldSeason) %>%
@@ -95,7 +95,7 @@ qcSensorHeatmap <- function(park) {
     dplyr::select(SiteCode, SampleFrame)
   
   joined <- attempts %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode"))
+    dplyr::left_join(sampleframe, by = c("SiteCode"), multiple = "all")
   
   joined %<>%
     # filter(DeploymentVisitType == "Primary") %>%
@@ -152,10 +152,10 @@ qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
                   DeploymentDate = VisitDate)
   
   notdeployed <- annual_springs %>%
-    dplyr::full_join(all_deployments, by = c("Park", "SiteCode", "SiteName")) %>%
+    dplyr::full_join(all_deployments, by = c("Park", "SiteCode", "SiteName"), multiple = "all") %>%
     tidyr::complete(SiteCode, DeploymentFieldSeason) %>%
     dplyr::select(-Park, -SiteName) %>%
-    dplyr::right_join(annual_springs, by = "SiteCode") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
+    dplyr::right_join(annual_springs, by = "SiteCode", multiple = "all") %>% # annual springs re-appended to help filter out occasional deployments at non-annual springs
     dplyr::select(Park, SiteCode, SiteName, DeploymentFieldSeason, DeploymentDate) %>%
     dplyr::filter(!is.na(Park),
                   is.na(DeploymentDate)) %>%
@@ -210,7 +210,7 @@ qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
   notrecovered <- attempts %>%
     dplyr::select(-c("Park", "SiteName")) %>%
     tidyr::complete(SiteCode, RetrievalFieldSeason) %>%
-    dplyr::left_join(all_springs, by = "SiteCode") %>%
+    dplyr::left_join(all_springs, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(RetrievalFieldSeason != "2023") %>% #temporary
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, RetrievalFieldSeason, RetrievalDate, RetrievalVisitType, SensorNumber, SerialNumber, SensorRetrieved, SensorProblem, Notes) %>%
     dplyr::filter(!(Park == "DEVA" & RetrievalFieldSeason %in% c("2017", "2018")),
