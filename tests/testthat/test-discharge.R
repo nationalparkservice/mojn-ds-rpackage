@@ -129,7 +129,7 @@ test_that("qcSpringNotDryNoWater returns expected number of rows and columns", {
 test_that("qcDischargeMissing returns expected number of rows and columns", {
   
   actual_rows <- nrow(qcDischargeMissing(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 111)
+  expect_equal(actual_rows, 113)
   
   actual_cols <- colnames(qcDischargeMissing())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "DischargeNotes", "SpringbrookNotes")

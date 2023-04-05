@@ -159,7 +159,7 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       ContainerVolume_mL = readr::col_integer(),
       FillTime_seconds = readr::col_double(),
-      EstimatedCapture_percent = readr::col_integer(),
+      EstimatedCapture_percent = readr::col_double(),
       .default = readr::col_character()
     ),
     Disturbance = readr::cols(
