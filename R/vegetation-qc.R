@@ -15,7 +15,7 @@
 #' }
 qcVegPresentNoLifeforms <- function(park, site, field.season) {
   veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
-  
+
   vegnolife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::filter(IsVegetationObserved == "Y" & is.na(LifeForm)) %>%
@@ -119,6 +119,65 @@ qcLifeformRankCheck <- function(park, site, field.season) {
     dplyr::ungroup()
   
   return(rankcheck)
+}
+
+
+#' Return list of lifeform types that were duplicated during data entry
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcVegDuplicates()
+#'     qcVegDuplicates(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
+#' }
+qcVegDuplicates <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
+  
+  veg.dupes <- veg %>%
+    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, LifeForm) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, LifeForm) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(Count > 1)
+  
+  return(veg.dupes)
+}
+
+
+#' Return list of invasive plants that were duplicated during data entry
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcVegDuplicates()
+#'     qcVegDuplicates(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
+#' }
+qcInvasiveDuplicates <- function(park, site, field.season) {
+  inv <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
+  
+  inv.dupes <- inv %>%
+    dplyr::filter(VisitType == "Primary",
+                  USDAPlantsCode != "UNK") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(Count > 1)
+  
+  return(inv.dupes)
 }
 
 

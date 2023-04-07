@@ -683,13 +683,13 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
     dplyr::left_join(coords, by = "SiteCode", multiple = "all") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
-  
+
   if (!missing(interactive)) {
       if (interactive %in% c("Yes", "yes", "Y", "y")) {
       } else {
         if (!missing(field.season)) {
           flowcat %<>%
-            dplyr::filter(FieldSeason == field.season)
+            dplyr::filter(FieldSeason %in% field.season)
         } else {
           flowcat %<>%
             dplyr::filter(FieldSeason == max(FieldSeason))  
@@ -698,7 +698,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   } else {      
     if (!missing(field.season)) {
         flowcat %<>%
-          dplyr::filter(FieldSeason == field.season)
+          dplyr::filter(FieldSeason %in% field.season)
      } else {
         flowcat %<>%
           dplyr::filter(FieldSeason == max(FieldSeason))  
@@ -736,17 +736,12 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(flowcat)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   flowmap <- leaflet::leaflet(sd
                               # , height = height, width = width
@@ -782,7 +777,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
   
   if (!missing(interactive)) {
     if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) | length(field.season) > 1) {
+      if(missing(field.season) || length(field.season) > 1) {
         flowmap <- crosstalk::bscols(list(year_filter,
                                      flowmap))
       } else {

@@ -636,7 +636,7 @@ LivestockPlot <- function(park, site, field.season) {
 #'     LivestockMap(site = "MOJA_P_WIL0224", field.season = "2019")
 #'     LivestockMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 #' }
-LivestockMap <- function(park, site, field.season) {
+LivestockMap <- function(interactive, park, site, field.season) {
   formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -654,11 +654,32 @@ LivestockMap <- function(park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+    } else {
+      if (!missing(field.season)) {
+        livestockdata %<>%
+          dplyr::filter(FieldSeason %in% field.season)
+      } else {
+        livestockdata %<>%
+          dplyr::filter(FieldSeason == max(FieldSeason))  
+      }
+    }
+  } else {      
+    if (!missing(field.season)) {
+      livestockdata %<>%
+        dplyr::filter(FieldSeason %in% field.season)
+    } else {
+      livestockdata %<>%
+        dplyr::filter(FieldSeason == max(FieldSeason))  
+    }
+  }
+  
   livestockdata$Observed <- factor(livestockdata$Observed, levels = c("Yes"))
   
   livestockdata %<>% dplyr::arrange(FieldSeason)
   
-  pal <- leaflet::colorFactor(palette = c("red"),
+  pal <- leaflet::colorFactor(palette = c("firebrick"),
                               domain = livestockdata$Observed)
   
   # Make NPS map Attribution
@@ -681,17 +702,12 @@ LivestockMap <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(livestockdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   lsmap <- leaflet::leaflet(sd
                             # , width = width, height = height
@@ -722,11 +738,26 @@ LivestockMap <- function(park, site, field.season) {
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
+
+  if (missing(field.season) || length(field.season) > 1) {
+    lsmap <- crosstalk::bscols(list(year_filter, lsmap))
+  } else {
+    # do nothing
+  }
+
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      if(missing(field.season) || length(field.season) > 1) {
+        lsmap <- crosstalk::bscols(list(year_filter,
+                                          lsmap))
+      } else {
+      }  
+    } else {
+    }
+  } else {
+  }
   
-  livestockmap <- crosstalk::bscols(list(year_filter,
-                                    lsmap))
-  
-  return(livestockmap)
+  return(lsmap)
 }
 
 

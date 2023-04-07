@@ -60,6 +60,35 @@ qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
 }
 
 
+#' Return list of wildlife types that were duplicated during data entry
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcWildlifeDuplicates()
+#'     qcWildlifeDuplicates(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+#' }
+qcWildlifeDuplicates <- function(park, site, field.season) {
+  wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Wildlife")
+  
+  wildlife.dupes <- wildlife %>%
+    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(Count > 1)
+  
+  return(wildlife.dupes)
+}
+
+
 #' Table of springs with evidence of ungulate (sheep and deer) activity
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
