@@ -4,7 +4,7 @@
 \alias{HumanUseMap}
 \title{Map of human use observations}
 \usage{
-HumanUseMap(park, site, field.season)
+HumanUseMap(interactive, park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}

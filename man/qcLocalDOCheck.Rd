@@ -2,7 +2,7 @@
 % Please edit documentation in R/waterquality.R
 \name{qcLocalDOCheck}
 \alias{qcLocalDOCheck}
-\title{Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen percent.}
+\title{Check dissolved oxygen calibrations for the use of non-local dissolved oxygen percent.}
 \usage{
 qcLocalDOCheck(park, site, field.season)
 }
@@ -17,7 +17,7 @@ qcLocalDOCheck(park, site, field.season)
 Tibble
 }
 \description{
-Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen percent.
+Check dissolved oxygen calibrations for the use of non-local dissolved oxygen percent.
 }
 \examples{
 \dontrun{

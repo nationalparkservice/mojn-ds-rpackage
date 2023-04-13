@@ -4,7 +4,7 @@
 \alias{LivestockMap}
 \title{Map of livestock disturbance observations}
 \usage{
-LivestockMap(park, site, field.season)
+LivestockMap(interactive, park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
