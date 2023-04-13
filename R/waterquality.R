@@ -598,7 +598,7 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
   return(wq.plot.grid)
   }
   
-#' Check dissolved oxygen calibrations for the use of non-local dissolved oxgygen percent.
+#' Check dissolved oxygen calibrations for the use of non-local dissolved oxygen percent.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -803,17 +803,12 @@ WqMapTemp <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                           "",
-                                           sd,
-                                           column = ~Year,
-                                           ticks = TRUE,
-                                           # width = width,
-                                           step = 1,
-                                           sep = "",
-                                           pre = "WY",
-                                           post = NULL,
-                                           dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   wqmaptemp <- leaflet::leaflet(sd
                                 # , height = height, width = width
@@ -846,11 +841,16 @@ WqMapTemp <- function(park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               overlayGroups = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
+
+  if (missing(field.season)) {
+    wqmaptemp <- crosstalk::bscols(list(year_filter, wqmaptemp))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
+  } else {
+   wqmaptemp <- crosstalk::bscols(list(year_filter, wqmaptemp))
+  }
   
-  wqdatamaptemp <- crosstalk::bscols(list(year_filter,
-                                          wqmaptemp))
-  
-  return(wqdatamaptemp)
+  return(wqmaptemp)
 }
 
 
@@ -924,17 +924,12 @@ WqMapSpCond <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   wqmapspcond <- leaflet::leaflet(sd
                                   # , height = height, width = width
@@ -967,11 +962,16 @@ WqMapSpCond <- function(park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               overlayGroups = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
-  
-  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
-                                            wqmapspcond))
-  
-  return(wqdatamapspcond)
+ 
+  if (missing(field.season)) {
+    wqmapspcond <- crosstalk::bscols(list(year_filter, wqmapspcond))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
+  } else {
+    wqmapspcond <- crosstalk::bscols(list(year_filter, wqmapspcond))
+  }
+
+  return(wqmapspcond)
   
 }
 
@@ -1047,17 +1047,12 @@ WqMapPH <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   wqmapph <- leaflet::leaflet(sd
                               # , height = height, width = width
@@ -1090,11 +1085,16 @@ WqMapPH <- function(park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               overlayGroups = c("< 6.5", "6.5 - 7", "7 - 7.5", "7.5 - 8", "8 - 8.5", "8.5 - 9", "> 9"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
-  
-  wqdatamapph <- crosstalk::bscols(list(year_filter,
-                                            wqmapph))
-  
-  return(wqdatamapph)
+ 
+  if (missing(field.season)) {
+    wqmapph <- crosstalk::bscols(list(year_filter, wqmapph))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
+  } else {
+    wqmapph <- crosstalk::bscols(list(year_filter, wqmapph))
+  }
+
+  return(wqmapph)
 }
 
 
@@ -1168,17 +1168,12 @@ WqMapDO <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   wqmapdo <- leaflet::leaflet(sd
                               # , height = height, width = width
@@ -1212,10 +1207,15 @@ WqMapDO <- function(park, site, field.season) {
                               overlayGroups = c("< 2", "2 - 4", "4 - 6", "6 - 8", "8 - 10", "> 10"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  wqdatamapdo <- crosstalk::bscols(list(year_filter,
-                                        wqmapdo))
+  if (missing(field.season)) {
+    wqmapdo <- crosstalk::bscols(list(year_filter, wqmapdo))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
+  } else {
+    wqmapdo <- crosstalk::bscols(list(year_filter, wqmapdo))
+  }
   
-  return(wqdatamapdo)
+  return(wqmapdo)
 }
 
 
@@ -1278,17 +1278,12 @@ WqMapTempX <- function(park, site, field.season = "database") {
   height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  # year_filter <- crosstalk::filter_slider("year",
-  #                                         "",
-  #                                         sd,
-  #                                         column = ~Year,
-  #                                         ticks = TRUE,
-  #                                         width = width,
-  #                                         step = 1,
-  #                                         sep = "",
-  #                                         pre = "WY",
-  #                                         post = NULL,
-  #                                         dragRange = TRUE)
+  # year_filter <- crosstalk::filter_checkbox(id = "year",
+  #                                           label = "Water Year",
+  #                                           sharedData = sd,
+  #                                           group = ~Year,
+  #                                           # width = width,
+  #                                           inline = TRUE)
   
   wqmaptemp <- leaflet::leaflet(sd, height = height, width = width) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%

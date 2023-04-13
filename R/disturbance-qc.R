@@ -461,7 +461,7 @@ HumanUsePlot <- function(park, site, field.season) {
 #'     HumanUseMap(site = "LAKE_P_DRI0002", field.season = "2019")
 #'     HumanUseMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 #' }
-HumanUseMap <- function(park, site, field.season) {
+HumanUseMap <- function(interactive, park, site, field.season) {
   formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -478,12 +478,33 @@ HumanUseMap <- function(park, site, field.season) {
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
+
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+    } else {
+      if (!missing(field.season)) {
+        humandata %<>%
+          dplyr::filter(FieldSeason %in% field.season)
+      } else {
+        humandata %<>%
+          dplyr::filter(FieldSeason == max(FieldSeason))  
+      }
+    }
+  } else {      
+    if (!missing(field.season)) {
+      humandata %<>%
+        dplyr::filter(FieldSeason %in% field.season)
+    } else {
+      humandata %<>%
+        dplyr::filter(FieldSeason == max(FieldSeason))  
+    }
+  }
   
   humandata$Observed <- factor(humandata$Observed, levels = c("Yes"))
   
   humandata %<>% dplyr::arrange(FieldSeason)
   
-  pal <- leaflet::colorFactor(palette = c("red"),
+  pal <- leaflet::colorFactor(palette = c("firebrick"),
                               domain = humandata$Observed)
   
   # Make NPS map Attribution
@@ -506,19 +527,14 @@ HumanUseMap <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(humandata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
-  lsmap <- leaflet::leaflet(sd
+  humanmap <- leaflet::leaflet(sd
                             # , width = width, height = height
                             ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
@@ -548,8 +564,23 @@ HumanUseMap <- function(park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  humanmap <- crosstalk::bscols(list(year_filter,
-                                     lsmap))
+  if (missing(field.season) || length(field.season) > 1) {
+    humanmap <- crosstalk::bscols(list(year_filter, humanmap))
+  } else {
+    # do nothing
+  }
+  
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      if(missing(field.season) || length(field.season) > 1) {
+        lsmap <- crosstalk::bscols(list(year_filter,
+                                        humanmap))
+      } else {
+      }  
+    } else {
+    }
+  } else {
+  }
   
   return(humanmap)
 }

@@ -131,7 +131,7 @@ UngulatesEvidence <- function(park, site, field.season) {
 #'     UngulatesMap(site = "LAKE_P_COR0023")
 #'     UngulatesMap(park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
 #' }
-UngulatesMap <- function(park, site, field.season) {
+UngulatesMap <- function(interactive, park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -149,12 +149,33 @@ UngulatesMap <- function(park, site, field.season) {
     dplyr::filter(Observed == "Yes")  %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
+
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+    } else {
+      if (!missing(field.season)) {
+        ungulatedata %<>%
+          dplyr::filter(FieldSeason %in% field.season)
+      } else {
+        ungulatedata %<>%
+          dplyr::filter(FieldSeason == max(FieldSeason))  
+      }
+    }
+  } else {      
+    if (!missing(field.season)) {
+      ungulatedata %<>%
+        dplyr::filter(FieldSeason %in% field.season)
+    } else {
+      ungulatedata %<>%
+        dplyr::filter(FieldSeason == max(FieldSeason))  
+    }
+  }
   
   ungulatedata$Observed <- factor(ungulatedata$Observed, levels = c("Yes"))
   
   ungulatedata %<>% dplyr::arrange(FieldSeason)
   
-  pal <- leaflet::colorFactor(palette = c("red"),
+  pal <- leaflet::colorFactor(palette = c("firebrick"),
                      domain = ungulatedata$Observed)
   
   # Make NPS map Attribution
@@ -177,17 +198,12 @@ UngulatesMap <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(ungulatedata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          # width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
   ungmap <- leaflet::leaflet(sd
                              # , width = width, height = height
@@ -225,8 +241,23 @@ UngulatesMap <- function(park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  ungulatemap <- crosstalk::bscols(list(year_filter,
-                                   ungmap))
+  if (missing(field.season) || length(field.season) > 1) {
+    ungmap <- crosstalk::bscols(list(year_filter, ungmap))
+  } else {
+    # do nothing
+  }
   
-  return(ungulatemap)
+  if (!missing(interactive)) {
+    if (interactive %in% c("Yes", "yes", "Y", "y")) {
+      if(missing(field.season) || length(field.season) > 1) {
+        lsmap <- crosstalk::bscols(list(year_filter,
+                                        ungmap))
+      } else {
+      }  
+    } else {
+    }
+  } else {
+  }
+  
+  return(ungmap)
 }

@@ -533,7 +533,7 @@ qcRepeatVisits <- function(park, site, field.season) {
 }
 
 
-#' #' Return list of repeat photo types that were duplicated during data entry
+#' Return list of repeat photo types that were duplicated during data entry
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -548,16 +548,16 @@ qcRepeatVisits <- function(park, site, field.season) {
 #'     qcPhotoDuplicates(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcPhotoDuplicates <- function(park, site, field.season) {
-  photo <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Photo")
-  
-  photo.old <- photo %>%
-    dplyr::filter(VisitType == "Primary") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, PhotoType) %>%
-    dplyr::filter(PhotoType %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR")) %>%
-    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, PhotoType) %>%
-    dplyr::summarize(Count = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(Count > 1)
+  # photo <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Photo")
+  # 
+  # photo.old <- photo %>%
+  #   dplyr::filter(VisitType == "Primary") %>%
+  #   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, PhotoType) %>%
+  #   dplyr::filter(PhotoType %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR")) %>%
+  #   dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, PhotoType) %>%
+  #   dplyr::summarize(Count = dplyr::n()) %>%
+  #   dplyr::ungroup() %>%
+  #   dplyr::filter(Count > 1)
  
   repeats <- FetchAGOLLayers()$repeats %>%
     dplyr::select(PhotoType, phototypename, LegacyPhotoID, globalid, parentglobalid)
@@ -593,38 +593,6 @@ qcPhotoDuplicates <- function(park, site, field.season) {
    
   return(photo.dupes)
 }
-
-repeats <- FetchAGOLLayers()$repeats %>%
-  dplyr::select(PhotoType, phototypename, LegacyPhotoID, globalid, parentglobalid)
-repeats.ext <- FetchAGOLLayers()$repeats_ext %>%
-  dplyr::select(ExternalFileNumber, externalFile, parentglobalid)
-repeats.int <- FetchAGOLLayers()$repeats_int %>%
-  dplyr::select(globalid, parentglobalid)
-visits <- FetchAGOLLayers()$visit %>%
-  dplyr::select(Park, SiteCode, DateTime, FieldSeason, VisitType, UsingInternalCamera, Camera, CameraCard, globalid)
-
-photos <- repeats %>%
-  dplyr::full_join(repeats.ext, by = c("globalid" = "parentglobalid"), multiple = "all")
-
-photos.all <- visits %>%
-  dplyr::full_join(photos, by = c("globalid" = "parentglobalid"), multiple = "all") %>%
-  dplyr::filter(PhotoType %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR") | phototypename %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR")) %>%
-  dplyr::select(-LegacyPhotoID,
-                -globalid,
-                -UsingInternalCamera,
-                -externalFile,
-                -phototypename,
-                -ExternalFileNumber) %>%
-  unique() %>%
-  dplyr::group_by(Park, SiteCode, DateTime, FieldSeason, VisitType, Camera, CameraCard, PhotoType) %>%
-  dplyr::summarize(Count = dplyr::n()) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(Count > 1)
-  
-  # dplyr::filter(PhotoType != phototypename) DEVA_P_MC0281 2017-12-06
-  # dplyr::filter(ExternalFileNumber != externalFile) DEVA_P_PAN0418 2022-02-01
-  # dplyr::filter(is.na(PhotoType))
-  # dplyr::filter(is.na(ExternalFileNumber), CameraCard != "AGOL_DS")
 
 
 #' Map of annual and 3-year desert springs monitoring locations
