@@ -580,7 +580,7 @@ InvasivePlants <- function(park, site, field.season) {
 #'     InvasivePlantsMap(site = "LAKE_P_GET0066", field.season = "2019")
 #'     InvasivePlantsMap(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-InvasivePlantsMap <- function(interactive, park, site, field.season) {
+InvasivePlantsMap <- function(park, site, field.season) {
   invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Site")
   
@@ -599,28 +599,6 @@ InvasivePlantsMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason) %>%
     dplyr::filter(!(Park == "JOTR" & USDAPlantsCode == "WAFI"))
- 
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-    } else {
-      if (!missing(field.season)) {
-        invasivesdata %<>%
-          dplyr::filter(FieldSeason %in% field.season)
-      } else {
-        invasivesdata %<>%
-          dplyr::filter(FieldSeason == max(FieldSeason))  
-      }
-    }
-  } else {      
-    if (!missing(field.season)) {
-      invasivesdata %<>%
-        dplyr::filter(FieldSeason %in% field.season)
-    } else {
-      invasivesdata %<>%
-        dplyr::filter(FieldSeason == max(FieldSeason))  
-    }
-  }
-  
    
   invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Pennisetum setaceum", "Phoenix dactylifera", "Polypogon monspeliensis", "Tamarix ramosissima", "Washingtonia filifera", "Other"))
   
@@ -688,23 +666,13 @@ InvasivePlantsMap <- function(interactive, park, site, field.season) {
                               overlayGroups = c("Pennisetum setaceum", "Phoenix dactylifera", "Polypogon monspeliensis", "Tamarix ramosissima", "Washingtonia filifera", "Other"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
  
-  if (missing(field.season) || length(field.season) > 1) {
+  if (missing(field.season)) {
     invmap <- crosstalk::bscols(list(year_filter, invmap))
-  } else {
+  } else if (!missing(field.season) & length(field.season) == 1) {
     # do nothing
+  } else {
+    invmap <- crosstalk::bscols(list(year_filter, invmap))
   }
   
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) || length(field.season) > 1) {
-        invmap <- crosstalk::bscols(list(year_filter,
-                                        invmap))
-      } else {
-      }  
-    } else {
-    }
-  } else {
-  }
-
   return(invmap)
 }

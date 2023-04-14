@@ -4,7 +4,7 @@
 \alias{InvasivePlantsMap}
 \title{Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations}
 \usage{
-InvasivePlantsMap(interactive, park, site, field.season)
+InvasivePlantsMap(park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}

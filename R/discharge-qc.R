@@ -738,27 +738,6 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
 
-  if (!missing(interactive)) {
-      if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      } else {
-        if (!missing(field.season)) {
-          flowcat %<>%
-            dplyr::filter(FieldSeason %in% field.season)
-        } else {
-          flowcat %<>%
-            dplyr::filter(FieldSeason == max(FieldSeason))  
-        }
-      }
-  } else {      
-    if (!missing(field.season)) {
-        flowcat %<>%
-          dplyr::filter(FieldSeason %in% field.season)
-     } else {
-        flowcat %<>%
-          dplyr::filter(FieldSeason == max(FieldSeason))  
-     }
-  }
-  
   flowcat$FlowCategory <- factor(flowcat$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
   flowcat %<>% dplyr::arrange(FieldSeason, dplyr::desc(FlowCategory))
@@ -829,18 +808,14 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
                               overlayGroups = ~FlowCategory,
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) || length(field.season) > 1) {
-        flowmap <- crosstalk::bscols(list(year_filter,
-                                     flowmap))
-      } else {
-      }  
-    } else {
-    }
+  if (missing(field.season)) {
+    flowmap <- crosstalk::bscols(list(year_filter, flowmap))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
   } else {
+    flowmap <- crosstalk::bscols(list(year_filter, flowmap))
   }
-     
+  
   return(flowmap)
 }
 

@@ -4,7 +4,7 @@
 \alias{UngulatesMap}
 \title{Map of springs with evidence of ungulate (sheep and deer) activity}
 \usage{
-UngulatesMap(interactive, park, site, field.season)
+UngulatesMap(park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}

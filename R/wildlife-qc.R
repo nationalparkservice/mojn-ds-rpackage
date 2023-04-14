@@ -131,7 +131,7 @@ UngulatesEvidence <- function(park, site, field.season) {
 #'     UngulatesMap(site = "LAKE_P_COR0023")
 #'     UngulatesMap(park = c("DEVA", "MOJA"), field.season = c("2019", "2021"))
 #' }
-UngulatesMap <- function(interactive, park, site, field.season) {
+UngulatesMap <- function(park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -150,27 +150,6 @@ UngulatesMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
 
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-    } else {
-      if (!missing(field.season)) {
-        ungulatedata %<>%
-          dplyr::filter(FieldSeason %in% field.season)
-      } else {
-        ungulatedata %<>%
-          dplyr::filter(FieldSeason == max(FieldSeason))  
-      }
-    }
-  } else {      
-    if (!missing(field.season)) {
-      ungulatedata %<>%
-        dplyr::filter(FieldSeason %in% field.season)
-    } else {
-      ungulatedata %<>%
-        dplyr::filter(FieldSeason == max(FieldSeason))  
-    }
-  }
-  
   ungulatedata$Observed <- factor(ungulatedata$Observed, levels = c("Yes"))
   
   ungulatedata %<>% dplyr::arrange(FieldSeason)
@@ -241,22 +220,12 @@ UngulatesMap <- function(interactive, park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  if (missing(field.season) || length(field.season) > 1) {
+  if (missing(field.season)) {
     ungmap <- crosstalk::bscols(list(year_filter, ungmap))
-  } else {
+  } else if (!missing(field.season) & length(field.season) == 1) {
     # do nothing
-  }
-  
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) || length(field.season) > 1) {
-        lsmap <- crosstalk::bscols(list(year_filter,
-                                        ungmap))
-      } else {
-      }  
-    } else {
-    }
   } else {
+    ungmap <- crosstalk::bscols(list(year_filter, ungmap))
   }
   
   return(ungmap)

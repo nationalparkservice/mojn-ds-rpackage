@@ -461,7 +461,7 @@ HumanUsePlot <- function(park, site, field.season) {
 #'     HumanUseMap(site = "LAKE_P_DRI0002", field.season = "2019")
 #'     HumanUseMap(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 #' }
-HumanUseMap <- function(interactive, park, site, field.season) {
+HumanUseMap <- function(park, site, field.season) {
   formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
@@ -479,27 +479,6 @@ HumanUseMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
 
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-    } else {
-      if (!missing(field.season)) {
-        humandata %<>%
-          dplyr::filter(FieldSeason %in% field.season)
-      } else {
-        humandata %<>%
-          dplyr::filter(FieldSeason == max(FieldSeason))  
-      }
-    }
-  } else {      
-    if (!missing(field.season)) {
-      humandata %<>%
-        dplyr::filter(FieldSeason %in% field.season)
-    } else {
-      humandata %<>%
-        dplyr::filter(FieldSeason == max(FieldSeason))  
-    }
-  }
-  
   humandata$Observed <- factor(humandata$Observed, levels = c("Yes"))
   
   humandata %<>% dplyr::arrange(FieldSeason)
@@ -564,22 +543,12 @@ HumanUseMap <- function(interactive, park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
   
-  if (missing(field.season) || length(field.season) > 1) {
+  if (missing(field.season)) {
     humanmap <- crosstalk::bscols(list(year_filter, humanmap))
-  } else {
+  } else if (!missing(field.season) & length(field.season) == 1) {
     # do nothing
-  }
-  
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) || length(field.season) > 1) {
-        lsmap <- crosstalk::bscols(list(year_filter,
-                                        humanmap))
-      } else {
-      }  
-    } else {
-    }
   } else {
+    humanmap <- crosstalk::bscols(list(year_filter, humanmap))
   }
   
   return(humanmap)
@@ -685,27 +654,6 @@ LivestockMap <- function(interactive, park, site, field.season) {
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-    } else {
-      if (!missing(field.season)) {
-        livestockdata %<>%
-          dplyr::filter(FieldSeason %in% field.season)
-      } else {
-        livestockdata %<>%
-          dplyr::filter(FieldSeason == max(FieldSeason))  
-      }
-    }
-  } else {      
-    if (!missing(field.season)) {
-      livestockdata %<>%
-        dplyr::filter(FieldSeason %in% field.season)
-    } else {
-      livestockdata %<>%
-        dplyr::filter(FieldSeason == max(FieldSeason))  
-    }
-  }
-  
   livestockdata$Observed <- factor(livestockdata$Observed, levels = c("Yes"))
   
   livestockdata %<>% dplyr::arrange(FieldSeason)
@@ -770,22 +718,12 @@ LivestockMap <- function(interactive, park, site, field.season) {
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
 
-  if (missing(field.season) || length(field.season) > 1) {
+  if (missing(field.season)) {
     lsmap <- crosstalk::bscols(list(year_filter, lsmap))
-  } else {
+  } else if (!missing(field.season) & length(field.season) == 1) {
     # do nothing
-  }
-
-  if (!missing(interactive)) {
-    if (interactive %in% c("Yes", "yes", "Y", "y")) {
-      if(missing(field.season) || length(field.season) > 1) {
-        lsmap <- crosstalk::bscols(list(year_filter,
-                                          lsmap))
-      } else {
-      }  
-    } else {
-    }
   } else {
+    lsmap <- crosstalk::bscols(list(year_filter, lsmap))
   }
   
   return(lsmap)
