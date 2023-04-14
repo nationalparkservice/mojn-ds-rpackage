@@ -4,7 +4,7 @@
 \alias{qcCalibrationTimes}
 \title{Check that instruments were calibrated within 1 day of site visit}
 \usage{
-qcCalibrationTimes(park, site, field.season = "database")
+qcCalibrationTimes(park, site, field.season)
 }
 \arguments{
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}

@@ -524,6 +524,60 @@ FlowCategoriesThreeYearPlot <- function(park, site, field.season) {
 }
 
 
+#' Summary bar plot of flow categories for all springs
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return ggplot bar plot
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     FlowCategoriesTotalPlot()
+#'     FlowCategoriesTotalPlot(park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2019"))
+#' }
+FlowCategoriesTotalPlot <- function(park, site, field.season) {
+  data <- FlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
+  
+  data$FlowCategory <- factor(data$FlowCategory, levels = c("No Data", "> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
+  
+  sum <- data %>%
+    dplyr::group_by(Park, FieldSeason, FlowCategory) %>%
+    dplyr::summarize(New = sum(Count)) %>%
+    dplyr::ungroup()%>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023")))
+  
+  plot <- ggplot2::ggplot(sum,
+                          ggplot2::aes(x = FieldSeason, y = New, fill = FlowCategory)) +
+    ggplot2::geom_bar(stat = "identity",
+                      color = "white") +
+    ggplot2::scale_fill_manual(values = c("No Data" = "gray70",
+                                          "Dry" = "firebrick",
+                                          "Wet Soil" = "goldenrod2",
+                                          "< 10 m" = "#ABC1FF",
+                                          "10 - 50 m" = "royalblue1",
+                                          "> 50 m" = "navy")) +
+    ggplot2::theme(legend.position = "bottom",
+                   axis.text.x = ggplot2::element_text(angle = 90,
+                                                       vjust = 0.5)) +
+    ggplot2::labs(x = "Field Season",
+                  y = "Number of Springs", 
+                  fill = "Flow Category") +
+    ggplot2::scale_y_continuous(breaks=seq(0,80,5))
+  
+  if (length(unique(data$Park)) == 1) {
+    return(plot)
+  } else {
+    return(plot + ggplot2::facet_grid(~Park, scales = "free"))
+  }
+}
+
+
 #' Summary heat map of flow categories for annual springs
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".

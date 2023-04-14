@@ -76,7 +76,7 @@ ClearDesertSpringsCache <- function(silent = FALSE) {
 #' }
 OpenDatabaseConnection <- function(use.mojn.default = TRUE, drv = odbc::odbc(), ...) {
   if (use.mojn.default) {
-    params <- readr::read_csv("M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv", col_types = "cccc") %>%
+    params <- readr::read_csv("M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv", col_types = "cccc", locale = readr::locale(encoding = "UTF-8")) %>%
       as.list()
     params$drv <- drv
     my.pool <- do.call(pool::dbPool, params)
@@ -288,7 +288,7 @@ ReadCSV <- function(data_path) {
       unzip(data_path, overwrite = TRUE, exdir = temp_dir, junkpaths = TRUE)
       data <- lapply(names(col.spec), function(data.name){
         file_path <- file.path(temp_dir, paste0(data.name, ".csv"))
-        df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]])
+        df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]], locale = readr::locale(encoding = "UTF-8"))
         return(df)
       })
     },
@@ -297,7 +297,7 @@ ReadCSV <- function(data_path) {
   } else {  # Read files from data path
     data <- lapply(names(col.spec), function(data.name){
       file_path <- file.path(data_path, paste0(data.name, ".csv"))
-      df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]])
+      df <- readr::read_csv(file = file_path, col_types = col.spec[[data.name]], locale = readr::locale(encoding = "UTF-8"))
       return(df)
     })
   }
@@ -515,7 +515,7 @@ SaveDataToCsv <- function(dest.folder, create.folders = FALSE, overwrite = FALSE
   for (view.name in analysis.views) {
     df <- ReadAndFilterData(data.name = view.name) %>%
       dplyr::collect()
-    readr::write_csv(df, file.path(dest.folder, paste0(view.name, ".csv")), na = "", append = FALSE, col_names = TRUE)
+    readr::write_csv(df, file.path(dest.folder, paste0(view.name, ".csv")), na = "", append = FALSE, col_names = TRUE, eol = "\n")
   }
 }
 
@@ -743,5 +743,5 @@ FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.si
 #'
 expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
   test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
-  return(expect_true(test_result, label = test_result))
+  return(testthat::expect_true(test_result, label = test_result))
 }

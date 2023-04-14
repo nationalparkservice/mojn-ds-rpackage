@@ -685,7 +685,7 @@ qcSpCondStandardCheck <- function(park, site, field.season) {
 #'     qcCalibrationTimes(site = "LAKE_P_GET0066")
 #'     qcCalibrationTimes(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
 #' }
-qcCalibrationTimes <- function(park, site, field.season = "database") {
+qcCalibrationTimes <- function(park, site, field.season) {
   ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationpH")
   sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
   do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
@@ -694,7 +694,8 @@ qcCalibrationTimes <- function(park, site, field.season = "database") {
     dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, pHInstrument) %>%
     dplyr::rename(VisitTime = StartTime,
                   Instrument = pHInstrument) %>%
-    dplyr::mutate(Parameter = "pH")
+    dplyr::mutate(Parameter = "pH") %>%
+    unique()
     
   sc_data <- sc %>%
     dplyr::select(SiteCode, FieldSeason, VisitDate, StartTime, CalibrationDate, CalibrationTime, SpCondInstrument) %>%
@@ -732,6 +733,85 @@ qcCalibrationTimes <- function(park, site, field.season = "database") {
   return(cal_data)
 }
 
+
+#' Check for missing calibration unique IDs
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcUniqueIDMissing()
+#'     qcUniqueIDMissing(site = "LAKE_P_GET0066")
+#'     qcUniqueIDMissing(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#' }
+qcUniqueIDMissing <- function(park, site, field.season) {
+  ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationpH")
+  sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
+  do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
+  
+  ph_data <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitypH")
+  sc_data <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitySpCond")
+  do_data <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityDO")
+  
+  ph_cal <- ph %>%
+    dplyr::select(SiteCode, VisitDate, CalibrationDate, StandardValue_pH) %>%
+    dplyr::rename(Standard = "StandardValue_pH") %>%
+    dplyr::group_by(SiteCode, VisitDate, CalibrationDate) %>%
+    dplyr::summarize(Standard = paste(Standard, collapse = ", ")) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(Parameter = "pH")
+  
+  sc_cal <- sc %>%
+    dplyr::select(SiteCode, VisitDate, CalibrationDate, StandardValue_microS_per_cm) %>%
+    dplyr::rename(Standard = "StandardValue_microS_per_cm") %>%
+    dplyr::mutate(Parameter = "SpCond",
+                  Standard = as.character(Standard))
+  
+  do_cal <- do %>%
+    dplyr::select(SiteCode, VisitDate, CalibrationDate) %>%
+    dplyr::mutate(Standard = as.character(100),
+                  Parameter = "DO")
+  
+  ph_site <- ph_data %>%
+    dplyr::filter(!is.na(pH)) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, pH) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::summarize(Value = median(pH)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(Parameter = "pH")
+  
+  sc_site <- sc_data %>%
+    dplyr::filter(!is.na(SpecificConductance_microS_per_cm)) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpecificConductance_microS_per_cm) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::summarize(Value = median(SpecificConductance_microS_per_cm)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(Parameter = "SpCond")
+  
+  do_site <- do_data %>%
+    dplyr::filter(!is.na(DissolvedOxygen_percent) | !is.na(DissolvedOxygen_mg_per_L)) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, DissolvedOxygen_mg_per_L) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::summarize(Value = median(DissolvedOxygen_mg_per_L)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(Parameter = "DO",
+                  Value = dplyr::case_when(is.na(Value) ~ -999,
+                                           TRUE ~ Value))
+  
+  site_data <- rbind(ph_site, sc_site, do_site)
+  cal_data <- rbind(ph_cal, sc_cal, do_cal)
+ 
+  joined <- site_data %>%
+    dplyr::full_join(cal_data, by = c("SiteCode", "VisitDate", "Parameter"), multiple = "all") %>%
+    dplyr::filter(is.na(Standard) | is.na(CalibrationDate))
+   
+  return(joined)
+}
 
 #' Map of water temperature at springs with surface water
 #'
@@ -1216,338 +1296,4 @@ WqMapDO <- function(park, site, field.season) {
   }
   
   return(wqmapdo)
-}
-
-
-
-#################### Functions for Desert Springs PowerPoint -- not for final data package
-
-WqMapTempX <- function(park, site, field.season = "database") {
-  data <- qcWqLong(park, site, field.season)
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
-  
-  coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
-  
-  meddata <- data %>%
-    dplyr::group_by(Park, SiteCode, SampleFrame, Parameter, Units) %>%
-    dplyr::summarize(Value = median(Value)) %>%
-    dplyr::ungroup()
-  
-  wqdata <- meddata %>%
-    dplyr::select(Park, SiteCode, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
-    dplyr::relocate(SiteName, .before = SiteCode) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
-    dplyr::relocate(Measurement, .after = Units) %>%
-    dplyr::filter(!is.na(Value)) %>%
-    dplyr::filter(Parameter == "Temperature") %>%
-    dplyr::mutate(Bin = dplyr::case_when(Value < 5 ~ "< 5",
-                                         Value >= 5 & Value < 10 ~ "5 - 10",
-                                         Value >= 10 & Value < 15 ~ "10 - 15",
-                                         Value >= 15 & Value < 20 ~ "15 - 20",
-                                         Value >= 20 & Value < 30 ~ "20 - 30",
-                                         Value >= 30 & Value < 40 ~ "30 - 40",
-                                         Value >= 40 ~ "> 40",
-                                         TRUE ~ "NA"))
-  
-  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 5", "5 - 10", "10 - 15", "15 - 20", "20 - 30", "30 - 40", "> 40"))
-  
-  pal <- leaflet::colorFactor(palette = "RdYlBu",
-                              domain = wqdata$Bin,
-                              rev = TRUE)
-  
-  # Make NPS map Attribution
-  NPSAttrib <-
-    htmltools::HTML(
-      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
-      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
-      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
-      <a class='improve-park-tiles'
-      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
-      target='_blank'>Improve Park Tiles</a>"
-    )
-  
-  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  
-  width <- 700
-  height <- 700
-  
-  sd <- crosstalk::SharedData$new(wqdata)
-  # year_filter <- crosstalk::filter_checkbox(id = "year",
-  #                                           label = "Water Year",
-  #                                           sharedData = sd,
-  #                                           group = ~Year,
-  #                                           # width = width,
-  #                                           inline = TRUE)
-  
-  wqmaptemp <- leaflet::leaflet(sd, height = height, width = width) %>%
-    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
-    leaflet::addScaleBar('bottomright') %>%
-    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
-                              lat = ~Lat_WGS84,
-                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
-                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
-                                             "Parameter: ", wqdata$Parameter, "<br>",
-                                             "Units: ", wqdata$Units, "<br>",
-                                             "Value: ", wqdata$Value),
-                              radius = 5,
-                              stroke = TRUE,
-                              weight = 1,
-                              color = "black",
-                              fillOpacity = 1,
-                              fillColor = ~pal(Bin)) %>%
-    leaflet::addLegend(pal = pal,
-                       values = ~Bin,
-                       title = "Temperature (C)",
-                       opacity = 1,
-                       position = "bottomleft") %>%
-    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              options=leaflet::layersControlOptions(collapsed = FALSE))
-  
-  # wqdatamaptemp <- crosstalk::bscols(list(year_filter,
-  #   wqmaptemp))
-  
-  return(wqmaptemp)
-  
-}
-
-
-WqMapSpCondX <- function(park, site, field.season = "database") {
-  data <- qcWqLong(park, site, field.season)
-  site <- ReadAndFilterData(park, site, field.season, data.name = "Site")
-  
-  coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
-  
-  meddata <- data %>%
-    dplyr::group_by(Park, SiteCode, SampleFrame, Parameter, Units) %>%
-    dplyr::summarize(Value = median(Value)) %>%
-    dplyr::ungroup()
-  
-  wqdata <- meddata %>%
-    dplyr::select(Park, SiteCode, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
-    dplyr::relocate(SiteName, .before = SiteCode) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
-    dplyr::relocate(Measurement, .after = Units) %>%
-    dplyr::filter(!is.na(Value)) %>%
-    dplyr::filter(Parameter == "SpCond") %>%
-    dplyr::mutate(Bin = dplyr::case_when(Value < 200 ~ "< 200",
-                                         Value >= 200 & Value < 500 ~ "200 - 500",
-                                         Value >= 500 & Value < 1000 ~ "500 - 1000",
-                                         Value >= 1000 & Value < 2000 ~ "1000 - 2000",
-                                         Value >= 2000 & Value < 5000 ~ "2000 - 5000",
-                                         Value >= 5000 & Value < 10000 ~ "5000 - 10000",
-                                         Value >= 10000 ~ "> 10000",
-                                         TRUE ~ "NA"))
-  
-  wqdata$Bin <- factor(wqdata$Bin, levels = c("< 200", "200 - 500", "500 - 1000", "1000 - 2000", "2000 - 5000", "5000 - 10000", "> 10000"))
-  
-  pal <- leaflet::colorFactor(palette = "Reds",
-                              domain = wqdata$Bin,
-                              rev = FALSE)
-  
-  # Make NPS map Attribution
-  NPSAttrib <-
-    htmltools::HTML(
-      "<a href='https://www.nps.gov/npmap/disclaimer/'>Disclaimer</a> |
-      &copy; <a href='http://mapbox.com/about/maps' target='_blank'>Mapbox</a>
-      &copy; <a href='http://openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors |
-      <a class='improve-park-tiles'
-      href='http://insidemaps.nps.gov/places/editor/#background=mapbox-satellite&map=4/-95.97656/39.02772&overlays=park-tiles-overlay'
-      target='_blank'>Improve Park Tiles</a>"
-    )
-  
-  NPSbasic = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck58pyquo009v01p99xebegr9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSimagery = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck72fwp2642dv07o7tbqinvz4/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
-  
-  width <- 700
-  height <- 700
-  
-  sd <- crosstalk::SharedData$new(wqdata)
-  # year_filter <- crosstalk::filter_slider("year",
-  #                                         "",
-  #                                         sd,
-  #                                         column = ~Year,
-  #                                         ticks = TRUE,
-  #                                         width = width,
-  #                                         step = 1,
-  #                                         sep = "",
-  #                                         pre = "WY",
-  #                                         post = NULL,
-  #                                         dragRange = TRUE)
-  
-  wqmapspcond <- leaflet::leaflet(sd, height = height, width = width) %>%
-    leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
-    leaflet::addTiles(group = "Light", urlTemplate = NPSlight, attribution = NPSAttrib) %>%
-    leaflet::addScaleBar('bottomright') %>%
-    leaflet::addCircleMarkers(lng = ~Lon_WGS84,
-                              lat = ~Lat_WGS84,
-                              popup = paste ("Name: ", wqdata$SiteName, "<br>",
-                                             "Sample Frame: ", wqdata$SampleFrame, "<br>",
-                                             "Parameter: ", wqdata$Parameter, "<br>",
-                                             "Units: ", wqdata$Units, "<br>",
-                                             "Value: ", wqdata$Value),
-                              radius = 5,
-                              stroke = TRUE,
-                              weight = 1,
-                              color = "black",
-                              fillOpacity = 1,
-                              fillColor = ~pal(Bin)) %>%
-    leaflet::addLegend(pal = pal,
-                       values = ~Bin,
-                       title = "Specific Conductance (uS/cm)",
-                       opacity = 1,
-                       position = "bottomleft") %>%
-    leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              options=leaflet::layersControlOptions(collapsed = FALSE))
-  
-  #  wqdatamapspcond <- crosstalk::bscols(list(year_filter,
-  #                                          wqmapspcond))
-  
-  return(wqmapspcond)
-}
-
-
-WqPlotTempX <- function(park, site, field.season = "database", include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
-    dplyr::filter(Parameter == "Temperature") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    GetSampleSizes(Park, FieldSeason)
-  
-  wq.plot.temp <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    plot.title = dplyr::if_else(include.title, "Water Temperature", ""),
-    facet.as.subtitle = include.title,
-    x.lab = "Field Season",
-    y.lab = "Temperature (C)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
-                   axis.text.y = ggplot2::element_text(size = 20), #
-                   axis.title.x = ggplot2::element_text(size = 24), #
-                   axis.title.y = ggplot2::element_text(size = 24), #
-                   strip.text.x = ggplot2::element_text(size = 24)) #
-  
-  return(wq.plot.temp)
-}
-
-
-WqPlotSpCondX <- function(park, site, field.season = "database", include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
-    dplyr::filter(Parameter == "SpCond") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    GetSampleSizes(Park, FieldSeason) #
-  
-  wq.plot.spcond <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    x.lab = "Field Season",
-    y.lab = "Specific Cond. (uS/cm)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::scale_y_log10(breaks = c(200, 500, 1000, 2000, 5000, 10000, 25000, 100000), limits = c(200, 100000)) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
-                   axis.text.y = ggplot2::element_text(size = 20), #
-                   axis.title.x = ggplot2::element_text(size = 24), #
-                   axis.title.y = ggplot2::element_text(size = 24), #
-                   strip.text.x = ggplot2::element_text(size = 24)) #
-  
-  return(wq.plot.spcond)
-
-}
-
-
-WqPlotPHX <- function(park, site, field.season = "database", include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
-    dplyr::filter(Parameter == "pH") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    GetSampleSizes(Park, FieldSeason) #
-  
-  wq.plot.ph <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    x.lab = "Park",
-    y.lab = "pH"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
-                   axis.text.y = ggplot2::element_text(size = 20), #
-                   axis.title.x = ggplot2::element_text(size = 24), #
-                   axis.title.y = ggplot2::element_text(size = 24), #
-                   strip.text.x = ggplot2::element_text(size = 24)) #
-  
-  return(wq.plot.ph)
-  
-}
-
-
-WqPlotDOX <- function(park, site, field.season = "database", include.title = FALSE) {
-  wq.plot <- qcWqLong(park, site, field.season) %>%
-    dplyr::filter(Parameter == "DO",
-                  Units == "mg/L") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022"),
-                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022"))) %>%
-    GetSampleSizes(Park, FieldSeason) #
-  
-  wq.plot.do <- FormatPlot(
-    data = wq.plot,
-    x.col = FieldSeason,
-    y.col = Value,
-    facet.col = Park,
-    sample.size.col = SampleSizeLabel,
-    sample.size.loc = "xaxis",
-    x.lab = "Park",
-    y.lab = "Dissolved Oxygen (mg/L)"
-  ) +
-    ggplot2::geom_boxplot() + 
-    ggplot2::facet_grid(~Park, scales = "free") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
-                   axis.text.y = ggplot2::element_text(size = 20), #
-                   axis.title.x = ggplot2::element_text(size = 24), #
-                   axis.title.y = ggplot2::element_text(size = 24),
-                   strip.text.x = ggplot2::element_text(size = 24)) #
-  
-  return(wq.plot.do)
-  
 }
