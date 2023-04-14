@@ -604,7 +604,7 @@ InvasivePlantsMap <- function(park, site, field.season) {
   
   invasivesdata %<>% dplyr::arrange(FieldSeason, desc(PlantInfo))
   
-  pal <- leaflet::colorFactor(palette = c("#5DC863FF", "#440154FF", "#3B528BFF", "#FDE725FF", "#21908CFF", "gray"),
+  pal <- leaflet::colorFactor(palette = c("#5DC863FF", "#440154FF", "#21908CFF", "#FDE725FF", "#3B528BFF", "gray"),
                               domain = invasivesdata$PlantInfo)
   
   # Make NPS map Attribution

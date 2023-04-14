@@ -310,7 +310,12 @@ FlowModPlot <- function(park, site, field.season) {
 
   percent %<>% dplyr::filter(Park != "CAMO")
   
-  plot <- ggplot2::ggplot(percent, ggplot2::aes(x = Park, y = Percent, fill = FlowModificationStatus)) +
+  plot <- ggplot2::ggplot(percent, ggplot2::aes(x = Park,
+                                                y = Percent,
+                                                fill = FlowModificationStatus,
+                                                text = paste0("Park: ", Park, "<br>",
+                                                              "Flow Modification: ", FlowModificationStatus, "<br>",
+                                                              "Percent: ", Percent))) +
     ggplot2::geom_bar(stat = "identity", color = "white") +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::scale_fill_manual(values = c("No data" = "gray70",
@@ -319,13 +324,14 @@ FlowModPlot <- function(park, site, field.season) {
                                           "Yes - Unknown if active" = "darkorange1",
                                           "Yes - One or more active" = "firebrick"),
                                name = "Flow Modification") +
-    ggplot2::geom_text(aes(label = ifelse(Percent > 4.5, paste0(Percent, "%"), ""),
+    ggplot2::geom_text(ggplot2::aes(label = ifelse(Percent > 4.5, paste0(Percent, "%"), ""),
                            color = FlowModificationStatus),
                        position = ggplot2::position_stack(vjust = 0.5),
                        size = 4,
                        show.legend = FALSE) +
     ggplot2::scale_color_manual(values = c("black", "white", "black", "white", "white"),
-                                breaks = c("No data", "None", "Yes - All inactive", "Yes - Unknown if active", "Yes - One or more active"))
+                                breaks = c("No data", "None", "Yes - All inactive", "Yes - Unknown if active", "Yes - One or more active")) +
+    ggplot2::guides(color = "none")
     
   return(plot)
 }
@@ -727,24 +733,4 @@ LivestockMap <- function(interactive, park, site, field.season) {
   }
   
   return(lsmap)
-}
-
-
-#################### Functions for Desert Springs PowerPoint -- not for final data package
-
-LivestockPlotX <- function(park, site, field.season) {
-  disturb <- DisturbanceCount(park = park, site = site, field.season = field.season)
-  
-  disturb %<>%
-    dplyr::filter(Park != "CAMO")
-  
-  livestockplot <- ggplot2::ggplot(disturb, aes(x = Park, y = LivestockPercent))+
-    geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 100)) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
-                   axis.text.y = ggplot2::element_text(size = 20), #
-                   axis.title.x = ggplot2::element_text(size = 24), #
-                   axis.title.y = ggplot2::element_text(size = 24)) #
-  
-  return(livestockplot)
 }
