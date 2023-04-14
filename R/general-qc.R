@@ -559,39 +559,39 @@ qcPhotoDuplicates <- function(park, site, field.season) {
   #   dplyr::ungroup() %>%
   #   dplyr::filter(Count > 1)
  
-  repeats <- FetchAGOLLayers()$repeats %>%
-    dplyr::select(PhotoType, phototypename, LegacyPhotoID, globalid, parentglobalid)
-  repeats.ext <- FetchAGOLLayers()$repeats_ext %>%
-    dplyr::select(ExternalFileNumber, externalFile, parentglobalid)
-  repeats.int <- FetchAGOLLayers()$repeats_int %>%
-    dplyr::select(globalid, parentglobalid)
-  visits <- FetchAGOLLayers()$visit %>%
-    dplyr::select(Park, SiteCode, DateTime, FieldSeason, VisitType, UsingInternalCamera, Camera, CameraCard, globalid)
-  
-  photos <- repeats %>%
-    dplyr::full_join(repeats.ext, by = c("globalid" = "parentglobalid"), multiple = "all")
-  
-  photos.dupes <- visits %>%
-    dplyr::full_join(photos, by = c("globalid" = "parentglobalid"), multiple = "all") %>%
-    dplyr::filter(PhotoType %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR") | phototypename %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR")) %>%
-    dplyr::select(-LegacyPhotoID,
-                  -globalid,
-                  -UsingInternalCamera,
-                  -externalFile,
-                  -phototypename,
-                  -ExternalFileNumber) %>%
-    unique() %>%
-    dplyr::group_by(Park, SiteCode, DateTime, FieldSeason, VisitType, Camera, CameraCard, PhotoType) %>%
-    dplyr::summarize(Count = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(Count > 1)
+  # repeats <- FetchAGOLLayers()$repeats %>%
+  #   dplyr::select(PhotoType, phototypename, LegacyPhotoID, globalid, parentglobalid)
+  # repeats.ext <- FetchAGOLLayers()$repeats_ext %>%
+  #   dplyr::select(ExternalFileNumber, externalFile, parentglobalid)
+  # repeats.int <- FetchAGOLLayers()$repeats_int %>%
+  #   dplyr::select(globalid, parentglobalid)
+  # visits <- FetchAGOLLayers()$visit %>%
+  #   dplyr::select(Park, SiteCode, DateTime, FieldSeason, VisitType, UsingInternalCamera, Camera, CameraCard, globalid)
+  # 
+  # photos <- repeats %>%
+  #   dplyr::full_join(repeats.ext, by = c("globalid" = "parentglobalid"), multiple = "all")
+  # 
+  # photos.dupes <- visits %>%
+  #   dplyr::full_join(photos, by = c("globalid" = "parentglobalid"), multiple = "all") %>%
+  #   dplyr::filter(PhotoType %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR") | phototypename %in% c("SOURCE", "UPSTR", "DNSTR", "SENSOR")) %>%
+  #   dplyr::select(-LegacyPhotoID,
+  #                 -globalid,
+  #                 -UsingInternalCamera,
+  #                 -externalFile,
+  #                 -phototypename,
+  #                 -ExternalFileNumber) %>%
+  #   unique() %>%
+  #   dplyr::group_by(Park, SiteCode, DateTime, FieldSeason, VisitType, Camera, CameraCard, PhotoType) %>%
+  #   dplyr::summarize(Count = dplyr::n()) %>%
+  #   dplyr::ungroup() %>%
+  #   dplyr::filter(Count > 1)
   
   # dplyr::filter(PhotoType != phototypename) DEVA_P_MC0281 2017-12-06
   # dplyr::filter(ExternalFileNumber != externalFile) DEVA_P_PAN0418 2022-02-01
   # dplyr::filter(is.na(PhotoType))
   # dplyr::filter(is.na(ExternalFileNumber), CameraCard != "AGOL_DS")
    
-  return(photo.dupes)
+  # return(photo.dupes)
 }
 
 

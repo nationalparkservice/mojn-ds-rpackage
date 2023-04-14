@@ -62,6 +62,18 @@ test_that("qcLifeformRankCheck works as expected", {
 })
 
 
+test_that("qcVegDuplicates returns expected number of rows and columns", {
+  
+  actual_rows <- nrow(qcVegDuplicates(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 0)
+  
+  actual_cols <- colnames(qcVegDuplicates())
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "LifeForm", "Count")
+  expect_equal(actual_cols, expected_cols)
+  
+})
+
+
 test_that("LifeformsPresence works as expected", {
 
   actual_rows <- nrow(LifeformsPresence(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))

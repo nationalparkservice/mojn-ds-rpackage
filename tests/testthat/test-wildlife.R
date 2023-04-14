@@ -26,6 +26,18 @@ test_that("qcWildlifeObservedNoEvidence returns expected number of rows and colu
 })
 
 
+test_that("qcWildlifeDuplicates returns expected number of rows and columns", {
+  
+  actual_rows <- nrow(qcWildlifeDuplicates(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 0)
+  
+  actual_cols <- colnames(qcWildlifeDuplicates())
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "WildlifeType", "Count")
+  expect_equal(actual_cols, expected_cols)
+  
+})
+
+
 test_that("UngulatesEvidence returns expected number of rows and columns", {
 
   actual_rows <- nrow(UngulatesEvidence() %>% dplyr::filter(FieldSeason == "2020"))
