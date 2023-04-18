@@ -100,7 +100,7 @@ qcCompletenessPlot <- function(park, site, field.season) {
         dplyr::mutate(SampleStatus = paste(SampleFrame, MonitoringStatus, sep = " - ")) %>%
         dplyr::filter(Park != "CAMO")
   
-  completeness.plot <- ggplot(df2, aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
+  completeness.plot <- ggplot2::ggplot(df2, ggplot2::aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
     geom_bar(position = "stack", stat = "identity", color = "white") +
     xlab("Park") +
     ylab("Number of Springs Monitored") + 
