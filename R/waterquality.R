@@ -880,10 +880,10 @@ WqMapTemp <- function(park, site, field.season) {
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
   # width <- 700
-  # height <- 700
+  # height <- 600
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-t",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,
@@ -891,7 +891,7 @@ WqMapTemp <- function(park, site, field.season) {
                                             inline = TRUE)
   
   wqmaptemp <- leaflet::leaflet(sd
-                                # , height = height, width = width
+                                #, height = height, width = width
                                 ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
@@ -1001,10 +1001,10 @@ WqMapSpCond <- function(park, site, field.season) {
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
   # width <- 700
-  # height <- 700
+  # height <- 600
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-sc",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,
@@ -1012,7 +1012,7 @@ WqMapSpCond <- function(park, site, field.season) {
                                             inline = TRUE)
   
   wqmapspcond <- leaflet::leaflet(sd
-                                  # , height = height, width = width
+                                  #, height = height, width = width
                                   ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
@@ -1127,7 +1127,7 @@ WqMapPH <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-ph",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,
@@ -1135,7 +1135,7 @@ WqMapPH <- function(park, site, field.season) {
                                             inline = TRUE)
   
   wqmapph <- leaflet::leaflet(sd
-                              # , height = height, width = width
+                              #, height = height, width = width
                               ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
@@ -1248,7 +1248,7 @@ WqMapDO <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(wqdata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-do",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,

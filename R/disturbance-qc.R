@@ -512,7 +512,7 @@ HumanUseMap <- function(park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(humandata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-hu",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,
@@ -687,7 +687,7 @@ LivestockMap <- function(interactive, park, site, field.season) {
   # height <- 700
   
   sd <- crosstalk::SharedData$new(livestockdata)
-  year_filter <- crosstalk::filter_checkbox(id = "year",
+  year_filter <- crosstalk::filter_checkbox(id = "year-ls",
                                             label = "Water Year",
                                             sharedData = sd,
                                             group = ~Year,
@@ -695,7 +695,7 @@ LivestockMap <- function(interactive, park, site, field.season) {
                                             inline = TRUE)
   
   lsmap <- leaflet::leaflet(sd
-                            # , width = width, height = height
+                            #, width = width, height = height
                             ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%

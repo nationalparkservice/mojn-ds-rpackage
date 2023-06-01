@@ -101,14 +101,14 @@ qcCompletenessPlot <- function(park, site, field.season) {
         dplyr::filter(Park != "CAMO")
   
   completeness.plot <- ggplot2::ggplot(df2, ggplot2::aes(fill = SampleStatus, x = FieldSeason, y = Count)) +
-    geom_bar(position = "stack", stat = "identity", color = "white") +
-    xlab("Park") +
-    ylab("Number of Springs Monitored") + 
-    facet_grid(~Park, space = "free_x") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.position = "bottom") +
-    scale_y_continuous(breaks = seq(0, 80, 10)) +
-    scale_fill_manual(values = c("3Yr - Not Sampled" = "rosybrown2", "3Yr - Sampled" = "firebrick", "Annual - Not Sampled" = "lightblue", "Annual - Sampled" = "steelblue"))
+    ggplot2::geom_bar(position = "stack", stat = "identity", color = "white") +
+    ggplot2::xlab("Park") +
+    ggplot2::ylab("Number of Springs Monitored") + 
+    ggplot2::facet_grid(~Park, space = "free_x") +
+    ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+                   legend.position = "bottom") +
+    ggplot2::scale_y_continuous(breaks = seq(0, 80, 10)) +
+    ggplot2::scale_fill_manual(values = c("3Yr - Not Sampled" = "rosybrown2", "3Yr - Sampled" = "firebrick", "Annual - Not Sampled" = "lightblue", "Annual - Sampled" = "steelblue"))
 
     return(completeness.plot)    
 }
