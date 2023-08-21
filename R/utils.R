@@ -180,23 +180,19 @@ GetColSpec <- function() {
       .default = readr::col_character()
     ),
     SensorsAllDeployments = readr::cols(
-      SensorNumber = readr::col_integer(),
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
     SensorRetrievalAttempts = readr::cols(
-      SensorNumber = readr::col_integer(),
       DeploymentDate = readr::col_date(),
       RetrievalDate = readr::col_date(),
       .default = readr::col_character()
     ),
     SensorsCurrentlyDeployed = readr::cols(
-      SensorNumber = readr::col_integer(),
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
     SensorsAllDeployments = readr::cols(
-      SensorNumber = readr::col_integer(),
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
@@ -398,10 +394,11 @@ LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.
       dplyr::mutate_if(is.character, utf8::utf8_encode) %>%
       dplyr::mutate_if(is.character, trimws, whitespace = "[\\h\\v]") %>%  # Trim leading and trailing whitespace
       dplyr::mutate_if(is.character, dplyr::na_if, "") %>%  # Replace empty strings with NA
+      dplyr::mutate_if(is.character, dplyr::na_if, "\\\\n") %>%  # Replace newlines with NA
       dplyr::mutate_if(is.numeric, dplyr::na_if, -9999) %>%  # Replace -9999 or -999 with NA
       dplyr::mutate_if(is.numeric, dplyr::na_if, -999) %>%
       dplyr::mutate_if(is.character, dplyr::na_if, "NA") %>%  # Replace "NA" strings with NA
-      dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v]+", replacement = ";  ")  # Replace newlines with semicolons - reading certain newlines into R can cause problems
+      dplyr::mutate_if(is.character, stringr::str_replace_all, pattern = "[\\v|\\n]+", replacement = ";  ")  # Replace newlines with semicolons - reading certain newlines into R can cause problems
   })
   
   # Actually load the data into an environment for the package to use
