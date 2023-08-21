@@ -5,7 +5,7 @@ LoadDesertSprings(dir)
 test_that("qcWildlifeObservedNoTypes returns expected number of rows and columns", {
 
   actual_rows <- nrow(qcWildlifeObservedNoTypes(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 1)
+  expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcWildlifeObservedNoTypes())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "IsWildlifeObserved", "WildlifeType", "DirectObservation", "Scat", "Tracks", "Shelter", "Foraging", "Vocalization", "OtherEvidence", "Notes")
@@ -17,7 +17,7 @@ test_that("qcWildlifeObservedNoTypes returns expected number of rows and columns
 test_that("qcWildlifeObservedNoEvidence returns expected number of rows and columns", {
 
   actual_rows <- nrow(qcWildlifeObservedNoEvidence(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 4)
+  expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcWildlifeObservedNoEvidence())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "IsWildlifeObserved", "WildlifeType", "DirectObservation", "Scat", "Tracks", "Shelter", "Foraging", "Vocalization", "OtherEvidence", "Notes")

@@ -6,4 +6,4 @@ LoadDesertSprings(agol_username = "mojn_hydro", agol_password = keyring::key_get
 dir <- withr::local_tempdir(clean = FALSE)
 SaveDataToCsv(dir, create.folders = TRUE, overwrite = TRUE)
 
-withr::defer(unlink(dir, recursive = TRUE), teardown_env())
+withr::defer(unlink(dir, recursive = TRUE), testthat::teardown_env())

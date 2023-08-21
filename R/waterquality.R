@@ -405,7 +405,7 @@ WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
 #'
 WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
-    dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Median)) %>%
+    dplyr::filter(Parameter == "SpCond" & Park != "CAMO" & !is.na(Value)) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.spcond.ms <- FormatPlot(
@@ -590,7 +590,7 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
   WqPlotGrid <- function(park, site, field.season) {
     wq.plot.temp <- WqPlotTemp(park = park, site = site, field.season = field.season)
     wq.plot.ph <- WqPlotPH(park = park, site = site, field.season = field.season)
-    wq.plot.spcond.ms <- WqPlotSpCondmS(park = park, site = site, field.season = field.season)
+    wq.plot.spcond <- WqPlotSpCond(park = park, site = site, field.season = field.season)
     wq.plot.do.mgl <- WqPlotDOmgL(park = park, site = site, field.season = field.season)
   
   wq.plot.grid <- gridExtra::grid.arrange(wq.plot.temp, wq.plot.spcond, wq.plot.ph, wq.plot.do.mgl, ncol = 1)

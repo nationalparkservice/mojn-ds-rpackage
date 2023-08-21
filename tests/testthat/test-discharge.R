@@ -237,7 +237,7 @@ test_that("qcContinuousLength returns expected number of rows and columns", {
 test_that("FlowCategoriesContinuous works as expected", {
   
   actual_rows <- nrow(FlowCategoriesContinuous(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 190)
+  expect_equal(actual_rows, 189)
   
   actual_cols <- colnames(FlowCategoriesContinuous())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "Panel", "FlowCategory", "Count")
@@ -258,7 +258,7 @@ test_that("FlowCategoriesContinuous works as expected", {
 test_that("FlowCategoriesDiscontinuous works as expected", {
   
   actual_rows <- nrow(FlowCategoriesDiscontinuous(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 194)
+  expect_equal(actual_rows, 193)
   
   actual_cols <- colnames(FlowCategoriesDiscontinuous())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "Panel", "FlowCategory", "Count")

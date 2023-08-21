@@ -96,7 +96,7 @@ test_that("LifeformsPresence works as expected", {
 test_that("InvasivePlants works as expected", {
   
   actual_rows <- nrow(InvasivePlants(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 213)
+  expect_equal(actual_rows, 212)
   
   actual_cols <- colnames(InvasivePlants())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "USDAPlantsCode", "ScientificName", "InRiparianVegBuffer", "Notes")
