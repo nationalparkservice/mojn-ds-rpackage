@@ -458,13 +458,13 @@ HumanUseMap <- function(park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   humandata <- formatted %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, HumanUse, Notes) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, HumanUse, Notes) %>%
     dplyr::mutate(Observed = dplyr::case_when(HumanUse == "0" ~ "No",
                                               HumanUse %in% c("1", "2", "3", "4") ~ "Yes",
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("Panel Annual", "Panel B", "Panel C", " Panel D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
 
@@ -633,13 +633,13 @@ LivestockMap <- function(interactive, park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   livestockdata <- formatted %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Livestock, Notes) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Livestock, Notes) %>%
     dplyr::mutate(Observed = dplyr::case_when(Livestock == "0" ~ "No",
                                               Livestock %in% c("1", "2", "3", "4") ~ "Yes",
                                               TRUE ~ "NA")) %>%
     dplyr::filter(Observed == "Yes") %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("A", "B", "C", "D")) %>%
+    dplyr::filter(SampleFrame %in% c("Annual", "3Yr") & Panel %in% c("Panel Annual", "Panel B", "Panel C", " Panel D")) %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
   

@@ -21,7 +21,7 @@ WqMedian <- function(park, site, field.season) {
     
   temp.med <- temp %>%
     dplyr::filter(VisitType != "Dummy") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(TemperatureMedian_C = median(WaterTemperature_C),
                      TemperatureCount = sum(!is.na(WaterTemperature_C))) %>%
     dplyr::rename(TemperatureFlag = DataQualityFlag, TemperatureFlagNote = DataQualityFlagNote) %>%
@@ -29,7 +29,7 @@ WqMedian <- function(park, site, field.season) {
 
   spcond.med <- spcond %>%
     dplyr::filter(VisitType != "Dummy") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(SpCondMedian_microS_per_cm = median(SpecificConductance_microS_per_cm),
                      SpCondCount = sum(!is.na(SpecificConductance_microS_per_cm))) %>%
     dplyr::rename(SpCondFlag = DataQualityFlag, SpCondFlagNote = DataQualityFlagNote) %>%
@@ -37,7 +37,7 @@ WqMedian <- function(park, site, field.season) {
 
   ph.med <- ph %>%
     dplyr::filter(VisitType != "Dummy") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(pHMedian = median(pH),
                      pHCount = sum(!is.na(pH))) %>%
     dplyr::rename(pHFlag = DataQualityFlag, pHFlagNote = DataQualityFlagNote) %>%
@@ -45,7 +45,7 @@ WqMedian <- function(park, site, field.season) {
 
   do.med <- do %>%
     dplyr::filter(VisitType != "Dummy") %>%
-    dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
+    dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(DOMedian_Percent = median(DissolvedOxygen_percent),
                      DOPercentCount = sum(!is.na(DissolvedOxygen_percent)),
                      DOMedian_mg_per_L = median(DissolvedOxygen_mg_per_L),
@@ -54,9 +54,9 @@ WqMedian <- function(park, site, field.season) {
     dplyr::arrange(SiteCode)
 
   wq.med <- temp.med %>%
-    dplyr::left_join(spcond.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
-    dplyr::left_join(ph.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
-    dplyr::left_join(do.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
+    dplyr::left_join(spcond.med, by = c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel"), multiple = "all", relationship = "one-to-one") %>%
+    dplyr::left_join(ph.med, by = c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel"), multiple = "all", relationship = "one-to-one") %>%
+    dplyr::left_join(do.med, by = c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel"), multiple = "all", relationship = "one-to-one") %>%
     dplyr::ungroup() %>%
     dplyr::filter(TemperatureCount != 0 | SpCondCount != 0 | pHCount != 0 | DOPercentCount != 0 | DOmgLCount != 0)
 
@@ -85,22 +85,22 @@ qcWqSanity <- function(park, site, field.season) {
 
   temp.sanity <- wq.sanity.predata %>%
     dplyr::filter(TemperatureMedian_C > 30) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, TemperatureMedian_C, TemperatureFlag, TemperatureFlagNote) %>%
-    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, TemperatureMedian_C, TemperatureFlag, TemperatureFlagNote) %>%
+    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "Panel") %>%
     dplyr::mutate(SanityNote = "Temperature > 30 C") %>%
     dplyr::rename(Value = TemperatureMedian_C, Flag = TemperatureFlag, FlagNote = TemperatureFlagNote)
 
   spcond.sanity <- wq.sanity.predata %>%
     dplyr::filter(SpCondMedian_microS_per_cm > 20000) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, SpCondMedian_microS_per_cm, SpCondFlag, SpCondFlagNote) %>%
-    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, SpCondMedian_microS_per_cm, SpCondFlag, SpCondFlagNote) %>%
+    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "Panel") %>%
     dplyr::mutate(SanityNote = "Specific conductance > 20000 uS/cm") %>%
     dplyr::rename(Value = SpCondMedian_microS_per_cm, Flag = SpCondFlag, FlagNote = SpCondFlagNote)
 
   ph.sanity <- wq.sanity.predata %>%
     dplyr::filter(pHMedian > 10 | pHMedian < 6) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
-    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, pHMedian, pHFlag, pHFlagNote) %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "Panel") %>%
     dplyr::mutate(SanityNote = dplyr::case_when(pHMedian > 10 ~ "pH > 10",
                                                 pHMedian < 6 ~ "pH < 6",
                                                 TRUE ~ "NA")) %>%
@@ -108,8 +108,8 @@ qcWqSanity <- function(park, site, field.season) {
 
   do.percent.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOMedian_Percent > 100 | DOMedian_Percent < 2) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_Percent, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DOMedian_Percent, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "%", .after = "Panel") %>%
     dplyr::mutate(SanityNote = dplyr::case_when(DOMedian_Percent > 100 ~ "Dissolved oxygen > 100 %",
                                                 DOMedian_Percent < 2 ~ "Dissolved oxygen < 2 %",
                                                 TRUE ~ "NA")) %>%
@@ -117,8 +117,8 @@ qcWqSanity <- function(park, site, field.season) {
 
   do.mgl.sanity <- wq.sanity.predata %>%
     dplyr::filter(DOMedian_mg_per_L > 14) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_mg_per_L, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DOMedian_mg_per_L, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "Panel") %>%
     dplyr::mutate(SanityNote = "Dissolved oxygen > 14 mg/L") %>%
     dplyr::rename(Value = DOMedian_mg_per_L, Flag = DOFlag, FlagNote = DOFlagNote)
 
@@ -151,32 +151,32 @@ qcWqFlags <- function(park, site, field.season) {
 
   temp.flags <- wq.flags.predata %>%
     dplyr::filter(TemperatureFlag %in% c("I", "W", "C")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, TemperatureMedian_C, TemperatureFlag, TemperatureFlagNote) %>%
-    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, TemperatureMedian_C, TemperatureFlag, TemperatureFlagNote) %>%
+    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "Panel") %>%
     dplyr::rename(Value = TemperatureMedian_C, Flag = TemperatureFlag, FlagNote = TemperatureFlagNote)
 
   spcond.flags <- wq.flags.predata %>%
     dplyr::filter(SpCondFlag %in% c("I", "W", "C")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, SpCondMedian_microS_per_cm, SpCondFlag, SpCondFlagNote) %>%
-    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, SpCondMedian_microS_per_cm, SpCondFlag, SpCondFlagNote) %>%
+    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "Panel") %>%
     dplyr::rename(Value = SpCondMedian_microS_per_cm, Flag = SpCondFlag, FlagNote = SpCondFlagNote)
 
   ph.flags <- wq.flags.predata %>%
     dplyr::filter(pHFlag %in% c("I", "W", "C")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, pHMedian, pHFlag, pHFlagNote) %>%
-    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, pHMedian, pHFlag, pHFlagNote) %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "Panel") %>%
     dplyr::rename(Value = pHMedian, Flag = pHFlag, FlagNote = pHFlagNote)
 
   do.percent.flags <- wq.flags.predata %>%
     dplyr::filter(DOFlag %in% c("I", "W", "C")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_Percent, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DOMedian_Percent, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "%", .after = "Panel") %>%
     dplyr::rename(Value = DOMedian_Percent, Flag = DOFlag, FlagNote = DOFlagNote)
 
   do.mgl.flags <- wq.flags.predata %>%
     dplyr::filter(DOFlag %in% c("I", "W", "C")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DOMedian_mg_per_L, DOFlag, DOFlagNote) %>%
-    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DOMedian_mg_per_L, DOFlag, DOFlagNote) %>%
+    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "Panel") %>%
     dplyr::rename(Value = DOMedian_mg_per_L, Flag = DOFlag, FlagNote = DOFlagNote)
 
   wq.flags <- rbind(temp.flags, spcond.flags, ph.flags, do.percent.flags, do.mgl.flags) %>%
@@ -208,37 +208,37 @@ qcWqLong <- function(park, site, field.season) {
 
   temp.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(TemperatureFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, TemperatureMedian_C) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, SampleFrame, Panel, TemperatureMedian_C) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "SampleFrame") %>%
+    tibble::add_column(Parameter = "Temperature", Units = "C", .after = "Panel") %>%
     dplyr::rename(Value = TemperatureMedian_C)
 
   spcond.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(SpCondFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, SpCondMedian_microS_per_cm) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, SampleFrame, Panel, SpCondMedian_microS_per_cm) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "SampleFrame") %>%
+    tibble::add_column(Parameter = "SpCond", Units = "uS/cm", .after = "Panel") %>%
     dplyr::rename(Value = SpCondMedian_microS_per_cm)
 
   ph.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(pHFlag %in% c("W", "C")), VisitType %in% c("Primary")) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, pHMedian) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, SampleFrame, Panel, pHMedian) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "pH", Units = "units", .after = "SampleFrame") %>%
+    tibble::add_column(Parameter = "pH", Units = "units", .after = "Panel") %>%
     dplyr::rename(Value = pHMedian)
 
   do.percent.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(DOFlag %in% c("W", "C")), VisitType %in% c("Primary"), (DOMedian_Percent < 120 | is.na(DOMedian_Percent))) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOMedian_Percent) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, SampleFrame, Panel, DOMedian_Percent) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "DO", Units = "%", .after = "SampleFrame") %>%
+    tibble::add_column(Parameter = "DO", Units = "%", .after = "Panel") %>%
     dplyr::rename(Value = DOMedian_Percent)
 
   do.mgl.cleaned <- wq.cleaned.data %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"), !(DOFlag %in% c("W", "C")), VisitType %in% c("Primary"), (DOMedian_mg_per_L < 14 | is.na(DOMedian_mg_per_L))) %>%
-    dplyr::select(Park, FieldSeason, SiteCode, VisitDate, SampleFrame, DOMedian_mg_per_L) %>%
+    dplyr::select(Park, FieldSeason, SiteCode, SiteName, VisitDate, SampleFrame, Panel, DOMedian_mg_per_L) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "SampleFrame") %>%
+    tibble::add_column(Parameter = "DO", Units = "mg/L", .after = "Panel") %>%
     dplyr::rename(Value = DOMedian_mg_per_L)
 
   wq.cleaned <- rbind(temp.cleaned, spcond.cleaned, ph.cleaned, do.percent.cleaned, do.mgl.cleaned) %>%
@@ -268,7 +268,7 @@ qcWqLong <- function(park, site, field.season) {
 WqStats <- function(park, site, field.season) {
   wq.stats.predata <- qcWqLong(park = park, site = site, field.season = field.season)
   wq.stats <- wq.stats.predata %>%
-    dplyr::select(-SampleFrame) %>%
+    dplyr::select(-SampleFrame, -Panel, -SiteName) %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarize(stats = list(quantile(Value, type = 6, na.rm = TRUE)),
                      Count = dplyr::n()) %>%
@@ -831,9 +831,10 @@ WqMapTemp <- function(park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Parameter, Units, Value) %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%
@@ -951,9 +952,10 @@ WqMapSpCond <- function(park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Parameter, Units, Value) %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%
@@ -1074,9 +1076,10 @@ WqMapPH <- function(park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Parameter, Units, Value) %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%
@@ -1196,9 +1199,10 @@ WqMapDO <- function(park, site, field.season) {
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
-    dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Parameter, Units, Value) %>%
     dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
+    dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
     dplyr::relocate(Measurement, .after = Units) %>%

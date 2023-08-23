@@ -8,7 +8,7 @@ test_that("WqMedian works as expected", {
   expect_equal(actual_rows, 86)
   
   actual_cols <- colnames(WqMedian())
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "TemperatureFlag", "TemperatureFlagNote", "TemperatureMedian_C", "TemperatureCount", "SpCondFlag", "SpCondFlagNote", "SpCondMedian_microS_per_cm", "SpCondCount", "pHFlag", "pHFlagNote", "pHMedian", "pHCount", "DOFlag", "DOFlagNote", "DOMedian_Percent", "DOPercentCount", "DOMedian_mg_per_L", "DOmgLCount")
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "TemperatureFlag", "TemperatureFlagNote", "TemperatureMedian_C", "TemperatureCount", "SpCondFlag", "SpCondFlagNote", "SpCondMedian_microS_per_cm", "SpCondCount", "pHFlag", "pHFlagNote", "pHMedian", "pHCount", "DOFlag", "DOFlagNote", "DOMedian_Percent", "DOPercentCount", "DOMedian_mg_per_L", "DOmgLCount")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- WqMedian()
@@ -34,7 +34,7 @@ test_that("qcWqSanity works as expected", {
   expect_equal(actual_rows, 109)
   
   actual_cols <- colnames(qcWqSanity())
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "SanityNote")
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "Parameter", "Units", "Value", "SanityNote")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcWqSanity()
@@ -56,7 +56,7 @@ test_that("qcWqFlags works as expected", {
   expect_equal(actual_rows, 158)
   
   actual_cols <- colnames(qcWqFlags())
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "Flag", "FlagNote")
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "Parameter", "Units", "Value", "Flag", "FlagNote")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcWqFlags()
@@ -78,7 +78,7 @@ test_that("qcWqLong works as expected", {
   expect_equal(actual_rows, 182)
   
   actual_cols <- colnames(qcWqLong())
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "SampleFrame", "Parameter", "Units", "Value")
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "SampleFrame", "Panel", "Parameter", "Units", "Value")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcWqLong()
