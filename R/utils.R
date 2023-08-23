@@ -738,7 +738,8 @@ FormatPlot <- function(data, x.col, y.col, facet.col, n.col.facet = 2, sample.si
 #' 
 #' @export
 #'
-expect_dataframe_equal <- function(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE) {
-  test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
+expect_dataframe_equal <- function(result, expected) {
+  test_result <- all.equal(result, expected)
+  # DEPRECATED test_result <- dplyr::all_equal(result, expected, ignore_col_order = FALSE, ignore_row_order = TRUE, convert = FALSE)
   return(testthat::expect_true(test_result, label = test_result))
 }

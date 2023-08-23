@@ -210,11 +210,11 @@ WrangleAGOLData <- function(agol_layers) {
   # ----- DischargeEstimated -----
   data$DischargeEstimated <- visit %>%
     dplyr::filter(DischargeMethod == "EST") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, DischargeClass_L_per_s, VisitType, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, DischargeClass_L_per_s, VisitType, DPL)
   
   # ----- DischargeFlowCondition -----
   data$DischargeFlowCondition <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, DPL, Notes, SpringbrookNotes = DischargeNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, DPL, Notes, SpringbrookNotes = DischargeNotes)
   
   # ----- DischargeVolumetric -----
   vol <- agol_layers$fill_time %>%
@@ -223,11 +223,11 @@ WrangleAGOLData <- function(agol_layers) {
   data$DischargeVolumetric <- visit %>%
     dplyr::filter(DischargeMethod == "VOL") %>%
     dplyr::left_join(vol, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowCondition, ContainerVolume_mL, FillTime_seconds, EstimatedCapture_percent, VisitType, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, ContainerVolume_mL, FillTime_seconds, EstimatedCapture_percent, VisitType, DPL)
   
   # ----- Disturbance -----
   data$Disturbance <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, Notes = DisturbanceNotes, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, Notes = DisturbanceNotes, DPL)
   
   # ----- DisturbanceFlowModification -----
   flow_mod <- agol_layers$disturbance_flow_mod %>%
@@ -235,7 +235,7 @@ WrangleAGOLData <- function(agol_layers) {
   
   data$DisturbanceFlowModification <- visit %>%
     dplyr::left_join(flow_mod, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, FlowModificationStatus, ModificationType, VisitType, DPL)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowModificationStatus, ModificationType, VisitType, DPL)
   
   # ----- Invasives -----
   invasives <- agol_layers$invasives %>%
@@ -246,7 +246,7 @@ WrangleAGOLData <- function(agol_layers) {
   data$Invasives <- visit %>%
     dplyr::left_join(invasives, by = "visitglobalid") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_ParkTaxonProtectedStatus, by = c("USDAPlantsCode" = "Taxon", "Park" = "parkname")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, VisitType, ProtectedStatus = ProtectedStatusCode, DPL, Notes = InvasiveNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, VisitType, ProtectedStatus = ProtectedStatusCode, DPL, Notes = InvasiveNotes)
   
   
   # ----- Riparian -----
@@ -254,7 +254,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::select(visitglobalid = parentglobalid, LifeForm = lifeformname, DominantSpecies)
   
   riparian_visit <- visit %>%
-    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, IsVegetationObserved, MistletoePresent, `Woody >4m` = WoodyGT4m, `Woody 2-4m` = Woody2to4m, `Woody <2m` = WoodyLT2m, Forb, Rush, Grass, Reed, Sedge, Cattail, Bryophyte, `Non-Plant` = NonPlant, VisitType, DPL, Notes = RiparianVegetationNotes) %>%
+    dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, IsVegetationObserved, MistletoePresent, `Woody >4m` = WoodyGT4m, `Woody 2-4m` = Woody2to4m, `Woody <2m` = WoodyLT2m, Forb, Rush, Grass, Reed, Sedge, Cattail, Bryophyte, `Non-Plant` = NonPlant, VisitType, DPL, Notes = RiparianVegetationNotes) %>%
     tidyr::pivot_longer(c(`Woody >4m`, `Woody 2-4m`, `Woody <2m`, Forb, Rush, Grass, Reed, Sedge, Cattail, Bryophyte, `Non-Plant`), names_to = "LifeForm", values_to = "Rank") %>%
     dplyr::group_by(visitglobalid) %>%
     dplyr::mutate(no_veg = all(is.na(Rank)),
@@ -266,7 +266,7 @@ WrangleAGOLData <- function(agol_layers) {
   
   data$Riparian <- riparian_visit %>%
     dplyr::left_join(riparian, by = c("visitglobalid", "LifeForm")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, VisitType, DPL, Notes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, VisitType, DPL, Notes)
     
     
   # ----- SensorRetrievalAttempts -----
@@ -296,7 +296,7 @@ WrangleAGOLData <- function(agol_layers) {
   data$SensorRetrievalAttempts <- sensor_retrieval %>%
     dplyr::inner_join(retrieval_visit, by = "visitglobalid") %>%
     dplyr::filter(IsSensorSpring == "Y") %>%
-    dplyr::inner_join(sensor_deployment, by = c("SiteCode", "SensorIDRet" = "SensorIDDep")) %>%
+    dplyr::inner_join(sensor_deployment, by = c("SiteCode", "SensorIDRet" = "SensorIDDep"), relationship = "many-to-many") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDRet" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
     dplyr::filter(DeploymentDate < RetrievalDate) %>%
@@ -318,7 +318,7 @@ WrangleAGOLData <- function(agol_layers) {
   
   # ----- SensorsCurrentlyDeployed -----
    data$SensorsCurrentlyDeployed <- sensor_deployment %>%
-    dplyr::inner_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet", "DeploymentDate" = "RetrievalDate")) %>%
+    dplyr::inner_join(sensorRetrieval_visit, by = c("SiteCode", "SensorIDDep" = "SensorIDRet", "DeploymentDate" = "RetrievalDate"), relationship = "many-to-many") %>%
     dplyr::filter(SensorDeployed == "Y") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_Sensor, by = c("SensorIDDep" = "name")) %>%
     dplyr::rename(SensorNumber = label) %>%
@@ -414,7 +414,7 @@ WrangleAGOLData <- function(agol_layers) {
          tidyr::pivot_longer(cols = dplyr::starts_with("DissolvedOxygen_"),
                              values_to = "DissolvedOxygen_percent", names_to = NULL) %>%
          dplyr::right_join(visit, by = "visitglobalid") %>%
-         dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason, 
+         dplyr::select(visitglobalid, Park, SiteCode, SiteName, VisitDate, FieldSeason,
                   WQDataCollected = WQDataCollected.y, DissolvedOxygen_percent)
   
   percent <- dplyr::mutate(percent, ID = 1:nrow(percent))
@@ -426,14 +426,14 @@ WrangleAGOLData <- function(agol_layers) {
     tidyr::pivot_longer(cols = dplyr::starts_with("DissolvedOxygen_"),
                         values_to = "DissolvedOxygen_mg_per_L", names_to = NULL) %>%
     dplyr::right_join(visit, by = "visitglobalid") %>%
-    dplyr::select(visitglobalid, WQNotes, DO_DataQualityFlag, DOInstrument, 
+    dplyr::select(visitglobalid, WQNotes, DO_DataQualityFlag, DOInstrument, SampleFrame, Panel,
                   VisitType, DPL, MonitoringStatus, DissolvedOxygen_mg_per_L)
   
   mg <- dplyr::mutate(mg, ID = 1:nrow(mg))
   
   WaterQualityDO <- mg %>%
     dplyr::inner_join(percent, by = c("visitglobalid", "ID")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, WQDataCollected, 
                   DissolvedOxygen_percent, DissolvedOxygen_mg_per_L, DataQualityFlag = DO_DataQualityFlag, 
                   DataQualityFlagNote = WQNotes, DOInstrument, VisitType, DPL, MonitoringStatus)
     
@@ -452,7 +452,7 @@ WrangleAGOLData <- function(agol_layers) {
     tidyr::pivot_longer(cols = dplyr::starts_with("pH_"),
                         values_to = "pH", names_to = NULL) %>%
     dplyr::right_join(visit, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, pH, DataQualityFlag = pH_DataQualityFlag, 
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, WQDataCollected, pH, DataQualityFlag = pH_DataQualityFlag, 
                   DataQualityFlagNote = WQNotes, pHInstrument, VisitType, DPL, MonitoringStatus) 
     
  wqpH_filterRepeats <- WaterQualitypH %>%
@@ -471,7 +471,7 @@ WrangleAGOLData <- function(agol_layers) {
     tidyr::pivot_longer(cols = dplyr::starts_with("SpecificConductance_"),
                         values_to = "SpecificConductance_microS_per_cm", names_to = NULL) %>%
     dplyr::right_join(visit, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, 
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, WQDataCollected, 
                   SpecificConductance_microS_per_cm, DataQualityFlag = SpCond_microS_DataQualityFlag, DataQualityFlagNote = WQNotes, 
                   SpCondInstrument, VisitType, DPL, MonitoringStatus)
  
@@ -490,7 +490,7 @@ WrangleAGOLData <- function(agol_layers) {
     tidyr::pivot_longer(cols = dplyr::starts_with("Temperature_"),
                         values_to = "WaterTemperature_C", names_to = NULL) %>%
     dplyr::right_join(visit, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WQDataCollected, WaterTemperature_C, 
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, WQDataCollected, WaterTemperature_C, 
                   DataQualityFlag = Temp_C_DataQualityFlag, DataQualityFlagNote = WQNotes, TemperatureInstrument, 
                   VisitType, DPL, MonitoringStatus)
  
@@ -508,7 +508,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::inner_join(visit, by = c("parentglobalid" = "visitglobalid")) %>%
     dplyr::filter(VisitDate > "2018-11-04") %>%
     dplyr::left_join(agol_layers$MOJN_Lookup_DS_WildlifeType, by = c("WildlifeType" = "name")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsWildlifeObserved, WildlifeType = label, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes = Species_Notes, VisitType, DPL) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, IsWildlifeObserved, WildlifeType = label, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes = Species_Notes, VisitType, DPL) %>%
     dplyr::mutate(DirectObservation = yn[DirectObservation],
                   Scat = yn[Scat],
                   Tracks = yn[Tracks],

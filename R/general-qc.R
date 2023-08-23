@@ -38,7 +38,7 @@ qcCompleteness <- function(park, site, field.season) {
     dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
                                                Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
                                                Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
-                                               Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
+                                               Park %in% c("CAMO") & (((as.numeric(FieldSeason) - 2016) %% 3 == 0) | FieldSeason == "2017") ~ "Y",
                                                TRUE ~ "N")) %>%
     dplyr::mutate(Annual = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Y",
                                             TRUE ~ "N")) %>%
@@ -48,7 +48,7 @@ qcCompleteness <- function(park, site, field.season) {
     unique()
   
   expected <- df1 %>%
-    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all")
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all", relationship = "many-to-many")
   
   samplestatus <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
@@ -198,18 +198,18 @@ do.DPL <- do %>%
   dplyr::distinct()
 
 dpl <- visit.DPL %>%
-  dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
-  dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all") %>%
+  dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
   unique() %>%
   dplyr::filter_all(dplyr::any_vars(. %in% c("Raw", "Provisional"))) %>%
   dplyr::arrange(FieldSeason, Park, SiteCode)
@@ -473,7 +473,7 @@ qcNotSampled <- function(park, site, field.season) {
     dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
                                                Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
                                                Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
-                                               Park %in% c("CAMO") & (as.numeric(FieldSeason) - 2017) %% 3 == 0 ~ "Y",
+                                               Park %in% c("CAMO") & (((as.numeric(FieldSeason) - 2016) %% 3 == 0) | FieldSeason == "2017") ~ "Y",
                                                TRUE ~ "N")) %>%
     dplyr::mutate(Annual = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Y",
                                             TRUE ~ "N")) %>%
@@ -483,7 +483,7 @@ qcNotSampled <- function(park, site, field.season) {
     unique()
   
   expected <- df1 %>%
-    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all")
+    dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all", relationship = "many-to-many")
   
   notsampled <- visit %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),

@@ -34,7 +34,7 @@ qcSensorSummary <- function(park, deployment.field.season) {
     dplyr::group_by(Park, SiteCode, SensorNumber, SerialNumber, DeploymentDate) %>%
     dplyr::summarize(RetrievalDate = max(RetrievalDate, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    dplyr::inner_join(attempts, by = c("Park", "SiteCode", "SensorNumber", "SerialNumber", "DeploymentDate", "RetrievalDate"), multiple = "all")
+    dplyr::inner_join(attempts, by = c("Park", "SiteCode", "SensorNumber", "SerialNumber", "DeploymentDate", "RetrievalDate"), multiple = "all", relationship = "many-to-many")
 
   deployed <- latest.attempts %>%
     dplyr::filter(DeploymentVisitType == "Primary") %>%

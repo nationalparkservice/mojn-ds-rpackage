@@ -13,17 +13,14 @@
 #'     WqMedian(site = "LAKE_P_GET0066", field.season = "2019")
 #'     WqMedian(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
-  WqMedian <- function(park, site, field.season) {
-    temp <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityTemperature")
-    spcond <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitySpCond")
-    ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitypH")
-    do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityDO")
+WqMedian <- function(park, site, field.season) {
+  temp <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityTemperature")
+  spcond <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitySpCond")
+  ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualitypH")
+  do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityDO")
     
-    wq.visits <- ReadAndFilterData( park = park, site = site, field.season = field.season, data.name = "Visit")
-
   temp.med <- temp %>%
-    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%
-    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(TemperatureMedian_C = median(WaterTemperature_C),
                      TemperatureCount = sum(!is.na(WaterTemperature_C))) %>%
@@ -31,8 +28,7 @@
     dplyr::arrange(SiteCode)
 
   spcond.med <- spcond %>%
-    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%
-    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(SpCondMedian_microS_per_cm = median(SpecificConductance_microS_per_cm),
                      SpCondCount = sum(!is.na(SpecificConductance_microS_per_cm))) %>%
@@ -40,8 +36,7 @@
     dplyr::arrange(SiteCode)
 
   ph.med <- ph %>%
-    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%
-    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(pHMedian = median(pH),
                      pHCount = sum(!is.na(pH))) %>%
@@ -49,8 +44,7 @@
     dplyr::arrange(SiteCode)
 
   do.med <- do %>%
-    dplyr::left_join(dplyr::select(wq.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%
-    dplyr::filter(MonitoringStatus == "Sampled") %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, VisitDate, VisitType, SampleFrame, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(DOMedian_Percent = median(DissolvedOxygen_percent),
                      DOPercentCount = sum(!is.na(DissolvedOxygen_percent)),
@@ -60,9 +54,9 @@
     dplyr::arrange(SiteCode)
 
   wq.med <- temp.med %>%
-    dplyr::left_join(spcond.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all") %>%
-    dplyr::left_join(ph.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all") %>%
-    dplyr::left_join(do.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all") %>%
+    dplyr::left_join(spcond.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
+    dplyr::left_join(ph.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
+    dplyr::left_join(do.med, by = c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame"), multiple = "all", relationship = "one-to-one") %>%
     dplyr::ungroup() %>%
     dplyr::filter(TemperatureCount != 0 | SpCondCount != 0 | pHCount != 0 | DOPercentCount != 0 | DOmgLCount != 0)
 
@@ -274,6 +268,7 @@ qcWqLong <- function(park, site, field.season) {
 WqStats <- function(park, site, field.season) {
   wq.stats.predata <- qcWqLong(park = park, site = site, field.season = field.season)
   wq.stats <- wq.stats.predata %>%
+    dplyr::select(-SampleFrame) %>%
     dplyr::group_by(Park, FieldSeason, Parameter, Units) %>%
     dplyr::summarize(stats = list(quantile(Value, type = 6, na.rm = TRUE)),
                      Count = dplyr::n()) %>%
@@ -833,11 +828,11 @@ WqMapTemp <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
@@ -953,11 +948,11 @@ WqMapSpCond <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
@@ -1076,11 +1071,11 @@ WqMapPH <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%
@@ -1198,11 +1193,11 @@ WqMapDO <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SiteName, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   wqdata <- data %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, Parameter, Units, Value) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Measurement = paste0(Parameter, "_", Units)) %>%

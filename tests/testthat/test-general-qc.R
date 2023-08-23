@@ -5,7 +5,7 @@ LoadDesertSprings(dir)
 test_that("qcCompleteness works as expected", {
   
   actual_rows <- nrow(qcCompleteness(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 56)
+  expect_equal(actual_rows, 57)
   
   actual_cols <- colnames(qcCompleteness())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "MonitoringStatus", "Count", "Percent")

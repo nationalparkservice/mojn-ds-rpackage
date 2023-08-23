@@ -8,7 +8,7 @@ test_that("qcDisturbanceFormatted works as expected", {
   expect_equal(actual_rows, 809)
   
   actual_cols <- colnames(qcDisturbanceFormatted())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Roads", "HumanUse", "PlantManagement", "HikingTrails", "Livestock", "OtherAnthropogenic", "Fire", "Flooding", "Wildlife", "OtherNatural", "Overall", "FlowModificationStatus", "VisitType", "Notes", "DPL")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "Roads", "HumanUse", "PlantManagement", "HikingTrails", "Livestock", "OtherAnthropogenic", "Fire", "Flooding", "Wildlife", "OtherNatural", "Overall", "FlowModificationStatus", "VisitType", "Notes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcDisturbanceFormatted()
@@ -33,7 +33,7 @@ test_that("qcFlowModFormatted works as expected", {
   expect_equal(actual_rows, 958)
   
   actual_cols <- colnames(qcFlowModFormatted())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowModificationStatus", "ModificationType", "VisitType", "DPL")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "FlowModificationStatus", "ModificationType", "VisitType")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcFlowModFormatted()

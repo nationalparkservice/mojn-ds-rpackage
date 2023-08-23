@@ -8,7 +8,7 @@ test_that("VolumetricMedian works as expected", {
   expect_equal(actual_rows, 53)
   
   actual_cols <- colnames(VolumetricMedian())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Discharge_L_per_s", "Count")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "DPL", "Discharge_L_per_s", "Count")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- VolumetricMedian()
@@ -26,7 +26,7 @@ test_that("VolumetricMedian works as expected", {
 
 test_that("SpringDischarge returns expected number of rows and columns", {
   actual_rows <- nrow(SpringDischarge(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 820)
+  expect_equal(actual_rows, 818)
   
   actual_cols <- colnames(SpringDischarge())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m","DischargeNotes", "SpringbrookNotes")
@@ -50,7 +50,7 @@ test_that("qcSpringDryWater returns expected number of rows and columns", {
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcSpringDryWater())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DischargeNotes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DischargeNotes", "SpringbrookNotes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSpringDryWater()
@@ -67,7 +67,7 @@ test_that("qcSpringDryWater returns expected number of rows and columns", {
 test_that("qcSpringNotDryNoDischarge returns expected number of rows and columns", {
 
   actual_rows <- nrow(qcSpringNotDryNoDischarge(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
-  expect_equal(actual_rows, 10)
+  expect_equal(actual_rows, 9)
   
   actual_cols <- colnames(qcSpringNotDryNoDischarge())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "DischargeNotes", "SpringbrookNotes")
@@ -112,7 +112,7 @@ test_that("qcSpringNotDryNoWater returns expected number of rows and columns", {
   expect_equal(actual_rows, 24)
   
   actual_cols <- colnames(qcSpringNotDryNoWater())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DischargeNotes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DischargeNotes", "SpringbrookNotes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcSpringNotDryNoWater()
@@ -132,7 +132,7 @@ test_that("qcDischargeMissing returns expected number of rows and columns", {
   expect_equal(actual_rows, 111)
   
   actual_cols <- colnames(qcDischargeMissing())
-  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "DischargeNotes", "SpringbrookNotes")
+  expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "DischargeNotes", "SpringbrookNotes")
   expect_equal(actual_cols, expected_cols)
   
   actual_date <- qcDischargeMissing()

@@ -554,7 +554,6 @@ MostCommonLifeformsPlot <- function(park, field.season) {
 #' }
 InvasivePlants <- function(park, site, field.season) {
   invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
-
   
   targetinvasives <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode, ScientificName, InRiparianVegBuffer, Notes) %>%
@@ -585,12 +584,12 @@ InvasivePlantsMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   invasivesdata <- invasives %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
-    dplyr::inner_join(coords, by = c("SiteCode"), multiple = "all") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
+    dplyr::inner_join(coords, by = c("SiteCode"), multiple = "all", relationship = "many-to-one") %>%
+    # dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
                                                InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",
                                                InvasivesObserved == "N" ~ "None",

@@ -20,7 +20,7 @@ VolumetricMedian  <- function(park, site, field.season) {
     dplyr::mutate(Discharge_L_per_s = ((ContainerVolume_mL/1000)/FillTime_seconds)*(100/EstimatedCapture_percent))
   
   summarized <- calculated %>%
-    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, VisitType, DPL) %>%
     dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s),
                      Count = sum(!is.na(FillTime_seconds))) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
@@ -46,19 +46,13 @@ VolumetricMedian  <- function(park, site, field.season) {
 #'     SpringDischarge(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 SpringDischarge <- function(park, site, field.season) {
-    discharge <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition")
-    estimated <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated")
-    median <- VolumetricMedian(park = park, site = site, field.season = field.season)
-    visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
-  
-  sampleframe <- visit %>%
-    dplyr::select(SiteCode, VisitDate, SampleFrame, Panel)
-  
+    discharge <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition") %>% dplyr::select(-DPL)
+    estimated <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated") %>% dplyr::select(-DPL)
+    median <- VolumetricMedian(park = park, site = site, field.season = field.season) %>% dplyr::select(-DPL)
+
   joined <- discharge %>%
-    dplyr::left_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "FlowCondition", "VisitType", "DPL"), multiple = "all") %>%
-    dplyr::left_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason"), multiple = "all") %>%
-    dplyr::left_join(sampleframe, by = c("SiteCode", "VisitDate"), multiple = "all") %>%
-    dplyr::select(-DPL) %>%
+    dplyr::full_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "FlowCondition", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+    dplyr::full_join(median, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
     dplyr::relocate(SampleFrame, .after = FieldSeason) %>%
     dplyr::relocate(Panel, .after = SampleFrame) %>%
     dplyr::relocate(VisitType, .after = Panel) %>%
@@ -69,8 +63,8 @@ SpringDischarge <- function(park, site, field.season) {
     dplyr::arrange(FieldSeason, SiteCode) %>%
     dplyr::select(-Count) %>%
     dplyr::rename(DischargeNotes = Notes) %>%
+    dplyr::filter(VisitType != "Dummy")
     
- 
   return(joined)
 }
 
@@ -96,7 +90,7 @@ qcSpringDryWater <- function(park, site, field.season) {
   dry <- joined %>%
     dplyr::filter(FlowCondition == "dry" & (DischargeClass_L_per_s != "0 L/s" | VolDischarge_L_per_s > 0 | SpringbrookLength_m > 0 | SpringbrookWidth_m > 0)) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m, -SampleFrame, -VisitType, -Panel)
 
   return(dry)               
 }
@@ -183,7 +177,7 @@ qcSpringNotDryNoWater <- function(park, site, field.season) {
   nowater <- rbind(nodischarge, nobrook) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
     unique() %>%
-    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+    dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m, -SampleFrame, -VisitType, -Panel)
   
   return(nowater)
 }
@@ -210,7 +204,7 @@ qcDischargeMissing <- function(park, site, field.season) {
   dischargemissing <- joined %>%
     dplyr::filter(is.na(VolDischarge_L_per_s) & is.na(DischargeClass_L_per_s)) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
-    dplyr::select(-SpringbrookLengthFlag, -SpringbrookLength_m, -SpringbrookWidth_m, -SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m)
+    dplyr::select(-SpringbrookLengthFlag, -SpringbrookLength_m, -SpringbrookWidth_m, -SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m, -SampleFrame, -Panel, -VisitType)
   
   
   return(dischargemissing)
@@ -236,8 +230,9 @@ qcVolumetricMissing <- function(park, site, field.season) {
   volumetric <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeVolumetric")
 
   missing <- volumetric %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent)) %>%
-    dplyr::select(-VisitType, -DPL)
+    dplyr::select(-c("SampleFrame", "Panel", "VisitType", "DPL"))
   
   return(missing)
 }  
@@ -263,7 +258,8 @@ qcVolumetricFillEvents <- function(park, site, field.season) {
 
   fills <- median %>%
     dplyr::filter(0 < Count & Count < 5) %>%
-    dplyr::mutate(Discharge_L_per_s = round(Discharge_L_per_s, 3))
+    dplyr::mutate(Discharge_L_per_s = round(Discharge_L_per_s, 3)) %>%
+    dplyr::select(-c("SampleFrame", "Panel", "VisitType", "DPL"))
   
   return(fills)
 }
@@ -288,6 +284,7 @@ qcVolumetricTimes <- function(park, site, field.season) {
   volumetric <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeVolumetric")
   
   times <- volumetric %>%
+    dplyr::filter(VisitType != "Dummy") %>%
     dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
     dplyr::summarize(MedianFillTime_s = median(FillTime_seconds)) %>%
     dplyr::ungroup() %>%
@@ -339,11 +336,10 @@ qcContinuousLength <- function(park, site, field.season) {
 #' }
 FlowCategoriesContinuous <- function(park, site, field.season) {
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
-  
-  panel <- site %>%
+
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
-                  Panel %in% c("A", "B", "C", "D")) %>%
+                  Panel %in% c("A", "B", "C", "D")) %>% 
     dplyr::mutate(Panel = dplyr::case_when(Panel == "A" ~ "Panel Annual",
                                            Panel == "B" ~ "Panel B",
                                            Panel == "C" ~ "Panel C",
@@ -353,7 +349,8 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary",
-                  SampleFrame != "Rejected") %>%
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     unique() %>%
     dplyr::mutate(FlowCategory = dplyr::case_when(SpringbrookLengthFlag == "Length > 50 meters" ~ "> 50 m",
                                                   FlowCondition == "dry" ~ "Dry",
@@ -362,7 +359,7 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
                                                   SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50) ~ "10 - 50 m",
                                                   TRUE ~ "No Data")) %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
-    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all") %>%
+    dplyr::full_join(site, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all", relationship = "many-to-many") %>%
     tidyr::complete(tidyr::nesting(Park, SiteCode, SiteName, SampleFrame, Panel), FieldSeason) %>%
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
@@ -395,11 +392,10 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
 #' }
 FlowCategoriesDiscontinuous <- function(park, site, field.season) {
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
-  
-  panel <- site %>%
+
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
-                  Panel %in% c("A", "B", "C", "D")) %>%
+                  Panel %in% c("A", "B", "C", "D")) %>% 
     dplyr::mutate(Panel = dplyr::case_when(Panel == "A" ~ "Panel Annual",
                                            Panel == "B" ~ "Panel B",
                                            Panel == "C" ~ "Panel C",
@@ -409,7 +405,8 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary",
-                  SampleFrame != "Rejected") %>%
+                  SampleFrame %in% c("Annual", "3Yr"),
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     unique() %>%
     dplyr::mutate(FlowCategory = dplyr::case_when(FlowCondition == "dry" ~ "Dry",
                                                   FlowCondition == "wet soil only" | (!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) ~ "Wet Soil",
@@ -418,7 +415,7 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "No Data")) %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
-    dplyr::full_join(panel, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all") %>%
+    dplyr::full_join(site, by = c("Park", "SiteCode", "SiteName", "SampleFrame", "Panel"), multiple = "all", relationship = "many-to-many") %>%
     tidyr::complete(tidyr::nesting(Park, SiteCode, SiteName, SampleFrame, Panel), FieldSeason) %>%
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
@@ -734,7 +731,7 @@ FlowCategoriesMap <- function(interactive, park, site, field.season) {
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, FlowCondition, FlowCategory, SpringbrookLength_m, DiscontinuousSpringbrookLength_m, VolDischarge_L_per_s, DischargeClass_L_per_s) %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::arrange(Park, FieldSeason, SampleFrame, FlowCategory) %>%
-    dplyr::left_join(coords, by = "SiteCode", multiple = "all") %>%
+    dplyr::left_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
     dplyr::relocate(Year, .after = FieldSeason)
 
@@ -842,11 +839,11 @@ SpringbrookLengthsAnnualPlot <- function(park, site, field.season) {
     dplyr::mutate(NewSpringbrookLength_m = dplyr::if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
     
   plot <- ggplot2::ggplot(discontinuous %>% dplyr::filter(SampleFrame == "Annual"), ggplot2::aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
-    geom_boxplot() +
-    facet_grid(~Park, scales = "free", space = "free_x") +
-    theme(axis.text.x = element_text(angle = 90)) +
-    labs(x = "Field Season",
-         y = "Springbrook Length (m)")
+    ggplot2::geom_boxplot() +
+    ggplot2::facet_grid(~Park, scales = "free", space = "free_x") +
+    ggplot2::theme(axis.text.x = element_text(angle = 90)) +
+    ggplot2::labs(x = "Field Season",
+                  y = "Springbrook Length (m)")
   
   return(plot)
   
@@ -875,11 +872,11 @@ SpringbrookLengthsThreeYearPlot <- function(park, site, field.season) {
     dplyr::mutate(NewSpringbrookLength_m = dplyr::if_else(!is.na(DiscontinuousSpringbrookLength_m), DiscontinuousSpringbrookLength_m, SpringbrookLength_m))
   
   plot <- ggplot2::ggplot(discontinuous %>% dplyr::filter(SampleFrame == "3Yr"), ggplot2::aes(x = FieldSeason, y = NewSpringbrookLength_m)) +
-    geom_boxplot() +
-    facet_grid(~Park, scales = "free", space = "free_x") +
-    theme(axis.text.x = element_text(angle = 90)) +
-    labs(x = "Field Season",
-         y = "Springbrook Length (m)")
+    ggplot2::geom_boxplot() +
+    ggplot2::facet_grid(~Park, scales = "free", space = "free_x") +
+    ggplot2::theme(axis.text.x = element_text(angle = 90)) +
+    ggplot2::labs(x = "Field Season",
+             y = "Springbrook Length (m)")
   
   return(plot)
   

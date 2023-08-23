@@ -20,7 +20,7 @@ qcWildlifeObservedNoTypes <- function(park, site, field.season) {
     dplyr::filter(IsWildlifeObserved == "Yes",
                   WildlifeType %in% c("No Data", NA)) %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL))
+    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
   
   return(observed.notype)
 }
@@ -54,7 +54,7 @@ qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
                   Vocalization != "Yes",
                   OtherEvidence != "Yes") %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL))
+    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
   
   return(type.noevidence)
 }
@@ -110,7 +110,7 @@ UngulatesEvidence <- function(park, site, field.season) {
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL))
+    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
   
   return(ungulates)
 }
@@ -136,13 +136,13 @@ UngulatesMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   ungulatedata <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
-    dplyr::inner_join(coords, by = "SiteCode", multiple = "all") %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, WildlifeType, DirectObservation, Scat, Tracks, Shelter, Foraging, Vocalization, OtherEvidence, Notes) %>%
+    dplyr::inner_join(coords, by = "SiteCode", multiple = "all", relationship = "many-to-one") %>%
+    # dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(Observed = dplyr::case_when(WildlifeType == "Ungulate" ~ "Yes",
                                               is.na(WildlifeType) ~ "No",
                                               TRUE ~ "No")) %>%
