@@ -624,7 +624,7 @@ LocationMap <- function(park, site, field.season) {
 
   coords$SampleFrameSimple <- factor(coords$SampleFrameSimple, levels = c("Annual", "3Yr", "Other"))
   
-  coords  %<>% dplyr::arrange(desc(SampleFrameSimple))
+  coords %<>% dplyr::arrange(desc(SampleFrameSimple))
   
   pal <- leaflet::colorFactor(palette = c("royalblue1", "red", "gold"),
                               domain = coords$SampleFrameSimple)
