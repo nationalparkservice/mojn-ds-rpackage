@@ -218,6 +218,62 @@ dpl <- visit.DPL %>%
 }
 
 
+#' Return list of sites with any other combination of visit types other than one primary visit for each field season
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcVisitTypeCheck()
+#'     qcVisitTypeCheck(park = "DEVA", field.season = c("2018", "2020", "2021"))
+#' }
+qcVisitTypeCheck <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  
+  check <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitType) %>%
+    dplyr::group_by_all() %>%
+    dplyr::count() %>%
+    dplyr::ungroup() %>%
+    tidyr::pivot_wider(names_from = VisitType, values_from = n, values_fill = 0) %>%
+    dplyr::filter(Primary != 1 | Supplemental != 0 | Replicate != 0 | Dummy != 0) %>%
+    dplyr::arrange(SiteCode, FieldSeason)
+  
+  return(check)
+}
+
+
+#' Return lists of site visits to springs that are not currently in an active sample frame or panel
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcPanelCheck()
+#'     qcPanelCheck(park = "MOJA", field.season = c("2016", "2022", "2023"))
+#' }
+qcPanelCheck <- function(park, site, field.season) {
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  
+  check <- visit %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, VisitType) %>%
+    dplyr::filter(!(SampleFrame %in% c("Annual", "3Yr") | SampleFrame %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"))) %>%
+    dplyr::arrange(SiteCode, FieldSeason)
+  
+  return(check)
+}
+
+
 #' Return list of springs that have been given different classifications
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
