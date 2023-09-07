@@ -808,6 +808,92 @@ qcUniqueIDMissing <- function(park, site, field.season) {
   return(joined)
 }
 
+
+#' Check for suspicious pH calibrations
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcUniqueIDMissing()
+#'     qcUniqueIDMissing(site = "LAKE_P_GET0066")
+#'     qcUniqueIDMissing(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#' }
+qcPHCalCheck <- function(park, site, field.season) {
+  ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationpH")
+  
+  phCheck <- ph %>%
+    dplyr::filter(!((3.98 < TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH < 4.10) | (6.95 < TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH < 7.15) |  (9.80 < TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH < 10.35)) |
+                  PreCalibrationReading_pH == 0.00 |
+                  !(0.00 < PreCalibrationTemperature_C & PreCalibrationTemperature_C < 40.00 & PreCalibrationTemperature_C != -999) | 
+                  !((3.98 < PostCalibrationReading_pH & PostCalibrationReading_pH < 4.10) | (6.95 < PostCalibrationReading_pH & PostCalibrationReading_pH < 7.15) |  (9.80 < PostCalibrationReading_pH & PostCalibrationReading_pH < 10.35)) |
+                  !(0.00 < PostCalibrationTemperature_C & PostCalibrationTemperature_C < 40.00 & PostCalibrationTemperature_C != -999))
+    
+  return(phCheck)
+}
+
+
+#' Check for suspicious specific conductance calibrations
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcUniqueIDMissing()
+#'     qcUniqueIDMissing(site = "LAKE_P_GET0066")
+#'     qcUniqueIDMissing(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#' }
+qcSpCondCalCheck <- function(park, site, field.season) {
+  sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
+  
+  scCheck <- sc %>%
+    dplyr::filter(!(StandardValue_microS_per_cm == 1000 | StandardValue_microS_per_cm == 1413 | StandardValue_microS_per_cm == 5000 | StandardValue_microS_per_cm == 10000 | StandardValue_microS_per_cm == 50000) |
+                  (PreCalibrationReading_microS_per_cm < 900 & PreCalibrationReading_microS_per_cm != -999) |
+                  !(PostCalibrationReading_microS_per_cm == 1000 | PostCalibrationReading_microS_per_cm == 1413 | PostCalibrationReading_microS_per_cm == 5000 | PostCalibrationReading_microS_per_cm == 10000 | PostCalibrationReading_microS_per_cm == 50000))
+  
+  return(scCheck)
+}
+
+
+#' Check for suspicious dissolved oxygen calibrations
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcUniqueIDMissing()
+#'     qcUniqueIDMissing(site = "LAKE_P_GET0066")
+#'     qcUniqueIDMissing(park = c("LAKE", "PARA"), field.season = c("2016", "2017", "2020"))
+#' }
+qcDOCalCheck <- function(park, site, field.season) {
+  do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
+  
+  doCheck <- do %>%
+    dplyr::filter(!(550 < BarometricPressure_mmHg & BarometricPressure_mmHg < 770) |
+                  !(50 < PreCalibrationReading_percent & PreCalibrationReading_percent < 120 & PreCalibrationReading_percent != -999) |
+                  !(0.00 < PreCalibrationTemperature_C & PreCalibrationTemperature_C < 40.00 & PreCalibrationTemperature_C != -999) |   
+                  !(70 < PostCalibrationReading_percent & PostCalibrationReading_percent < 105 & PostCalibrationReading_percent != -999) |
+                  !(0.00 < PostCalibrationTemperature_C & PostCalibrationTemperature_C < 40.00 & PostCalibrationTemperature_C != -999))
+  
+  return(doCheck)
+}
+
+
 #' Map of water temperature at springs with surface water
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
