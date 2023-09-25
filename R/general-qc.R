@@ -105,7 +105,7 @@ qcCompletenessPlot <- function(park, site, field.season) {
     ggplot2::xlab("Park") +
     ggplot2::ylab("Number of Springs Monitored") + 
     ggplot2::facet_grid(~Park, space = "free_x") +
-    ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5),
                    legend.position = "bottom") +
     ggplot2::scale_y_continuous(breaks = seq(0, 80, 10)) +
     ggplot2::scale_fill_manual(values = c("3Yr - Not Sampled" = "rosybrown2", "3Yr - Sampled" = "firebrick", "Annual - Not Sampled" = "lightblue", "Annual - Sampled" = "steelblue"))
