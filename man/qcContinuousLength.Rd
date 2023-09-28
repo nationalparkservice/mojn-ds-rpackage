@@ -4,27 +4,14 @@
 \alias{qcContinuousLength}
 \title{Continuous surface water length > discontinuous surface water length}
 \usage{
-qcContinuousLength(
-  conn,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+qcContinuousLength(park, site, field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
 Tibble
@@ -34,11 +21,8 @@ Continuous surface water length > discontinuous surface water length
 }
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    qcContinuousLength(conn)
-    qcContinuousLength(conn, site = "LAKE_P_GRA0058", field.season = "2019")
-    qcContinuousLength(conn, park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
-    qcContinuousLength(path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    qcContinuousLength()
+    qcContinuousLength(site = "LAKE_P_GRA0058", field.season = "2019")
+    qcContinuousLength(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 }
 }

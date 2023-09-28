@@ -4,30 +4,16 @@
 \alias{FlowCategoriesMap}
 \title{Map of spring flow categories for latest field season at each park}
 \usage{
-FlowCategoriesMap(
-  conn,
-  interactive,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+FlowCategoriesMap(interactive, park, site, field.season)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
 \item{interactive}{Optional. Choose "yes" or "no." Yes will allow the user to toggle between field seasons of data. No will show only the latest field season of data. If no argument is entered, function will default to "no" for greater accessibility.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
 
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
 \item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
 \item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
 leaflet map
@@ -37,11 +23,8 @@ Map of spring flow categories for latest field season at each park
 }
 \examples{
 \dontrun{
-    conn <- OpenDatabaseConnection()
-    FlowCategoriesMap(conn, interactive = "no")
-    FlowCategoriesMap(conn, interactive = "yes", site = "LAKE_P_GRA0058", field.season = "2019")
-    FlowCategoriesMap(conn, interactive = "yes", park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
-    FlowCategoriesMap(interactive = "yes", path.to.data = "path/to/data", data.source = "local")
-    CloseDatabaseConnection(conn)
+    FlowCategoriesMap(interactive = "no")
+    FlowCategoriesMap(interactive = "yes", site = "LAKE_P_GRA0058", field.season = "2019")
+    FlowCategoriesMap(interactive = "yes", park = c("DEVA", "MOJA"), field.season = c("2017", "2018", "2021"))
 }
 }

@@ -1,214 +1,27 @@
 context("Water_quality")
+LoadDesertSprings(dir)
 
-# dummy.temp <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "MOJA", "MOJA", "MOJA", "JOTR", "JOTR", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA", "MOJA", "MOJA"),
-#                              SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
-#                              SiteName = c("Spring 01", "Spring 01", "Spring 01", "Spring 02", "Spring 02", "Spring 02", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 04", "Spring 04", "Spring 04", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 06", "Spring 06", "Spring 06", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 08", "Spring 08", "Spring 08", "Spring 09", "Spring 09", "Spring 09", "Spring 10", "Spring 10", "Spring 10", "Spring 11", "Spring 11", "Spring 11", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 99", "Spring 99", "Spring 99"),
-#                              VisitDate = c("2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-21", "2018-11-21", "2018-11-21", "2019-11-19", "2019-11-19", "2019-11-19", "2018-11-14", "2018-11-14", "2018-11-14", "2018-11-15", "2018-11-15", "2018-11-15", "2019-11-07", "2019-11-07", "2019-11-07", "2019-04-09", "2019-04-09", "2019-04-09", "2019-04-10", "2019-04-10", "2019-04-10", "2020-04-07", "2020-04-07", "2020-04-07", "2020-03-02", "2020-03-02", "2020-03-02", "2020-01-29", "2020-01-29", "2020-01-29", "2019-02-12", "2019-02-12", "2019-02-12", "2019-02-13", "2019-02-13", "2019-02-13", "2019-02-14", "2019-02-14", "2019-02-14", "2019-02-21", "2019-02-21", "2019-02-21", "2020-03-02", "2020-03-02", "2020-03-02"),
-#                              FieldSeason = c("2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020"),
-#                              WQDataCollected = c("Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
-#                              WaterTemperature_C = c(17.1, 17.2, 17.1, 8.90, 8.90, 8.89, 3.11, 3.13, 3.14, 6.23, 6.21, 6.24, 51.3, 51.3, 51.3, 18.4, 18.4, 18.4, 18.7, 18.8, 18.8, 14.6, 14.6, 14.6, 9.43, 9.41, 9.42, 10.8, 10.9, 10.9, 14.2, 14.2, 14.2, 12.1, 12.1, 12.1, 19.4, 19.4, 19.4, 13.8, 13.9, 13.9, 9.75, 9.75, 9.75, 9.81, 9.81, 9.81, 11.9, 11.9, 11.9),
-#                              DataQualityFlag = c("NF", "NF", "NF", "NF", "NF", "NF", "I", "I", "I", NA, NA, NA, "I", "I", "I", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, NA, NA, NA, "NF", "NF", "NF"),
-#                              DataQualityFlagNote = c(NA, NA, NA, NA, NA, NA, "had to break through ice", "had to break through ice", "had to break through ice", NA, NA, NA, "hot spring near river", "hot spring near river", "hot spring near river", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
-#                              TempInstrument = c("YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1"),
-#                              VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Replicate", "Replicate", "Primary", "Primary", "Primary"),
-#                              DPL = c("Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted"),
-#                              MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled"))
-#                              
-# dummy.spcond <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "MOJA", "MOJA", "MOJA", "JOTR", "JOTR", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA", "MOJA", "MOJA"),
-#                                SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
-#                                SiteName = c("Spring 01", "Spring 01", "Spring 01", "Spring 02", "Spring 02", "Spring 02", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 04", "Spring 04", "Spring 04", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 06", "Spring 06", "Spring 06", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 08", "Spring 08", "Spring 08", "Spring 09", "Spring 09", "Spring 09", "Spring 10", "Spring 10", "Spring 10", "Spring 11", "Spring 11", "Spring 11", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 99", "Spring 99", "Spring 99"),
-#                                VisitDate = c("2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-21", "2018-11-21", "2018-11-21", "2019-11-19", "2019-11-19", "2019-11-19", "2018-11-14", "2018-11-14", "2018-11-14", "2018-11-15", "2018-11-15", "2018-11-15", "2019-11-07", "2019-11-07", "2019-11-07", "2019-04-09", "2019-04-09", "2019-04-09", "2019-04-10", "2019-04-10", "2019-04-10", "2020-04-07", "2020-04-07", "2020-04-07", "2020-03-02", "2020-03-02", "2020-03-02", "2020-01-29", "2020-01-29", "2020-01-29", "2019-02-12", "2019-02-12", "2019-02-12", "2019-02-13", "2019-02-13", "2019-02-13", "2019-02-14", "2019-02-14", "2019-02-14", "2019-02-21", "2019-02-21", "2019-02-21", "2020-03-02", "2020-03-02", "2020-03-02"),
-#                                FieldSeason = c("2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020"),
-#                                WQDataCollected = c("Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
-#                                SpecificConductance_microS_per_cm = c(2340, 2345, 2342, 3863, 3865, 3863, NA, NA, NA, 976, 977, 976, 876, 876, 877, 3233, 3234, 3230, 3314, 3312, 3312, 1801, 1799, 1802, 320, 320, 320, 346, 346, 347, 51102, 51114, 51097, 780, 782, 782, 1320, 1320, 1320, 8643, 8641, 8644, 2678, 2676, 2676, 2628, 2629, 2628, 1904, 1905, 1904),
-#                                DataQualityFlag = c("NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", "NF", "NF", "NF", "I", "I", "I", "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, NA, NA, NA, "NF", "NF", "NF"),
-#                                DataQualityFlagNote = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "spring on salty playa", "spring on salty playa", "spring on salty playa", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
-#                                SpCondInstrument = c("YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1"),
-#                                VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Replicate", "Replicate", "Primary", "Primary", "Primary"),
-#                                DPL = c("Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted"),
-#                                MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled"))
-# 
-# dummy.ph <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "MOJA", "MOJA", "MOJA", "JOTR", "JOTR", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA", "MOJA", "MOJA"),
-#                            SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
-#                            SiteName = c("Spring 01", "Spring 01", "Spring 01", "Spring 02", "Spring 02", "Spring 02", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 04", "Spring 04", "Spring 04", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 06", "Spring 06", "Spring 06", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 08", "Spring 08", "Spring 08", "Spring 09", "Spring 09", "Spring 09", "Spring 10", "Spring 10", "Spring 10", "Spring 11", "Spring 11", "Spring 11", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 99", "Spring 99", "Spring 99"),
-#                            VisitDate = c("2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-21", "2018-11-21", "2018-11-21", "2019-11-19", "2019-11-19", "2019-11-19", "2018-11-14", "2018-11-14", "2018-11-14", "2018-11-15", "2018-11-15", "2018-11-15", "2019-11-07", "2019-11-07", "2019-11-07", "2019-04-09", "2019-04-09", "2019-04-09", "2019-04-10", "2019-04-10", "2019-04-10", "2020-04-07", "2020-04-07", "2020-04-07", "2020-03-02", "2020-03-02", "2020-03-02", "2020-01-29", "2020-01-29", "2020-01-29", "2019-02-12", "2019-02-12", "2019-02-12", "2019-02-13", "2019-02-13", "2019-02-13", "2019-02-14", "2019-02-14", "2019-02-14", "2019-02-21", "2019-02-21", "2019-02-21", "2020-03-02", "2020-03-02", "2020-03-02"),
-#                            FieldSeason = c("2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020"),
-#                            WQDataCollected = c("Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
-#                            pH = c(7.91, 7.90, 7.89, 3.85, 3.86, 3.86, 7.35, 7.35, 7.34, 7.42, 7.42, 7.42, 7.06, 7.06, 7.06, 7.65, 7.66, 7.65, 7.71, 7.71, 7.72, 10.81, 10.78, 10.85, 7.24, 7.24, 7.24, 7.34, 7.33, 7.32, 7.10, 7.11, 7.10, 6.89, 6.90, 6.89, 8.18, 8.17, 8.18, 5.83, 5.80, 5.76, 7.96, 7.96, 7.95, 7.92, 7.92, 7.92, 7.43, 7.43, 7.42),
-#                            DataQualityFlag = c("NF", "NF", "NF", "I", "I", "I", "I", "I", "I", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", NA, NA, NA, "W", "W", "W", NA, NA, NA, NA, NA, NA, "NF", "NF", "NF"),
-#                            DataQualityFlagNote = c(NA, NA, NA, "spring near mine tailings", "spring near mine tailings", "spring near mine tailings", "had to break through ice", "had to break through ice", "had to break through ice", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "error during pH calibration, probe did not stabilize, might be old", "error during pH calibration, probe did not stabilize, might be old", "error during pH calibration, probe did not stabilize, might be old", NA, NA, NA, NA, NA, NA, NA, NA, NA),
-#                            pHInstrument = c("YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1"),
-#                            VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Replicate", "Replicate", "Primary", "Primary", "Primary"),
-#                            DPL = c("Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted"),
-#                            MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled"))
-# 
-# dummy.do <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "PARA", "MOJA", "MOJA", "MOJA", "JOTR", "JOTR", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA", "MOJA", "MOJA"),
-#                            SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
-#                            SiteName = c("Spring 01", "Spring 01", "Spring 01", "Spring 02", "Spring 02", "Spring 02", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 03", "Spring 04", "Spring 04", "Spring 04", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 05", "Spring 06", "Spring 06", "Spring 06", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 07", "Spring 08", "Spring 08", "Spring 08", "Spring 09", "Spring 09", "Spring 09", "Spring 10", "Spring 10", "Spring 10", "Spring 11", "Spring 11", "Spring 11", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 12", "Spring 99", "Spring 99", "Spring 99"),
-#                            VisitDate = c("2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-20", "2018-11-21", "2018-11-21", "2018-11-21", "2019-11-19", "2019-11-19", "2019-11-19", "2018-11-14", "2018-11-14", "2018-11-14", "2018-11-15", "2018-11-15", "2018-11-15", "2019-11-07", "2019-11-07", "2019-11-07", "2019-04-09", "2019-04-09", "2019-04-09", "2019-04-10", "2019-04-10", "2019-04-10", "2020-04-07", "2020-04-07", "2020-04-07", "2020-03-02", "2020-03-02", "2020-03-02", "2020-01-29", "2020-01-29", "2020-01-29", "2019-02-12", "2019-02-12", "2019-02-12", "2019-02-13", "2019-02-13", "2019-02-13", "2019-02-14", "2019-02-14", "2019-02-14", "2019-02-21", "2019-02-21", "2019-02-21", "2020-03-02", "2020-03-02", "2020-03-02"),
-#                            FieldSeason = c("2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020"),
-#                            WQDataCollected = c("Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "Yes"),
-#                            DissolvedOxygen_percent = c(84.5, 84.3, 84.3, 140, 139, 137, NA, NA, NA, 88.9, 88.8, 88.7, 42.1, 42.0, 42.1, 172.4, 172.9, 171.8, 78.9, 78.9, 78.8, 90.7, 90.8, 90.6, 84.2, 84.4, 84.4, 82.5, 82.5, 82.5, 72.3, 72.2, 72.2, 29.4, 29.3, 29.2, 69.7, 69.7, 69.6, 85.6, 85.6, 85.6, 91.4, 91.3, 91.2, 90.1, 90.0, 90.0, 88.5, 86.3, 83.9),
-#                            DissolvedOxygen_mg_per_L = c(5.76, 5.75, 5.75, 15.56, 15.55, 15.53, NA, NA, NA, 6.76, 6.76, 6.75, 2.34, 2.33, 2.33, 18.41, 18.50, 18.52, 5.05, 5.05, 5.05, 6.84, 6.84, 6.83, 5.45, 5.46, 5.46, 5.31, 5.30, 5.30, 4.96, 4.96, 4.96, 1.97, 1.96, 1.96, 4.70, 4.70, 4.70, 5.56, 5.57, 5.56, 6.92, 6.92, 6.90, 6.82, 6.82, 6.82, 6.21, 5.92, 5.40),
-#                            DataQualityFlag = c("NF", "NF", "NF", "C", "C", "C", "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "NF", "I", "I", "I", NA, NA, NA, "NF", "NF", "NF", NA, NA, NA, NA, NA, NA, "W", "W", "W"),
-#                            DataQualityFlagNote = c(NA, NA, NA, "DO probe failed calibration, not reading correctly", "DO probe failed calibration, not reading correctly", "DO probe failed calibration, not reading correctly", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "a lot of organic matter in spring", "a lot of organic matter in spring", "a lot of organic matter in spring", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "DO falling rapidly, readings would not stabilize", "DO falling rapidly, readings would not stabilize", "DO falling rapidly, readings would not stabilize"),
-#                            DOInstrument = c("YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 2", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1", "YSI Multimeter 1"),
-#                            VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Replicate", "Replicate", "Primary", "Primary", "Primary"),
-#                            DPL = c("Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Accepted", "Provisional", "Provisional", "Provisional", "Accepted", "Accepted", "Accepted"),
-#                            MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled"))
-# 
-# dummy.visit <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA"),
-#                              Subunit = c("DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "LAKE Unknown", "LAKE Unknown", "LAKE Unknown", "PARA Unknown",  "PARA Unknown", "PARA Unknown", "MOJA Unknown", "JOTR Unknown", "DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "DEVA Unknown", "MOJA Unknown"),
-#                              SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099"),
-#                              SiteName = c("Spring 01", "Spring 02", "Spring 03", "Spring 03", "Spring 04", "Spring 05", "Spring 05", "Spring 06", "Spring 07", "Spring 07", "Spring 08", "Spring 09", "Spring 10", "Spring 11", "Spring 12", "Spring 12", "Spring 99"),
-#                              VisitDate = c("2018-11-20", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2018-11-15", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14", "2019-02-21", "2020-03-02"),
-#                              FieldSeason = c("2019", "2019", "2019", "2020", "2019", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2020"),
-#                              SampleFrame = c("3Yr", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Over"),
-#                              VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Primary"),
-#                              MonitoringStatus = c("Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled", "Sampled"),
-#                              SpringType = c("Rheocrene", "Rheocrene", "Rheocrene", "Rheocrene", "Limnocrene", "Rheocrene", "Rheocrene", "Rheocrene", "Hillslope", "Hillslope", "Helocrene", "Rheocrene", "Rheocrene", "Rheocrene", "Rheocrene", "Rheocrene", "Other"))
-# 
-# dir <- "temp-test-csv"
-# dir.create(dir)
-# readr::write_csv(dummy.temp, file.path(dir, "WaterQualityTemperature.csv"), na = '')
-# readr::write_csv(dummy.spcond, file.path(dir, "WaterQualitySpCond.csv"), na = '')
-# readr::write_csv(dummy.ph, file.path(dir, "WaterQualitypH.csv"), na = '')
-# readr::write_csv(dummy.do, file.path(dir, "WaterQualityDO.csv"), na = '')
-# readr::write_csv(dummy.visit, file.path(dir, "Visit.csv"), na = '')
-# 
-# test_that("QcWqMedian works as expected", {
-#   expected <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "MOJA"),
-#                              FieldSeason = c("2019", "2019", "2019", "2020", "2019", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2020"),
-#                              SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0012", "MOJA_P_SPR0099"),
-#                              VisitDate = as.Date(c("2018-11-20", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2018-11-15", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14", "2019-02-21", "2020-03-02")),
-#                              VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Replicate", "Primary"),
-#                              SampleFrame = c("3Yr", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Over"),
-#                              TempFlag = c("NF", "NF", "I", NA, "I", NA, "NF", NA, "NF", "NF", "NF", "NF", NA, "NF", NA, NA, "NF"),
-#                              TempFlagNote = c(NA, NA, "had to break through ice", NA, "hot spring near river", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA),
-#                              TempMedian = c(17.1, 8.90, 3.13, 6.23, 51.3, 18.4, 18.8, 14.6, 9.42, 10.9, 14.2, 12.1, 19.4, 13.9, 9.75, 9.81, 11.9),
-#                              SpCondFlag = c("NF", "NF", "NF", NA, "NF", NA, "NF", NA, "NF", "NF", "I", "NF", NA, "NF", NA, NA, "NF"),
-#                              SpCondFlagNote = c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "spring on salty playa", NA, NA, NA, NA, NA, NA),
-#                              SpCondMedian = c(2342, 3863, NA, 976, 876, 3233, 3312, 1801, 320, 346, 51102, 782, 1320, 8643, 2676, 2628, 1904),
-#                              pHFlag = c("NF", "I", "I", NA, "NF", NA, "NF", NA, "NF", "NF", "NF", "NF", NA, "W", NA, NA, "NF"),
-#                              pHFlagNote = c(NA, "spring near mine tailings", "had to break through ice", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "error during pH calibration, probe did not stabilize, might be old", NA, NA, NA),
-#                              pHMedian = c(7.90, 3.86, 7.35, 7.42, 7.06, 7.65, 7.71, 10.81, 7.24, 7.33, 7.10, 6.89, 8.18, 5.80, 7.96, 7.92, 7.43),
-#                              DOFlag = c("NF", "C", "NF", NA, "NF", NA, "NF", NA, "NF", "NF", "NF", "I", NA, "NF", NA, NA, "W"),
-#                              DOFlagNote = c(NA, "DO probe failed calibration, not reading correctly", NA, NA, NA, NA, NA, NA, NA, NA, NA, "a lot of organic matter in spring", NA, NA, NA, NA, "DO falling rapidly, readings would not stabilize"),
-#                              DOPercentMedian = c(84.3, 139, NA, 88.8, 42.1, 172.4, 78.9, 90.7, 84.4, 82.5, 72.2, 29.3, 69.7, 85.6, 91.3, 90.0, 86.3),
-#                              DOmgLMedian = c(5.75, 15.55, NA, 6.76, 2.33, 18.5, 5.05, 6.84, 5.46, 5.30, 4.96, 1.96, 4.70, 5.56, 6.92, 6.82, 5.92))
-#   result <- QcWqMedian(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcWqMedian(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcWqMedian(path.to.data = dir, data.source = "local", field.season = "2019")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-# })
-# 
-# test_that("QcWqSanity works as expected", {
-#   expected <- tibble::tibble(Park = c("LAKE", "MOJA", "DEVA", "PARA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE"),
-#                              FieldSeason = c("2019", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2019"),
-#                              SiteCode = c("LAKE_P_SPR0004", "MOJA_P_SPR0008", "DEVA_P_SPR0002", "PARA_P_SPR0006", "DEVA_P_SPR0011", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "LAKE_P_SPR0005", "LAKE_P_SPR0005"),
-#                              VisitDate = as.Date(c("2018-11-14", "2020-03-02", "2018-11-20", "2019-04-09", "2019-02-13", "2018-11-20", "2018-11-20", "2018-11-15", "2018-11-15")),
-#                              VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary"),
-#                              SampleFrame = c("3Yr", "Annual", "3Yr", "3Yr", "Annual", "3Yr", "3Yr", "Annual", "Annual"),
-#                              Parameter = c("Temp", "SpCond", "pH", "pH", "pH", "DO", "DO", "DO", "DO"),
-#                              Units = c("C", "uS/cm", "units", "units", "units", "%", "mg/L", "%", "mg/L"),
-#                              Median = c(51.3, 51102, 3.86, 10.81, 5.80, 139, 15.55, 172.4, 18.5),
-#                              Flag = c("I", "I", "I", NA, "W", "C", "C", NA, NA),
-#                              FlagNote = c("hot spring near river", "spring on salty playa", "spring near mine tailings", NA, "error during pH calibration, probe did not stabilize, might be old", "DO probe failed calibration, not reading correctly", "DO probe failed calibration, not reading correctly", NA, NA))
-#   result <- QcWqSanity(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcWqSanity(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcWqSanity(path.to.data = dir, data.source = "local", field.season = "2019")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-# })
-# 
-# test_that("QcWqFlags works as expected", {
-#   expected <- tibble::tibble(Park = c("DEVA", "LAKE", "MOJA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "JOTR", "JOTR", "MOJA", "MOJA"),
-#                              FieldSeason = c("2019", "2019", "2020", "2019", "2019", "2019", "2019", "2019", "2020", "2020", "2020", "2020"),
-#                              SiteCode = c("DEVA_P_SPR0003", "LAKE_P_SPR0004", "MOJA_P_SPR0008", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0011", "DEVA_P_SPR0002", "DEVA_P_SPR0002", "JOTR_P_SPR0009", "JOTR_P_SPR0009", "MOJA_P_SPR0099", "MOJA_P_SPR0099"),
-#                              VisitDate = as.Date(c("2018-11-21", "2018-11-14", "2020-03-02", "2018-11-20", "2018-11-21", "2019-02-13", "2018-11-20", "2018-11-20", "2020-01-29", "2020-01-29", "2020-03-02", "2020-03-02")),
-#                              VisitType = c("Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary", "Primary"),
-#                              SampleFrame = c("Annual", "3Yr", "Annual", "3Yr", "Annual", "Annual", "3Yr", "3Yr", "Annual", "Annual", "Over", "Over"),
-#                              Parameter = c("Temp", "Temp", "SpCond", "pH", "pH", "pH", "DO", "DO", "DO", "DO", "DO", "DO"),
-#                              Units = c("C", "C", "uS/cm", "units", "units", "units", "%", "mg/L", "%", "mg/L", "%", "mg/L"),
-#                              Median = c(3.13, 51.3, 51102, 3.86, 7.35, 5.80, 139, 15.55, 29.3, 1.96, 86.3, 5.92),
-#                              Flag = c("I", "I", "I", "I", "I", "W", "C", "C", "I", "I", "W", "W"),
-#                              FlagNote = c("had to break through ice", "hot spring near river", "spring on salty playa", "spring near mine tailings", "had to break through ice", "error during pH calibration, probe did not stabilize, might be old", "DO probe failed calibration, not reading correctly", "DO probe failed calibration, not reading correctly", "a lot of organic matter in spring", "a lot of organic matter in spring", "DO falling rapidly, readings would not stabilize", "DO falling rapidly, readings would not stabilize"))
-#   result <- QcWqFlags(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcWqFlags(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcWqFlags(path.to.data = dir, data.source = "local", field.season = "2019")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-# })
-# 
-# test_that("QcWqCleaned works as expected", {
-#   expected <- tibble::tibble(Park = c("DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "DEVA", "LAKE", "LAKE", "PARA", "PARA", "PARA", "MOJA", "JOTR", "DEVA", "DEVA", "DEVA"), 
-#                              FieldSeason = c("2019", "2019", "2019", "2020", "2019", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2019", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2019", "2020", "2019", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2020", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019", "2019", "2019", "2020", "2019", "2020", "2019", "2019", "2020", "2020", "2020", "2019", "2019", "2019"), 
-#                              SiteCode = c("DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0001", "DEVA_P_SPR0002", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0012", "DEVA_P_SPR0001", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012", "DEVA_P_SPR0001", "DEVA_P_SPR0003", "DEVA_P_SPR0003", "LAKE_P_SPR0004", "LAKE_P_SPR0005", "PARA_P_SPR0006", "PARA_P_SPR0007", "PARA_P_SPR0007", "MOJA_P_SPR0008", "JOTR_P_SPR0009", "DEVA_P_SPR0010", "DEVA_P_SPR0011", "DEVA_P_SPR0012"), 
-#                              VisitDate = as.Date(c("2018-11-20", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2018-11-15", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14", "2018-11-20", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2018-11-15", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14", "2018-11-20", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2018-11-15", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12",  "2019-02-14", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14", "2018-11-20", "2018-11-21", "2019-11-19", "2018-11-14", "2019-11-07", "2019-04-09", "2019-04-10", "2020-04-07", "2020-03-02", "2020-01-29", "2019-02-12", "2019-02-13", "2019-02-14")), 
-#                              SampleFrame = c("3Yr", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "Annual", "3Yr", "Annual", "3Yr", "Annual", "Annual", "Annual", "Annual", "3Yr", "Annual", "Annual"),
-#                              Parameter = c("Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO"), 
-#                              Units = c("C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "units", "units", "units", "units", "units", "units", "units", "units", "units", "units", "units", "units", "units", "units", "%", "%", "%", "%", "%", "%", "%", "%", "%", "%", "%", "%", "%", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L"), 
-#                              Median = c(17.1, 8.90, 3.13, 6.23, 51.3, 18.4, 18.8, 14.6, 9.42, 10.9, 14.2, 12.1, 19.4, 13.9, 9.75, 2342, 3863, NA, 976, 876, 3233, 3312, 1801, 320, 346, 51102, 782, 1320, 8643, 2676, 7.90, 3.86, 7.35, 7.42, 7.06, 7.65, 7.71, 10.81, 7.24, 7.33, 7.10, 6.89, 8.18, 7.96, 84.3, NA, 88.8, 42.1, 78.9, 90.7, 84.4, 82.5, 72.2, 29.3, 69.7, 85.6, 91.3, 5.75, NA, 6.76, 2.33, 5.05, 6.84, 5.46, 5.30, 4.96, 1.96, 4.70, 5.56, 6.92))
-#   result <- QcWqCleaned(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcWqCleaned(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcWqCleaned(path.to.data = dir, data.source = "local", field.season = "2019")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-# })
-# 
-# test_that("QcWqStats works as expected", {
-#   expected <- tibble::tibble(Park = c("DEVA", "DEVA", "JOTR", "LAKE", "LAKE", "MOJA", "PARA", "PARA", "DEVA", "DEVA", "JOTR", "LAKE", "LAKE", "MOJA", "PARA", "PARA", "DEVA", "DEVA", "JOTR", "LAKE", "LAKE", "MOJA", "PARA", "PARA", "DEVA", "DEVA", "JOTR", "LAKE", "LAKE", "MOJA", "PARA", "PARA", "DEVA", "DEVA", "JOTR", "LAKE", "LAKE", "MOJA", "PARA", "PARA"),
-#                              FieldSeason = c("2019", "2020", "2020", "2019", "2020", "2020", "2019", "2020", "2019", "2020", "2020", "2019", "2020", "2020", "2019", "2020", "2019", "2020", "2020", "2019", "2020", "2020", "2019", "2020", "2019", "2020", "2020", "2019", "2020", "2020", "2019", "2020", "2019", "2020", "2020", "2019", "2020", "2020", "2019", "2020"),
-#                              Parameter = c("Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "Temp", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "SpCond", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "pH", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO", "DO"),
-#                              Units = c("C", "C", "C", "C", "C", "C", "C", "C", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "uS/cm", "units", "units", "units", "units", "units", "units", "units", "units", "%", "%", "%", "%", "%", "%", "%", "%", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L", "mg/L"),
-#                              `0%` = c(3.1, 6.2, 12.1, 18.4, 18.8, 14.2, 9.4, 10.9, 1320, 976, 782, 876, 3312, 51102, 320, 346, 3.86, 7.42, 6.89, 7.06, 7.71, 7.10, 7.24, 7.33, 69.7, 88.8, 29.3, 42.1, 78.9, 72.2, 84.4, 82.5, 4.70, 6.76, 1.96, 2.33, 5.05, 4.96, 5.46, 5.30),
-#                              `25%` = c(7.5, 6.2, 12.1, 18.4, 18.8, 14.2, 9.4, 10.9, 1831, 976, 782, 876, 3312, 51102, 320, 346, 5.6, 7.42, 6.89, 7.06, 7.71, 7.10, 7.24, 7.33, 73.4, 88.8, 29.3, 42.1, 78.9, 72.2, 84.4, 82.5, 4.92, 6.76, 1.96, 2.33, 5.05, 4.96, 5.46, 5.30),
-#                              `50%` = c(11.8, 6.2, 12.1, 34.8, 18.8, 14.2, 12.0, 10.9, 2676, 976, 782, 2054, 3312, 51102, 1060, 346, 7.9, 7.42, 6.89, 7.36, 7.71, 7.10, 9.03, 7.33, 84.9, 88.8, 29.3, 42.1, 78.9, 72.2, 87.6, 82.5, 5.65, 6.76, 1.96, 2.33, 5.05, 4.96, 6.15, 5.30),
-#                              `75%` = c(17.7, 6.2, 12.1, 51.3, 18.8, 14.2, 14.6, 10.9, 6253, 976, 782, 3233, 3312, 51102, 1801, 346, 8.07, 7.42, 6.89, 7.65, 7.71, 7.10, 10.81, 7.33, 89.9, 88.8, 29.3, 42.1, 78.9, 72.2, 90.7, 82.5, 6.63, 6.76, 1.96, 2.33, 5.05, 4.96, 6.84, 5.30),
-#                              `100%` = c(19.4, 6.2, 12.1, 51.3, 18.8, 14.2, 14.6, 10.9, 8643, 976, 782, 3233, 3312, 51102, 1801, 346, 8.18, 7.42, 6.89, 7.65, 7.71, 7.10, 10.81, 7.33, 91.3, 88.8, 29.3, 42.1, 78.9, 72.2, 90.7, 82.5, 6.92, 6.76, 1.96, 2.33, 5.05, 4.96, 6.84, 5.30))
-#   
-#   expected[expected$Parameter == "DO" & expected$Units == "%", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
-#   expected[expected$Parameter == "DO" & expected$Units == "mg/L", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
-#   expected[expected$Parameter == "SpCond", ] %<>% dplyr::mutate_if(is.double, ~ round(., 0))
-#   expected[expected$Parameter == "pH", ] %<>% dplyr::mutate_if(is.double, ~ round(., 2))
-#   expected[expected$Parameter == "Temp", ] %<>% dplyr::mutate_if(is.double, ~ round(., 1))
-#   
-#   result <- QcWqStats(path.to.data = dir, data.source = "local")
-#   result_DEVA <- QcWqStats(path.to.data = dir, data.source = "local", park = "DEVA")
-#   result_2019 <- QcWqStats(path.to.data = dir, data.source = "local", field.season = "2019")
-#   expect_dataframe_equal(result, expected)
-#   expect_dataframe_equal(result_DEVA, dplyr::filter(expected, Park == "DEVA"))
-#   expect_dataframe_equal(result_2019, dplyr::filter(expected, FieldSeason == "2019"))
-# })
-# 
-# # Remove temporary CSV files
-# unlink(dir, recursive = TRUE)
 
 test_that("WqMedian works as expected", {
+
+  actual_rows <- nrow(WqMedian(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")) %>% dplyr::filter(Park == "LAKE"))
+  expect_equal(actual_rows, 86)
   
-  actual_rows <- nrow(WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "LAKE"))
-  expect_equal(actual_rows, 64)
-  
-  actual_cols <- colnames(WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "TemperatureFlag", "TemperatureFlagNote", "TemperatureMedian_C", "TemperatureCount", "SpCondFlag", "SpCondFlagNote", "SpCondMedian_microS_per_cm", "SpCondCount", "pHFlag", "pHFlagNote", "pHMedian", "pHCount", "DOFlag", "DOFlagNote", "DOMedian_Percent", "DOPercentCount", "DOMedian_mg_per_L", "DOmgLCount")
+  actual_cols <- colnames(WqMedian())
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "TemperatureFlag", "TemperatureFlagNote", "TemperatureMedian_C", "TemperatureCount", "SpCondFlag", "SpCondFlagNote", "SpCondMedian_microS_per_cm", "SpCondCount", "pHFlag", "pHFlagNote", "pHMedian", "pHCount", "DOFlag", "DOFlagNote", "DOMedian_Percent", "DOPercentCount", "DOMedian_mg_per_L", "DOmgLCount")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- WqMedian()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- WqMedian()
   expect_equal(typeof(actual_date$TemperatureMedian_C), "double")
   expect_equal(typeof(actual_date$SpCondMedian_microS_per_cm), "double")
   expect_equal(typeof(actual_date$pHMedian), "double")
   expect_equal(typeof(actual_date$DOMedian_Percent), "double")
   expect_equal(typeof(actual_date$DOMedian_mg_per_L), "double")
   
-  actual_medians <- WqMedian(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "DEVA_P_BEN0606", FieldSeason == "2020") %>% dplyr::select(TemperatureMedian_C, SpCondMedian_microS_per_cm, pHMedian, DOMedian_Percent, DOMedian_mg_per_L)
+  actual_medians <- WqMedian() %>% dplyr::filter(SiteCode == "DEVA_P_BEN0606", FieldSeason == "2020") %>% dplyr::select(TemperatureMedian_C, SpCondMedian_microS_per_cm, pHMedian, DOMedian_Percent, DOMedian_mg_per_L)
   expected_medians <- tibble::as_tibble_row(c(TemperatureMedian_C = as.double(16.4), SpCondMedian_microS_per_cm = as.double(2844), pHMedian = as.double(3.53), DOMedian_Percent = as.double(114.6), DOMedian_mg_per_L = as.double(10.45)))
   expect_equal(actual_medians, expected_medians)
   
@@ -217,20 +30,20 @@ test_that("WqMedian works as expected", {
 
 test_that("qcWqSanity works as expected", {
   
-  actual_rows <- nrow(qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 80)
+  actual_rows <- nrow(qcWqSanity(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 109)
   
-  actual_cols <- colnames(qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "SanityNote")
+  actual_cols <- colnames(qcWqSanity())
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "Parameter", "Units", "Value", "SanityNote")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcWqSanity()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcWqSanity()
   expect_equal(typeof(actual_dbl$Value), "double")
   
-  actual_value <- qcWqSanity(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "PARA_P_LOW0152", FieldSeason == "2021") %>% dplyr::select(Parameter, Units, Value)
+  actual_value <- qcWqSanity() %>% dplyr::filter(SiteCode == "PARA_P_LOW0152", FieldSeason == "2021") %>% dplyr::select(Parameter, Units, Value)
   expected_value <- tibble::as_tibble_row(c(Parameter = as.character("DO"), Units = as.character("%"), Value = as.double(123.8))) %>% dplyr::mutate(Value = as.double(Value))
   expect_equal(actual_value, expected_value)
   
@@ -239,20 +52,20 @@ test_that("qcWqSanity works as expected", {
 
 test_that("qcWqFlags works as expected", {
   
-  actual_rows <- nrow(qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 106)
+  actual_rows <- nrow(qcWqFlags(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 158)
   
-  actual_cols <- colnames(qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "VisitType", "SampleFrame", "Parameter", "Units", "Value", "Flag", "FlagNote")
+  actual_cols <- colnames(qcWqFlags())
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "VisitType", "SampleFrame", "Panel", "Parameter", "Units", "Value", "Flag", "FlagNote")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcWqFlags()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcWqFlags()
   expect_equal(typeof(actual_dbl$Value), "double")
   
-  actual_value <- qcWqFlags(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_GET0066", FieldSeason == "2019") %>% dplyr::select(Parameter, Units, Value, Flag)
+  actual_value <- qcWqFlags() %>% dplyr::filter(SiteCode == "LAKE_P_GET0066", FieldSeason == "2019") %>% dplyr::select(Parameter, Units, Value, Flag)
   expected_value <- tibble::as_tibble_row(c(Parameter = as.character("pH"), Units = as.character("units"), Value = as.double(7.05), Flag = as.character("W"))) %>% dplyr::mutate(Value = as.double(Value))
   expect_equal(actual_value, expected_value)
   
@@ -261,20 +74,20 @@ test_that("qcWqFlags works as expected", {
 
 test_that("qcWqLong works as expected", {
   
-  actual_rows <- nrow(qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018"))
+  actual_rows <- nrow(qcWqLong() %>% dplyr::filter(Park == "DEVA", FieldSeason == "2018"))
   expect_equal(actual_rows, 182)
   
-  actual_cols <- colnames(qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expected_cols <- c("Park", "FieldSeason", "SiteCode", "VisitDate", "SampleFrame", "Parameter", "Units", "Value")
+  actual_cols <- colnames(qcWqLong())
+  expected_cols <- c("Park", "FieldSeason", "SiteCode", "SiteName", "VisitDate", "SampleFrame", "Panel", "Parameter", "Units", "Value")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcWqLong()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcWqLong()
   expect_equal(typeof(actual_dbl$Value), "double")
   
-  actual_value <- qcWqLong(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(SiteCode == "LAKE_P_DRI0002", FieldSeason == "2016") %>% dplyr::select(SiteCode, Parameter, Units, Value)
+  actual_value <- qcWqLong() %>% dplyr::filter(SiteCode == "LAKE_P_DRI0002", FieldSeason == "2016") %>% dplyr::select(SiteCode, Parameter, Units, Value)
   expected_value <- tibble::tibble(SiteCode = as.character(c("LAKE_P_DRI0002", "LAKE_P_DRI0002", "LAKE_P_DRI0002")),
                                    Parameter = as.character(c("Temperature", "SpCond", "pH")),
                                    Units = as.character(c("C", "uS/cm", "units")),
@@ -286,18 +99,18 @@ test_that("qcWqLong works as expected", {
 
 test_that("WqStats works as expected", {
   
-  actual_rows <- nrow(WqStats(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 135)
+  actual_rows <- nrow(WqStats(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 160)
   
-  actual_cols <- colnames(WqStats(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(WqStats())
   expected_cols <- c("Park", "FieldSeason", "Parameter", "Units", "Minimum", "FirstQuartile", "Median", "ThirdQuartile", "Maximum", "Count")
   expect_equal(actual_cols, expected_cols)
   
-  actual_dbl <- WqStats(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- WqStats()
   expect_equal(unique(sapply(actual_dbl[, 5:9], typeof)), "double")
   
-  actual_stats <- WqStats(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local") %>% dplyr::filter(Park == "MOJA", FieldSeason == "2019", Parameter == "Temperature") %>% dplyr::select(Minimum, FirstQuartile, Median, ThirdQuartile, Maximum)
-  expected_stats <- tibble::as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.5), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
+  actual_stats <- WqStats() %>% dplyr::filter(Park == "MOJA", FieldSeason == "2019", Parameter == "Temperature") %>% dplyr::select(Minimum, FirstQuartile, Median, ThirdQuartile, Maximum)
+  expected_stats <- tibble::as_tibble_row(c(Minimum = as.double(6.3), FirstQuartile = as.double(8.4), Median = as.double(10.4), ThirdQuartile = as.double(13.4), Maximum = as.double(19.2)))
   expect_equal(actual_stats, expected_stats)
   
 })
@@ -305,17 +118,17 @@ test_that("WqStats works as expected", {
 
 test_that("qcLocalDOCheck returns correct number of rows and columns", {
   
-  actual_rows <- nrow(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 165)
+  actual_rows <- nrow(qcLocalDOCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 152)
   
-  actual_cols <- colnames(qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcLocalDOCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "DOInstrument", "PreCalDO_percent", "PostCalDO_percent")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcLocalDOCheck()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- qcLocalDOCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcLocalDOCheck()
   expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
   
 })
@@ -323,17 +136,17 @@ test_that("qcLocalDOCheck returns correct number of rows and columns", {
 
 test_that("qcSpCondStandardCheck works as expected", {
   
-  actual_rows <- nrow(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
-  expect_equal(actual_rows, 21)
+  actual_rows <- nrow(qcSpCondStandardCheck(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 24)
   
-  actual_cols <- colnames(qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local"))
+  actual_cols <- colnames(qcSpCondStandardCheck())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SpCondInstrument", "SpCondMedian", "SpCondStandard")
   expect_equal(actual_cols, expected_cols)
   
-  actual_date <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_date <- qcSpCondStandardCheck()
   expect_equal(class(actual_date$VisitDate), "Date")
   
-  actual_dbl <- qcSpCondStandardCheck(path.to.data = here::here("tests", "testthat", "test_data"), data.source = "local")
+  actual_dbl <- qcSpCondStandardCheck()
   expect_equal(unique(sapply(actual_dbl[, 7:8], typeof)), "double")
 
 })

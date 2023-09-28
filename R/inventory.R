@@ -1,13 +1,13 @@
 
-FullSpringDischarge <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+FullSpringDischarge <- function(park, site, field.season) {
   
 name <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/qSumB_SpringInventoryEvents_20220216.csv"
 name2 <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/DSVisitRawData.csv"
 
-mon <- SpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+mon <- SpringDischarge(park = park, site = site, field.season = field.season)
 inv <- readr::read_csv(name, show_col_types = FALSE)
-sites <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
-visit <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Visit")
+sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
 wy22 <- readr::read_csv(name2, show_col_types = FALSE)
 
 coords <- sites %>%
@@ -164,9 +164,9 @@ return(full)
 
 
 
-FullFlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+FullFlowCategoriesDiscontinuous <- function(park, site, field.season) {
   
-  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  joined <- FullSpringDischarge(park = park, site = site, field.season = field.season)
   
   categorized <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -216,8 +216,8 @@ FullFlowCategoriesDiscontinuous <- function(conn, path.to.data, park, site, fiel
   return(categorized)
 }
 
-FullFlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- FullFlowCategoriesDiscontinuous(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesAnnualPlot <- function(park, site, field.season) {
+  data <- FullFlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -243,8 +243,8 @@ FullFlowCategoriesAnnualPlot <- function(conn, path.to.data, park, site, field.s
 }
 
 
-FullFlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- FullFlowCategoriesDiscontinuous(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesThreeYearPlot <- function(park, site, field.season) {
+  data <- FullFlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", "Wet Soil", "Dry"))
   
@@ -269,8 +269,8 @@ FullFlowCategoriesThreeYearPlot <- function(conn, path.to.data, park, site, fiel
   return(plot)
 }
 
-FullFlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesAnnualHeatMap <- function(park, site, field.season) {
+  joined <- FullSpringDischarge(park = park, site = site, field.season = field.season)
   
   data <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -326,8 +326,8 @@ FullFlowCategoriesAnnualHeatMap <- function(conn, path.to.data, park, site, fiel
 }
 
 
-FullFlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
+  joined <- FullSpringDischarge(park = park, site = site, field.season = field.season)
   
   data <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -390,16 +390,13 @@ FullFlowCategoriesThreeYearHeatMap <- function(conn, path.to.data, park, site, f
   
   return(heatmap)
 }
-
-
-TempElevPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+  TempElevPlot <- function(park, site, field.season) {
 
   name <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/qSumB_SpringInventoryEvents_20220216.csv"
   name2 <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/DSVisitRawData.csv"
-  
   inv <- readr::read_csv(name, show_col_types = FALSE)
-  sites <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
-  wq <- WqMedian(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  wq <- WqMedian(park = park, site = site, field.season = field.season)
   
   coords <- sites %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -463,10 +460,10 @@ TempElevPlot <- function(conn, path.to.data, park, site, field.season, data.sour
 }
 
 
-SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+SpCondElevPlot <- function(park, site, field.season) {
   inv <- readr::read_csv(name, show_col_types = FALSE)
-  sites <- ReadAndFilterData(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source, data.name = "Site")
-  wq <- WqMedian(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  wq <- WqMedian(park = park, site = site, field.season = field.season)
   
   coords <- sites %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -537,8 +534,8 @@ SpCondElevPlot <- function(conn, path.to.data, park, site, field.season, data.so
 }
 
 
-FullFlowCategoriesPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  data <- FullFlowCategoriesDiscontinuous(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesPlot <- function(park, site, field.season) {
+  data <- FullFlowCategoriesDiscontinuous(park = park, site = site, field.season = field.season)
   
   data$FlowCategory <- factor(data$FlowCategory, levels = c("> 50 m", "10 - 50 m", "< 10 m", " ", "Wet Soil", "Dry"))
   
@@ -580,8 +577,8 @@ FullFlowCategoriesPlot <- function(conn, path.to.data, park, site, field.season,
 }
 
 
-FullFlowCategoriesHeatMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+FullFlowCategoriesHeatMap <- function(park, site, field.season) {
+  joined <- FullSpringDischarge(park = park, site = site, field.season = field.season)
   
   data <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -657,9 +654,9 @@ FullFlowCategoriesHeatMap <- function(conn, path.to.data, park, site, field.seas
   return(heatmap)
 }
 
-FlowCatElevPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
+FlowCatElevPlot <- function(park, site, field.season) {
  
-  joined <- FullSpringDischarge(conn = conn, path.to.data = path.to.data, park = park, site = site, field.season = field.season, data.source = data.source)
+  joined <- FullSpringDischarge(park = park, site = site, field.season = field.season)
   
   flowcatelev <- joined %>%
     dplyr::filter(VisitType == "Primary") %>%

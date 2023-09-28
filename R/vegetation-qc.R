@@ -1,27 +1,21 @@
 #' Return list of visits with vegetation observed, no lifeform present
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     qcVegPresentNoLifeforms(conn)
-#'     qcVegPresentNoLifeforms(conn, site = "LAKE_P_GET0066", field.season = "2019")
-#'     qcVegPresentNoLifeforms(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     qcVegPresentNoLifeforms(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     qcVegPresentNoLifeforms()
+#'     qcVegPresentNoLifeforms(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcVegPresentNoLifeforms(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
-  
+qcVegPresentNoLifeforms <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
+
   vegnolife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
     dplyr::filter(IsVegetationObserved == "Y" & is.na(LifeForm)) %>%
@@ -34,27 +28,21 @@ qcVegPresentNoLifeforms <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits with no vegetation observed, lifeform present
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     qcNoVegLifeformsPresent(conn)
-#'     qcNoVegLifeformsPresent(conn, site = "LAKE_P_GET0066", field.season = "2019")
-#'     qcNoVegLifeformsPresent(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     qcNoVegLifeformsPresent(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     qcNoVegLifeformsPresent()
+#'     qcNoVegLifeformsPresent(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcNoVegLifeformsPresent(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+qcNoVegLifeformsPresent <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   noveglife <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -68,27 +56,21 @@ qcNoVegLifeformsPresent <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits with lifeform present, no rank
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     qcLifeformPresentNoRank(conn)
-#'     qcLifeformPresentNoRank(conn, site = "LAKE_P_GET0066", field.season = "2019")
-#'     qcLifeformPresentNoRank(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     qcLifeformPresentNoRank(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     qcLifeformPresentNoRank()
+#'     qcLifeformPresentNoRank(site = "LAKE_P_GET0066", field.season = "2019")
+#'     qcLifeformPresentNoRank(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+qcLifeformPresentNoRank <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   lifenorank <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -102,27 +84,21 @@ qcLifeformPresentNoRank <- function(conn, path.to.data, park, site, field.season
 
 #' Return list of visits where multiple lifeforms have the same rank, and rank gaps have not been properly entered
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     qcLifeformRankCheck(conn)
-#'     qcLifeformRankCheck(conn, site = "JOTR_P_NOR0083", field.season = "2021")
-#'     qcLifeformRankCheck(conn, park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
-#'     qcLifeformRankCheck(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     qcLifeformRankCheck()
+#'     qcLifeformRankCheck(site = "JOTR_P_NOR0083", field.season = "2021")
+#'     qcLifeformRankCheck(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
 #' }
-qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+qcLifeformRankCheck <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   rankcheck <- veg %>%
     dplyr::filter(VisitType == "Primary") %>%
@@ -146,27 +122,81 @@ qcLifeformRankCheck <- function(conn, path.to.data, park, site, field.season, da
 }
 
 
-#' Table with summary of life form presence and rank
+#' Return list of lifeform types that were duplicated during data entry
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     LifeformsPresence(conn)
-#'     LifeformsPresence(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     LifeformsPresence(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     qcVegDuplicates()
+#'     qcVegDuplicates(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
 #' }
-LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
+qcVegDuplicates <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
+  
+  veg.dupes <- veg %>%
+    dplyr::filter(VisitType == "Primary") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, LifeForm) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, LifeForm) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(Count > 1)
+  
+  return(veg.dupes)
+}
+
+
+#' Return list of invasive plants that were duplicated during data entry
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     qcVegDuplicates()
+#'     qcVegDuplicates(park = c("JOTR", "MOJA"), field.season = c("2016", "2018", "2021"))
+#' }
+qcInvasiveDuplicates <- function(park, site, field.season) {
+  inv <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
+  
+  inv.dupes <- inv %>%
+    dplyr::filter(VisitType == "Primary",
+                  USDAPlantsCode != "UNK") %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode) %>%
+    dplyr::summarize(Count = dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(Count > 1)
+  
+  return(inv.dupes)
+}
+
+
+#' Table with summary of life form presence and rank
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
+#'
+#' @return Tibble
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'     LifeformsPresence()
+#'     LifeformsPresence(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
+LifeformsPresence <- function(park, site, field.season) {
+  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Riparian")
   
   veg.summary <- veg %>%
     dplyr::filter(VisitType == "Primary",
@@ -182,32 +212,26 @@ LifeformsPresence <- function(conn, path.to.data, park, site, field.season, data
 
 #' Bar plot showing the distribution of the number of life form categories at springs by park
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return ggplot bar plot
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     LifeformsPerSpringPlot(conn)
-#'     LifeformsPerSpringPlot(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     LifeformsPerSpringPlot(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     LifeformsPerSpringPlot()
+#'     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
-  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+LifeformsPerSpringPlot <- function(park, field.season) {
+  veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
+  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
   
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)
   
   veg.sums <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -231,7 +255,7 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
 ###################  
     
   veg.sums.all <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -294,7 +318,7 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
 ################### 
     
   veg.sums.year <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
@@ -362,27 +386,21 @@ LifeformsPerSpringPlot <- function(conn, path.to.data, park, site, field.season,
 
 #' Bar plot showing the most common life form categories at springs by park
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return ggplot bar plot
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     MostCommonLifeformsPlot(conn)
-#'     MostCommonLifeformsPlot(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     MostCommonLifeformsPlot(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     MostCommonLifeformsPlot()
+#'     MostCommonLifeformsPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-MostCommonLifeformsPlot <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  veg <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Riparian")
-  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
-  
+MostCommonLifeformsPlot <- function(park, field.season) {
+  veg <- desertsprings:::ReadAndFilterData(park = park, field.season = field.season,  data.name = "Riparian")
+  site <- desertsprings:::ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
+
   veg %<>% dplyr::filter(Park != "CAMO")
   site %<>% dplyr::select(SiteCode, SampleFrame)
   
@@ -474,7 +492,7 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, site, field.season
   #####
   
   veg.types.year <- veg %>%
-    dplyr::inner_join(site, by = "SiteCode") %>%
+    dplyr::inner_join(site, by = "SiteCode", multiple = "all") %>%
     dplyr::filter(VisitType == "Primary",
                   SampleFrame %in% c("Annual", "3Yr"),
                   !is.na(LifeForm),
@@ -496,14 +514,20 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, site, field.season
                                                 text = paste("Lifeform Category: ", LifeFormCategory,
                                                              "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
+    ggplot2::geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
     coord_flip() +
     theme(panel.grid.major.y = element_blank(),
           axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5),
           legend.position = "bottom") +
     ylab("Number of Observations at Springs") +
     xlab("Vegetation Life Form Category") +
-    scale_y_continuous(expand = expansion(mult = c(0, .1))) +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1))) +
+    ggplot2::geom_text(aes(label = paste0(Observations, " (", FieldSeason, ")")),
+                       position = ggplot2::position_dodge(width = 1),
+                       vjust = 0.4,
+                       hjust = -0.2,
+                       size = 4,
+                       show.legend = FALSE) +
     facet_grid(Park~.,
                scales = "free")
   
@@ -515,27 +539,21 @@ MostCommonLifeformsPlot <- function(conn, path.to.data, park, site, field.season
 
 #' Table of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     InvasivePlants(conn)
-#'     InvasivePlants(conn, site = "LAKE_P_HOR0042", field.season = "2020")
-#'     InvasivePlants(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     InvasivePlants(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     InvasivePlants()
+#'     InvasivePlants(site = "LAKE_P_HOR0042", field.season = "2020")
+#'     InvasivePlants(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Invasives")
+InvasivePlants <- function(park, site, field.season) {
+  invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
   
   targetinvasives <- invasives %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, USDAPlantsCode, ScientificName, InRiparianVegBuffer, Notes) %>%
@@ -548,49 +566,44 @@ InvasivePlants <- function(conn, path.to.data, park, site, field.season, data.so
 
 #' Map of tamarisk, fountain grass, rabbitsfoot grass, date palm, and fan palm (non-JOTR) observations
 #'
-#' @param conn Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.
-#' @param path.to.data The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param data.source Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.
 #'
 #' @return leaflet map
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     conn <- OpenDatabaseConnection()
-#'     InvasivePlantsMap(conn)
-#'     InvasivePlantsMap(conn, site = "LAKE_P_GET0066", field.season = "2019")
-#'     InvasivePlantsMap(conn, park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#'     InvasivePlantsMap(path.to.data = "path/to/data", data.source = "local")
-#'     CloseDatabaseConnection(conn)
+#'     InvasivePlantsMap()
+#'     InvasivePlantsMap(site = "LAKE_P_GET0066", field.season = "2019")
+#'     InvasivePlantsMap(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data.source = "database") {
-  invasives <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Invasives")
-  site <- ReadAndFilterData(conn, path.to.data, park, site, field.season, data.source, data.name = "Site")
+InvasivePlantsMap <- function(park, site, field.season) {
+  invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Invasives")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Site")
   
   coords <- site %>%
-    dplyr::select(SiteCode, SampleFrame, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
+    dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
   invasivesdata <- invasives %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
-    dplyr::inner_join(coords, by = c("SiteCode")) %>%
-    dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, Notes) %>%
+    dplyr::inner_join(coords, by = c("SiteCode"), multiple = "all", relationship = "many-to-one") %>%
+    # dplyr::filter(SampleFrame %in% c("Annual", "3Yr")) %>%
     dplyr::mutate(PlantInfo = dplyr::case_when(InvasivesObserved == "Y" & USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5") ~ ScientificName,
                                                InvasivesObserved == "Y" & !(USDAPlantsCode %in% c("TARA", "PHDA4", "WAFI", "PESE3", "POMO5")) & !(is.na(USDAPlantsCode)) ~ "Other",
                                                InvasivesObserved == "N" ~ "None",
                                                TRUE ~ "None")) %>%
     dplyr::filter(PlantInfo != "None") %>%
     dplyr::mutate(Year = as.numeric(FieldSeason)) %>%
-    dplyr::relocate(Year, .after = FieldSeason)
-  
-  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Phoenix dactylifera", "Washingtonia filifera", "Pennisetum setaceum", "Polypogon monspeliensis", "Tamarix ramosissima", "Other"))
+    dplyr::relocate(Year, .after = FieldSeason) %>%
+    dplyr::filter(!(Park == "JOTR" & USDAPlantsCode == "WAFI"))
+   
+  invasivesdata$PlantInfo <- factor(invasivesdata$PlantInfo, levels = c("Pennisetum setaceum", "Phoenix dactylifera", "Polypogon monspeliensis", "Tamarix ramosissima", "Washingtonia filifera", "Other"))
   
   invasivesdata %<>% dplyr::arrange(FieldSeason, desc(PlantInfo))
   
-  pal <- leaflet::colorFactor(palette = c("gold", "cornflowerblue", "salmon", "darkorchid", "chartreuse4", "gray"),
+  pal <- leaflet::colorFactor(palette = c("#5DC863FF", "#440154FF", "#21908CFF", "#FDE725FF", "#3B528BFF", "gray"),
                               domain = invasivesdata$PlantInfo)
   
   # Make NPS map Attribution
@@ -609,23 +622,20 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
   NPSslate = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpvc2e0avf01p9zaw4co8o/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   NPSlight = "https://atlas-stg.geoplatform.gov/styles/v1/atlas-user/ck5cpia2u0auf01p9vbugvcpv/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYXRsYXMtdXNlciIsImEiOiJjazFmdGx2bjQwMDAwMG5wZmYwbmJwbmE2In0.lWXK2UexpXuyVitesLdwUg"
   
-  width <- 700
-  height <- 700
+  # width <- 800
+  # height <- 400
   
   sd <- crosstalk::SharedData$new(invasivesdata)
-  year_filter <- crosstalk::filter_slider("year",
-                                          "",
-                                          sd,
-                                          column = ~Year,
-                                          ticks = TRUE,
-                                          width = width,
-                                          step = 1,
-                                          sep = "",
-                                          pre = "WY",
-                                          post = NULL,
-                                          dragRange = TRUE)
+  year_filter <- crosstalk::filter_checkbox(id = "year-inv",
+                                            label = "Water Year",
+                                            sharedData = sd,
+                                            group = ~Year,
+                                            # width = width,
+                                            inline = TRUE)
   
-  invmap <- leaflet::leaflet(sd, height = height, width = width) %>%
+  invmap <- leaflet::leaflet(sd
+                             #, height = height, width = width
+                             ) %>%
     leaflet::addTiles(group = "Basic", urlTemplate = NPSbasic, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Imagery", urlTemplate = NPSimagery, attribution = NPSAttrib) %>%
     leaflet::addTiles(group = "Slate", urlTemplate = NPSslate, attribution = NPSAttrib) %>%
@@ -652,11 +662,16 @@ InvasivePlantsMap <- function(conn, path.to.data, park, site, field.season, data
                        opacity = 1,
                        position = "bottomleft") %>%
     leaflet::addLayersControl(baseGroups = c("Basic", "Imagery", "Slate", "Light"),
-                              overlayGroups = ~PlantInfo,
+                              overlayGroups = c("Pennisetum setaceum", "Phoenix dactylifera", "Polypogon monspeliensis", "Tamarix ramosissima", "Washingtonia filifera", "Other"),
                               options=leaflet::layersControlOptions(collapsed = FALSE))
+ 
+  if (missing(field.season)) {
+    invmap <- crosstalk::bscols(list(year_filter, invmap))
+  } else if (!missing(field.season) & length(field.season) == 1) {
+    # do nothing
+  } else {
+    invmap <- crosstalk::bscols(list(year_filter, invmap))
+  }
   
-  invasivesmap <- crosstalk::bscols(list(year_filter,
-                                         invmap))
-  
-  return(invasivesmap)
+  return(invmap)
 }

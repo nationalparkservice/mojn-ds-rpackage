@@ -3,8 +3,10 @@ inst/doc
 *.Rproj
 *.Rhistory
 *.RData
-test-data/
+tests/testthat/test_data/
 temp-test-csv/
 tests/testthat/test_data/
 inventory.R
 vignettes/
+test-space-DNP.R
+inventorydata/

@@ -1,6 +1,6 @@
 context("Database connection")
 
-skip_if_not(dir.exists('M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv'), message = "Skipped - no VPN connection")
+skip_if_not(file.exists('M:/MONITORING/DS_Water/Data/Database/ConnectFromR/ds-database-conn.csv'), message = "Skipped - no VPN connection")
 
 test_that("Connection to MOJN DS database is successful", {
   conn <- OpenDatabaseConnection()

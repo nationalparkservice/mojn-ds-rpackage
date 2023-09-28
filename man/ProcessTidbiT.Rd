@@ -4,20 +4,17 @@
 \alias{ProcessTidbiT}
 \title{Convert raw TidbiT data into format importable into Aquarius database.}
 \usage{
-ProcessTidbiT(path.to.data, data.source = "database")
+ProcessTidbiT(wy.folder)
 }
 \arguments{
-\item{path.to.data}{}
-
-\item{data.source}{}
+\item{wy.folder}{Mandatory. WY followed by 4-digit water year, e.g. "WY2022".}
 }
 \value{
 A tibble with columns for date-time, water temperature, water detect, and water binary.
 }
 \description{
-To do: path to import as one argument, path to export as second argument, option to write to CSV or not as third argument
-To do: "for loop" to apply function to all CSVs in Raw folder
+Convert raw TidbiT data into format importable into Aquarius database.
 }
 \examples{
-ProcessTidbiT(path.to.data = "", data.source = "")
+ProcessTidbiT()
 }
