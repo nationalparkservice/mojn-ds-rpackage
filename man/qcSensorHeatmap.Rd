@@ -4,20 +4,20 @@
 \alias{qcSensorHeatmap}
 \title{Plot sensor retrieval results over time as a heatmap.}
 \usage{
-qcSensorHeatmap(conn, path.to.data, park, data.source = "database")
+qcSensorHeatmap(park)
 }
 \arguments{
-\item{conn}{Database connection generated from call to \code{OpenDatabaseConnection()}. Ignored if \code{data.source} is \code{"local"}.}
-
-\item{path.to.data}{The directory containing the csv data exports generated from \code{SaveDataToCsv()}. Ignored if \code{data.source} is \code{"database"}.}
-
 \item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
-
-\item{data.source}{Character string indicating whether to access data in the live desert springs database (\code{"database"}, default) or to use data saved locally (\code{"local"}). In order to access the most up-to-date data, it is recommended that you select \code{"database"} unless you are working offline or your code will be shared with someone who doesn't have access to the database.}
 }
 \value{
-A ggplot object.
+ggplot heatmap
 }
 \description{
 Plot sensor retrieval results over time as a heatmap.
+}
+\examples{
+\dontrun{
+    qcSensorHeatmap()
+    qcSensorHeatmap(park = c("JOTR", "MOJA"))
+}
 }

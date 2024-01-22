@@ -4,13 +4,7 @@
 \alias{expect_dataframe_equal}
 \title{Test for dataframe equivalence}
 \usage{
-expect_dataframe_equal(
-  result,
-  expected,
-  ignore_col_order = FALSE,
-  ignore_row_order = TRUE,
-  convert = FALSE
-)
+expect_dataframe_equal(result, expected)
 }
 \arguments{
 \item{result}{Actual data frame}

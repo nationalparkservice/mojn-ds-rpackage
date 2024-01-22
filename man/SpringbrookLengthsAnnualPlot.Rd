@@ -4,31 +4,24 @@
 \alias{SpringbrookLengthsAnnualPlot}
 \title{Box plot of springbrook lengths for annual springs at each park and field season}
 \usage{
-SpringbrookLengthsAnnualPlot(
-  conn,
-  path.to.data,
-  park,
-  site,
-  field.season,
-  data.source = "database"
-)
+SpringbrookLengthsAnnualPlot(park, site, field.season)
 }
 \arguments{
-\item{conn}{}
+\item{park}{Optional. Four-letter park code to filter on, e.g. "MOJA".}
 
-\item{path.to.data}{}
+\item{site}{Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".}
 
-\item{park}{}
-
-\item{site}{}
-
-\item{field.season}{}
-
-\item{data.source}{}
+\item{field.season}{Optional. Field season name to filter on, e.g. "2019".}
 }
 \value{
-
+ggplot box plot
 }
 \description{
 Box plot of springbrook lengths for annual springs at each park and field season
+}
+\examples{
+\dontrun{
+    SpringbrookLengthsAnnualPlot()
+    SpringbrookLengthsAnnualPlot(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
+}
 }

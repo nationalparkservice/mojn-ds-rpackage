@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{OpenDatabaseConnection}
 \alias{OpenDatabaseConnection}
-\title{Open a Connection to the Desert Springs Database}
+\title{Open a connection to the Desert Springs Database}
 \usage{
 OpenDatabaseConnection(use.mojn.default = TRUE, drv = odbc::odbc(), ...)
 }
@@ -17,7 +17,7 @@ OpenDatabaseConnection(use.mojn.default = TRUE, drv = odbc::odbc(), ...)
 A database connection pool object
 }
 \description{
-Open a Connection to the Desert Springs Database
+Open a connection to the Desert Springs Database
 }
 \examples{
 \dontrun{
