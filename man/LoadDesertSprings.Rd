@@ -10,12 +10,12 @@ LoadDesertSprings(
     lookup_db =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
     sites_db =
-    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
     calibration_db =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
   use_default_sql = FALSE,
   sql_drv = odbc::odbc(),
-  agol_username = "mojn_hydro",
+  agol_username = "mojn_data",
   agol_password =
     rstudioapi::askForPassword(paste("Please enter the password for AGOL account",
     agol_username)),

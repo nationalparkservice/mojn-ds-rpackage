@@ -21,6 +21,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::select(-SiteCodeText) %>%
     dplyr::rename(VisitTypeCode = VisitType,
                   SpringTypeCode = SpringType,
+                  SecondarySpringTypeCode = SecondarySpringType,
                   GPSCode = GPS,
                   CameraCode = Camera,
                   CameraCardCode = CameraCard,
@@ -46,6 +47,7 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_VisitType, name, VisitType = label), by = c("VisitTypeCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_MonitoringStatus, name, MonitoringStatus = label), by = c("Status" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_SpringType, name, SpringType = label), by = c("SpringTypeCode" = "name")) %>%
+    dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_SpringType, name, SecondarySpringType = label), by = c("SecondarySpringTypeCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Ref_Shared_GPSUnit, name, GPS = label), by = c("GPSCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Ref_Shared_Camera, name, Camera = label), by = c("CameraCode" = "name")) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Ref_Shared_CameraCard, name, CameraCard = label), by = c("CameraCardCode" = "name")) %>%
@@ -370,6 +372,7 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitType,
                   MonitoringStatus,
                   SpringType,
+                  SecondarySpringType,
                   Notes,
                   DPL
     )
@@ -386,6 +389,7 @@ WrangleAGOLData <- function(agol_layers) {
                   VisitDate,
                   FieldSeason,
                   SpringType,
+                  SecondarySpringType,
                   FlowCondition, 
                   WQDataCollected = WasWaterQualityDataCollected, 
                   InvasivesObserved,

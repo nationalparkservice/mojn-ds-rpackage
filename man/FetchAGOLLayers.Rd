@@ -10,11 +10,11 @@ FetchAGOLLayers(
   lookup_path =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
   sites_path =
-    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+    "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
   calibration_path =
     "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
-  agol_username = "mojn_hydro",
-  agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")
+  agol_username = "mojn_data",
+  agol_password = keyring::key_get(service = "AGOL", username = "mojn_data")
 )
 }
 \arguments{
