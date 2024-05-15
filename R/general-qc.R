@@ -295,14 +295,14 @@ qcSpringTypeDiscrepancies <- function(park, site, field.season) {
   discrepancies <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled") %>%
     dplyr::arrange(SiteCode, VisitDate) %>%
-    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SpringType) %>%
-    dplyr::group_by(Park, SiteCode, SiteName, SpringType) %>%
+    dplyr::select(Park, SiteCode, SiteName, FieldSeason, SpringType, SecondarySpringType) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, SpringType, SecondarySpringType) %>%
     dplyr::mutate(FieldSeasons = paste0(sort(FieldSeason), collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::select(-c("FieldSeason")) %>%
     unique() %>%
     dplyr::filter(duplicated(SiteCode) | duplicated(SiteCode, fromLast = TRUE))
-
+  
    return(discrepancies)
 }
 
