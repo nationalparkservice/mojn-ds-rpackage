@@ -335,7 +335,7 @@ ReadSqlDatabase <- function(...) {
 ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
                                    lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
                                    sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
-                                   calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"), agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
+                                   calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"), agol_username = "mojn_data", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
   agol_layers <- FetchAGOLLayers(data_path[1], data_path[2], data_path[3], data_path[4], agol_username, agol_password)
   data <- WrangleAGOLData(agol_layers)
   
@@ -568,6 +568,8 @@ GetSiteName <- function(site.code) {
 #' @param pop Indicates if this is a population size (N) rather than a sample size (n). Defaults to FALSE.
 #' 
 #' @return A dataframe with a SampleSize column as well as any grouping columns (Park, SiteCode, FieldSeason) that are present in data.
+#'
+#' @export
 #'
 GetSampleSizes <- function(data, ..., pop = FALSE) {
   

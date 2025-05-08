@@ -1,11 +1,11 @@
 context("Discharge")
-LoadDesertSprings(here::here("tests", "testthat", "test_data"))
+LoadDesertSprings(test_path("tests", "testthat", "test_data"))
 
 
 test_that("VolumetricMedian works as expected", {
   
-  actual_rows <- nrow(VolumetricMedian())
-  expect_equal(actual_rows, 36)
+  actual_rows <- nrow(VolumetricMedian(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 53)
   
   actual_cols <- colnames(VolumetricMedian())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "Discharge_L_per_s", "Count")
@@ -25,8 +25,8 @@ test_that("VolumetricMedian works as expected", {
 
 
 test_that("SpringDischarge returns expected number of rows and columns", {
-  actual_rows <- nrow(SpringDischarge())
-  expect_equal(actual_rows, 681)
+  actual_rows <- nrow(SpringDischarge(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 820)
   
   actual_cols <- colnames(SpringDischarge())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m","DischargeNotes", "SpringbrookNotes")
@@ -46,7 +46,7 @@ test_that("SpringDischarge returns expected number of rows and columns", {
 
 test_that("qcSpringDryWater returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcSpringDryWater())
+  actual_rows <- nrow(qcSpringDryWater(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcSpringDryWater())
@@ -66,8 +66,8 @@ test_that("qcSpringDryWater returns expected number of rows and columns", {
 
 test_that("qcSpringNotDryNoDischarge returns expected number of rows and columns", {
 
-  actual_rows <- nrow(qcSpringNotDryNoDischarge())
-  expect_equal(actual_rows, 6)
+  actual_rows <- nrow(qcSpringNotDryNoDischarge(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 10)
   
   actual_cols <- colnames(qcSpringNotDryNoDischarge())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "DischargeNotes", "SpringbrookNotes")
@@ -87,8 +87,8 @@ test_that("qcSpringNotDryNoDischarge returns expected number of rows and columns
 
 test_that("qcSpringNotDryNoSpringbrook returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcSpringNotDryNoSpringbrook())
-  expect_equal(actual_rows, 15)
+  actual_rows <- nrow(qcSpringNotDryNoSpringbrook(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 16)
   
   actual_cols <- colnames(qcSpringNotDryNoSpringbrook())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookType", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DiscontinuousSpringbrookLengthFlag", "DiscontinuousSpringbrookLength_m", "DischargeNotes", "SpringbrookNotes")
@@ -108,8 +108,8 @@ test_that("qcSpringNotDryNoSpringbrook returns expected number of rows and colum
 
 test_that("qcSpringNotDryNoWater returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcSpringNotDryNoWater())
-  expect_equal(actual_rows, 20)
+  actual_rows <- nrow(qcSpringNotDryNoWater(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 24)
   
   actual_cols <- colnames(qcSpringNotDryNoWater())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "SpringbrookLengthFlag", "SpringbrookLength_m", "SpringbrookWidth_m", "DischargeNotes", "SpringbrookNotes")
@@ -128,8 +128,8 @@ test_that("qcSpringNotDryNoWater returns expected number of rows and columns", {
 
 test_that("qcDischargeMissing returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcDischargeMissing())
-  expect_equal(actual_rows, 220)
+  actual_rows <- nrow(qcDischargeMissing(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 111)
   
   actual_cols <- colnames(qcDischargeMissing())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "VisitType", "FlowCondition", "VolDischarge_L_per_s", "DischargeClass_L_per_s", "DischargeNotes", "SpringbrookNotes")
@@ -146,7 +146,7 @@ test_that("qcDischargeMissing returns expected number of rows and columns", {
 
 test_that("qcVolumetricMissing returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcVolumetricMissing())
+  actual_rows <- nrow(qcVolumetricMissing(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcVolumetricMissing())
@@ -168,7 +168,7 @@ test_that("qcVolumetricMissing returns expected number of rows and columns", {
 
 test_that("qcVolumetricFillEvents works as expected", {
 
-  actual_rows <- nrow(qcVolumetricFillEvents())
+  actual_rows <- nrow(qcVolumetricFillEvents(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 5)
   
   actual_cols <- colnames(qcVolumetricFillEvents())
@@ -193,8 +193,8 @@ test_that("qcVolumetricFillEvents works as expected", {
 
 test_that("qcVolumetricTimes works as expected", {
   
-  actual_rows <- nrow(qcVolumetricTimes())
-  expect_equal(actual_rows, 15)
+  actual_rows <- nrow(qcVolumetricTimes(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 19)
   
   actual_cols <- colnames(qcVolumetricTimes())
   expected_cols <- c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "MedianFillTime_s")
@@ -215,7 +215,7 @@ test_that("qcVolumetricTimes works as expected", {
 
 test_that("qcContinuousLength returns expected number of rows and columns", {
   
-  actual_rows <- nrow(qcContinuousLength())
+  actual_rows <- nrow(qcContinuousLength(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
   expect_equal(actual_rows, 0)
   
   actual_cols <- colnames(qcContinuousLength())
@@ -236,8 +236,8 @@ test_that("qcContinuousLength returns expected number of rows and columns", {
 
 test_that("FlowCategoriesContinuous works as expected", {
   
-  actual_rows <- nrow(FlowCategoriesContinuous())
-  expect_equal(actual_rows, 160)
+  actual_rows <- nrow(FlowCategoriesContinuous(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 190)
   
   actual_cols <- colnames(FlowCategoriesContinuous())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "Panel", "FlowCategory", "Count")
@@ -257,8 +257,8 @@ test_that("FlowCategoriesContinuous works as expected", {
 
 test_that("FlowCategoriesDiscontinuous works as expected", {
   
-  actual_rows <- nrow(FlowCategoriesDiscontinuous())
-  expect_equal(actual_rows, 163)
+  actual_rows <- nrow(FlowCategoriesDiscontinuous(field.season = c("2016", "2017", "2018", "2019", "2020", "2021", "2022")))
+  expect_equal(actual_rows, 194)
   
   actual_cols <- colnames(FlowCategoriesDiscontinuous())
   expected_cols <- c("Park", "FieldSeason", "SampleFrame", "Panel", "FlowCategory", "Count")
