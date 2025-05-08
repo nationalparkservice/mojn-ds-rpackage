@@ -330,8 +330,8 @@ ReadSqlDatabase <- function(...) {
 #'
 ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
                                    lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
-                                   sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
-                                   calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"), agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
+                                   sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
+                                   calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"), agol_username = "mojn_data", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
   agol_layers <- FetchAGOLLayers(data_path[1], data_path[2], data_path[3], data_path[4], agol_username, agol_password)
   data <- WrangleAGOLData(agol_layers)
   
@@ -363,9 +363,9 @@ ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8E
 #'
 LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
                                             lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
-                                            sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                                            sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
                                             calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
-                                            use_default_sql = FALSE, sql_drv = odbc::odbc(), agol_username = "mojn_hydro", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username)), ...) {
+                                            use_default_sql = FALSE, sql_drv = odbc::odbc(), agol_username = "mojn_data", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username)), ...) {
   
   # Figure out the format of the data
   agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"

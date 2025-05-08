@@ -59,11 +59,11 @@ SpringDischarge <- function(park, site, field.season) {
     dplyr::rename(VolDischarge_L_per_s = Discharge_L_per_s) %>%
     dplyr::relocate(VolDischarge_L_per_s, .after = FlowCondition) %>%
     dplyr::relocate(DischargeClass_L_per_s, .after = VolDischarge_L_per_s) %>%
-    dplyr::mutate(VolDischarge_L_per_s = round(VolDischarge_L_per_s, 2)) %>%
+    dplyr::mutate(VolDischarge_L_per_s = round(VolDischarge_L_per_s, 3)) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
     dplyr::select(-Count) %>%
     dplyr::rename(DischargeNotes = Notes) %>%
-    dplyr::filter(VisitType != "Dummy")
+    dplyr::filter(!(VisitType %in% c("Dummy", "Training")))
     
   return(joined)
 }

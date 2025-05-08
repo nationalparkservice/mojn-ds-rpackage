@@ -10,3 +10,4 @@ inventory.R
 vignettes/
 test-space-DNP.R
 inventorydata/
+flowcondition.R
