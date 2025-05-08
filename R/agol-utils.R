@@ -248,7 +248,6 @@ WrangleAGOLData <- function(agol_layers) {
     dplyr::left_join(agol_layers$MOJN_Ref_DS_ParkTaxonProtectedStatus, by = c("USDAPlantsCode" = "Taxon", "Park" = "parkname")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, VisitType, ProtectedStatus = ProtectedStatusCode, DPL, Notes = InvasiveNotes)
   
-  
   # ----- Riparian -----
   riparian <- agol_layers$riparian_veg %>%
     dplyr::select(visitglobalid = parentglobalid, LifeForm = lifeformname, DominantSpecies)
@@ -267,7 +266,6 @@ WrangleAGOLData <- function(agol_layers) {
   data$Riparian <- riparian_visit %>%
     dplyr::left_join(riparian, by = c("visitglobalid", "LifeForm")) %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, VisitType, DPL, Notes)
-    
     
   # ----- SensorRetrievalAttempts -----
   sensor_retrieval <- agol_layers$sensor_retrieval %>%
@@ -537,9 +535,9 @@ WrangleAGOLData <- function(agol_layers) {
 #'
 FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
                             lookup_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer",
-                            sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites_Master/FeatureServer",
+                            sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites/FeatureServer",
                             calibration_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
-                            agol_username = "mojn_hydro", agol_password = keyring::key_get(service = "AGOL", username = "mojn_hydro")) {
+                            agol_username = "mojn_data", agol_password = keyring::key_get(service = "AGOL", username = "mojn_data")) {
   # Get a token with a headless account
   token_resp <- httr::POST("https://nps.maps.arcgis.com/sharing/rest/generateToken",
                            body = list(username = agol_username,
@@ -552,7 +550,7 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
   agol_layers <- list()
   
   # Fetch sites table
-  agol_layers$sites <- fetchAllRecords(sites_path, 0, token = agol_token$token)
+  agol_layers$sites <- fetchAllRecords(sites_path, 1, token = agol_token$token)
   
   # Fetch lookup tables from lookup feature service
   lookup_names <- httr::GET(paste0(lookup_path, "/layers"),
@@ -561,8 +559,8 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
                                          f="JSON",
                                          token=agol_token$token))
   lookup_names <- jsonlite::fromJSON(httr::content(lookup_names, type = "text", encoding = "UTF-8"))
-  lookup_names <- lookup_names$tables %>%
-    dplyr::select(id, name) %>%
+  lookup_names <- lookup_names$tables |>
+    dplyr::select(id, name) |>
     dplyr::filter(grepl("MOJN_(Lookup|Ref)(_Lookup|_Ref)?_(DS|Shared)", name))  # (_Lookup|_Ref)? is to accommodate weirdly named Camera lookup - can be removed once fixed in AGOL
   
   lookup_layers <- lapply(lookup_names$id, function(id) {
