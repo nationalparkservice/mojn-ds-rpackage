@@ -212,11 +212,13 @@ WrangleAGOLData <- function() {
   # ----- DischargeEstimated -----
   data$DischargeEstimated <- visit %>%
     dplyr::filter(DischargeMethod == "EST") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, DischargeClass_L_per_s, VisitType)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, DischargeClass_L_per_s, VisitType) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- DischargeFlowCondition -----
   data$DischargeFlowCondition <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, Notes, SpringbrookNotes = DischargeNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, VisitType, Notes, SpringbrookNotes = DischargeNotes) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- DischargeVolumetric -----
   vol <- agol_layers$fill_time %>%
@@ -225,11 +227,13 @@ WrangleAGOLData <- function() {
   data$DischargeVolumetric <- visit %>%
     dplyr::filter(DischargeMethod == "VOL") %>%
     dplyr::left_join(vol, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, ContainerVolume_mL, FillTime_seconds, EstimatedCapture_percent, VisitType)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowCondition, ContainerVolume_mL, FillTime_seconds, EstimatedCapture_percent, VisitType) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- Disturbance -----
   data$Disturbance <- visit %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, Notes = DisturbanceNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, VisitType, Notes = DisturbanceNotes) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- DisturbanceFlowModification -----
   flow_mod <- agol_layers$disturbance_flow_mod %>%
@@ -237,20 +241,22 @@ WrangleAGOLData <- function() {
   
   data$DisturbanceFlowModification <- visit %>%
     dplyr::left_join(flow_mod, by = "visitglobalid") %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowModificationStatus, ModificationType, VisitType)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, FlowModificationStatus, ModificationType, VisitType) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
-  # ----- Invasives -----
+  # ----- InvasivePlants -----
   invasives <- agol_layers$invasives %>%
     dplyr::select(visitglobalid = parentglobalid, InvasiveSpecies, RiparianVegBuffer) %>%
     dplyr::left_join(dplyr::select(agol_layers$MOJN_Ref_DS_Taxon, name, ScientificName = scientificname), by = c("InvasiveSpecies" = "name")) %>%
     dplyr::select(visitglobalid, InRiparianVegBuffer = RiparianVegBuffer, USDAPlantsCode = InvasiveSpecies, ScientificName)
   
-  data$Invasives <- visit %>%
+  data$InvasivePlants <- visit %>%
     dplyr::left_join(invasives, by = "visitglobalid") %>%
     dplyr::left_join(agol_layers$MOJN_Ref_DS_ParkTaxonProtectedStatus, by = c("USDAPlantsCode" = "Taxon", "Park" = "parkname")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, VisitType, ProtectedStatus = ProtectedStatusCode, Notes = InvasiveNotes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, VisitType, ProtectedStatus = ProtectedStatusCode, Notes = InvasiveNotes) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
-  # ----- Riparian -----
+  # ----- Vegetation -----
   riparian <- agol_layers$riparian_veg %>%
     dplyr::select(visitglobalid = parentglobalid, LifeForm = lifeformname, DominantSpecies)
   
@@ -265,9 +271,10 @@ WrangleAGOLData <- function() {
     dplyr::filter((!is.na(LifeForm) & (Rank != 12)) | (is.na(LifeForm) & is.na(Rank))) %>%
     dplyr::select(-no_veg)
   
-  data$Riparian <- riparian_visit %>%
+  data$Vegetation <- riparian_visit %>%
     dplyr::left_join(riparian, by = c("visitglobalid", "LifeForm")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, VisitType, Notes)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, VisitType, Notes) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
     
   # ----- SensorRetrievalAttempts -----
   sensor_retrieval <- agol_layers$sensor_retrieval %>%
@@ -372,8 +379,8 @@ WrangleAGOLData <- function() {
                   SpringType,
                   SecondarySpringType,
                   Notes,
-                  DPL
-    )
+                  DPL) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- VisitActivity -----
   yn <- agol_layers$MOJN_Lookup_Shared_YesNo$label
@@ -405,7 +412,8 @@ WrangleAGOLData <- function() {
                   InvasivesObserved = yn[InvasivesObserved],
                   RiparianObserved = yn[RiparianObserved],
                   MistletoePresent = yn[MistletoePresent],
-                  WildlifeObserved = yn[WildlifeObserved])
+                  WildlifeObserved = yn[WildlifeObserved]) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   
   # ----- WaterQualityDO -----
@@ -446,7 +454,8 @@ WrangleAGOLData <- function() {
   WaterQualityDO <- WaterQualityDO %>%
     dplyr::filter_at(dplyr::vars(DissolvedOxygen_mg_per_L, DissolvedOxygen_percent), dplyr::any_vars(!is.na(.)))
   
-  data$WaterQualityDO <- dplyr::bind_rows(wqDO_filterRepeats, WaterQualityDO)
+  data$WaterQualityDO <- dplyr::bind_rows(wqDO_filterRepeats, WaterQualityDO) |>
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- WaterQualitypH -----
  WaterQualitypH <- visit %>%
@@ -464,8 +473,8 @@ WrangleAGOLData <- function() {
  WaterQualitypH <- WaterQualitypH %>%
    dplyr::filter(!is.na(pH))
  
- data$WaterQualitypH <- dplyr::bind_rows(wqpH_filterRepeats, WaterQualitypH)
- 
+ data$WaterQualitypH <- dplyr::bind_rows(wqpH_filterRepeats, WaterQualitypH) |>
+   dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- WaterQualitySpCond -----
   WaterQualitySpCond <- visit %>%
@@ -484,7 +493,8 @@ WrangleAGOLData <- function() {
  WaterQualitySpCond <- WaterQualitySpCond %>%
    dplyr::filter(!is.na(SpecificConductance_microS_per_cm))
  
- data$WaterQualitySpCond <- dplyr::bind_rows(WaterQualitySpCond, wqSpCond_filterRepeats)
+ data$WaterQualitySpCond <- dplyr::bind_rows(WaterQualitySpCond, wqSpCond_filterRepeats) |>
+   dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- WaterQualityTemperature -----
   WaterQualityTemperature <- visit %>%
@@ -503,7 +513,8 @@ WrangleAGOLData <- function() {
  WaterQualityTemperature <- WaterQualityTemperature %>%
    dplyr::filter(!is.na(WaterTemperature_C))
  
- data$WaterQualityTemperature <- dplyr::bind_rows(WaterQualityTemperature, wqTemp_filterRepeats)
+ data$WaterQualityTemperature <- dplyr::bind_rows(WaterQualityTemperature, wqTemp_filterRepeats) |>
+   dplyr::filter(!(VisitType %in% c("Training", "Dummy")))
   
   # ----- Wildlife -----
   data$Wildlife <- agol_layers$wildlife |>
