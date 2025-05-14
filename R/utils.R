@@ -170,11 +170,11 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
-    Invasives = readr::cols(
+    InvasivePlants = readr::cols(
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
-    Riparian = readr::cols(
+    Vegetation = readr::cols(
       VisitDate = readr::col_date(),
       Rank = readr::col_integer(),
       .default = readr::col_character()
