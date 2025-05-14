@@ -20,7 +20,7 @@ VolumetricMedian  <- function(park, site, field.season) {
     dplyr::mutate(Discharge_L_per_s = ((ContainerVolume_mL/1000)/FillTime_seconds)*(100/EstimatedCapture_percent))
   
   summarized <- calculated %>%
-    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, VisitType, DPL) %>%
+    dplyr::group_by(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, VisitType) %>%
     dplyr::summarize(Discharge_L_per_s = median(Discharge_L_per_s),
                      Count = sum(!is.na(FillTime_seconds))) %>%
     dplyr::arrange(FieldSeason, SiteCode) %>%
@@ -46,9 +46,9 @@ VolumetricMedian  <- function(park, site, field.season) {
 #'     SpringDischarge(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 SpringDischarge <- function(park, site, field.season) {
-    discharge <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition") %>% dplyr::select(-DPL)
-    estimated <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated") %>% dplyr::select(-DPL)
-    median <- VolumetricMedian(park = park, site = site, field.season = field.season) %>% dplyr::select(-DPL)
+    discharge <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeFlowCondition")
+    estimated <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DischargeEstimated")
+    median <- VolumetricMedian(park = park, site = site, field.season = field.season)
 
   joined <- discharge %>%
     dplyr::full_join(estimated, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "SampleFrame", "Panel", "FlowCondition", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
@@ -164,19 +164,20 @@ qcSpringNotDryNoSpringbrook <- function(park, site, field.season) {
 #'     qcSpringNotDryNoWater(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcSpringNotDryNoWater <- function(park, site, field.season) {
-  joined <- SpringDischarge(park = park, site = site, field.season = field.season)
+  joined <- SpringDischarge(park = park, site = site, field.season = field.season) |>
+    dplyr::filter(VisitType == "Primary")
 
-  nodischarge <- joined %>%
-    dplyr::filter(FlowCondition != "dry" & ((DischargeClass_L_per_s == "0 L/s" | VolDischarge_L_per_s == 0))) %>%
+  nodischarge <- joined |>
+    dplyr::filter(FlowCondition != "dry" & ((DischargeClass_L_per_s == "0 L/s" | VolDischarge_L_per_s == 0))) |>
     dplyr::arrange(FieldSeason, SiteCode)
   
-  nobrook <- joined %>%
-    dplyr::filter(!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) %>%
+  nobrook <- joined |>
+    dplyr::filter(!(FlowCondition %in% c("dry", "wet soil only")) & (SpringbrookLength_m == 0 | SpringbrookWidth_m == 0)) |>
     dplyr::arrange(FieldSeason, SiteCode)
   
-  nowater <- rbind(nodischarge, nobrook) %>%
-    dplyr::arrange(FieldSeason, SiteCode) %>%
-    unique() %>%
+  nowater <- rbind(nodischarge, nobrook) |>
+    dplyr::arrange(FieldSeason, SiteCode) |>
+    unique() |>
     dplyr::select(-SpringbrookType, -DiscontinuousSpringbrookLengthFlag, -DiscontinuousSpringbrookLength_m, -SampleFrame, -VisitType, -Panel)
   
   return(nowater)
@@ -232,7 +233,7 @@ qcVolumetricMissing <- function(park, site, field.season) {
   missing <- volumetric %>%
     dplyr::filter(VisitType != "Dummy") %>%
     dplyr::filter(is.na(ContainerVolume_mL) | is.na(FillTime_seconds) | is.na(EstimatedCapture_percent)) %>%
-    dplyr::select(-c("SampleFrame", "Panel", "VisitType", "DPL"))
+    dplyr::select(-c("SampleFrame", "Panel", "VisitType"))
   
   return(missing)
 }  
@@ -259,7 +260,7 @@ qcVolumetricFillEvents <- function(park, site, field.season) {
   fills <- median %>%
     dplyr::filter(0 < Count & Count < 5) %>%
     dplyr::mutate(Discharge_L_per_s = round(Discharge_L_per_s, 3)) %>%
-    dplyr::select(-c("SampleFrame", "Panel", "VisitType", "DPL"))
+    dplyr::select(-c("SampleFrame", "Panel", "VisitType"))
   
   return(fills)
 }
@@ -364,7 +365,7 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
                   !(Park %in% c("JOTR", "CAMO") & FieldSeason == "2016")) %>%
-    dplyr::filter(Panel == "Panel Annual" | (Panel == "Panel B" & (as.numeric(FieldSeason) - 2016) %% 3 == 0) | (Panel == "Panel C" & (as.numeric(FieldSeason) - 2017) %% 3 == 0) | (Panel == "Panel D" & (as.numeric(FieldSeason) - 2018) %% 3 == 0)) %>%
+    dplyr::filter(Panel == "Panel Annual" | (Panel == "Panel B" & (as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026))) | (Panel == "Panel C" & (as.numeric(FieldSeason) %in% c(2017, 2020, 2023, 2027))) | (Panel == "Panel D" & (as.numeric(FieldSeason) %in% c(2018, 2021, 2025)))) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
@@ -420,7 +421,7 @@ FlowCategoriesDiscontinuous <- function(park, site, field.season) {
     dplyr::filter(!is.na(FieldSeason)) %>%
     dplyr::filter(!(Park == "DEVA" & FieldSeason %in% c("2016", "2017")),
                   !(Park %in% c("JOTR", "CAMO") & FieldSeason == "2016")) %>%
-    dplyr::filter(Panel == "Panel Annual" | (Panel == "Panel B" & (as.numeric(FieldSeason) - 2016) %% 3 == 0) | (Panel == "Panel C" & (as.numeric(FieldSeason) - 2017) %% 3 == 0) | (Panel == "Panel D" & (as.numeric(FieldSeason) - 2018) %% 3 == 0)) %>%
+    dplyr::filter(Panel == "Panel Annual" | (Panel == "Panel B" & (as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026))) | (Panel == "Panel C" & (as.numeric(FieldSeason) %in% c(2017, 2020, 2023, 2027))) | (Panel == "Panel D" & (as.numeric(FieldSeason) %in% c(2018, 2021, 2025)))) %>%
     dplyr::group_by(Park, FieldSeason, SampleFrame, Panel, FlowCategory) %>%
     dplyr::summarize(Count = dplyr::n()) %>%
     dplyr::ungroup() %>%
@@ -544,10 +545,10 @@ FlowCategoriesTotalPlot <- function(park, site, field.season) {
     dplyr::group_by(Park, FieldSeason, FlowCategory) %>%
     dplyr::summarize(New = sum(Count)) %>%
     dplyr::ungroup()%>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023")))
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026")))
   
   plot <- ggplot2::ggplot(sum %>% dplyr::filter(Park != "CAMO"),
                           ggplot2::aes(x = FieldSeason, y = New, fill = FlowCategory)) +
@@ -658,10 +659,10 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length <= 50 meters and was measured." & (DiscontinuousSpringbrookLength_m >= 10 & DiscontinuousSpringbrookLength_m <= 50)) | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length <= 50 meters and was measured." & (SpringbrookLength_m >= 10 & SpringbrookLength_m <= 50)) ~ "10 - 50 m",
                                                   (SpringbrookType == "D" & DiscontinuousSpringbrookLengthFlag == "Length > 50 meters") | ((SpringbrookType != "D" | is.na(SpringbrookType)) & SpringbrookLengthFlag == "Length > 50 meters") ~ "> 50 m",
                                                   TRUE ~ "NA")) %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA", "CAMO") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023")))
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026")))
     # dplyr::mutate(Visit = ifelse((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018"), "First",
     #                         ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021"), "Second",
     #                            ifelse((Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2024"), "Third", NA)))) %>%

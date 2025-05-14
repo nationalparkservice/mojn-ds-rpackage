@@ -10,8 +10,8 @@
 qcDisturbanceFormatted <- function(park, site, field.season) {
   disturbance <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Disturbance")
   
-  formatted <- disturbance %>%
-    dplyr::filter(VisitType == "Primary") %>%
+  formatted <- disturbance |>
+    dplyr::filter(VisitType == "Primary") |>
     dplyr::mutate_at(c("Roads",
                        "HumanUse",
                        "PlantManagement",
@@ -28,11 +28,10 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
                                               . == ">50 - 75%" ~ "3",
                                               . == ">75 - 100%" ~ "4",
                                               . == "0" ~ "0",
-                                              TRUE ~ "NoData"))) %>%
+                                              TRUE ~ "NoData"))) |>
     dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
                                                             FlowModificationStatus == "No Data" ~ "NoData",
-                                                            TRUE ~ FlowModificationStatus)) %>%
-    dplyr::select(-DPL)
+                                                            TRUE ~ FlowModificationStatus))
 
   return(formatted)
 }
@@ -50,14 +49,13 @@ qcDisturbanceFormatted <- function(park, site, field.season) {
 qcFlowModFormatted <- function(park, site, field.season) {
   flowmod <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "DisturbanceFlowModification")
   
-  formatted <- flowmod %>%
-    dplyr::filter(VisitType == "Primary") %>%
+  formatted <- flowmod |>
+    dplyr::filter(VisitType == "Primary") |>
     dplyr::mutate(ModificationType = dplyr::case_when(ModificationType == "Exc" ~ "Excavation",
-                                                       TRUE ~ ModificationType)) %>%
+                                                       TRUE ~ ModificationType)) |>
     dplyr::mutate(FlowModificationStatus = dplyr::case_when(is.na(FlowModificationStatus) ~ "NoData",
                                                             FlowModificationStatus == "No Data" ~ "NoData",
-                                                            TRUE ~ FlowModificationStatus)) %>%
-    dplyr::select(-DPL)
+                                                            TRUE ~ FlowModificationStatus))
   
   return(formatted)
 }
@@ -424,8 +422,8 @@ HumanUsePlot <- function(park, site, field.season) {
     dplyr::filter(Park != "CAMO")
   
   humanplot <- ggplot2::ggplot(count, ggplot2::aes(x = Park, y = HumanUsePercent))+
-    geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 100)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::scale_y_continuous(limits = c(0, 100)) +
     ggplot2::geom_text(ggplot2::aes(label = paste0(HumanUsePercent, "%")),
                        vjust = -1,
                        size = 4,
@@ -598,8 +596,8 @@ LivestockPlot <- function(park, site, field.season) {
     dplyr::filter(Park != "CAMO")
   
   livestockplot <- ggplot2::ggplot(count, ggplot2::aes(x = Park, y = LivestockPercent)) +
-    geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 100)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::scale_y_continuous(limits = c(0, 100)) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5)) +
     ggplot2::geom_text(ggplot2::aes(label = paste0(LivestockPercent, "%")),
                        vjust = -1,

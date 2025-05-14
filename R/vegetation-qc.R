@@ -273,17 +273,19 @@ LifeformsPerSpringPlot <- function(park, field.season) {
                      Median = round(median(LifeFormCount), 2))
     
   veg.barplot.all <- ggplot2::ggplot(veg.sums.all,
-                                 aes(x = LifeFormCount, y = Occurences,
-                                     text = paste("Lifeform Count: ", LifeFormCount,
-                                                  "<br>Occurences:", Occurences))) +
-    geom_bar(stat = "identity") +
-    facet_grid(Park ~ .) +
-    xlab("Number of Different Vegetation Life Form Categories") +
-    ylab("Number of Occurences") +
-    scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
-    geom_vline(data = veg.stats.all, aes(xintercept = Mean, color = "Mean"), linetype = "longdash", size = 1) +
-    geom_vline(data = veg.stats.all, aes(xintercept = Median, color = "Median"), size = 1) +
-    scale_color_manual(name = "Stats", values = c(Median = "black", Mean = "red"))
+                                     ggplot2::aes(x = LifeFormCount, y = Occurences,
+                                                  text = paste("Lifeform Count: ", LifeFormCount,
+                                                               "<br>Occurences:", Occurences))) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::facet_grid(Park ~ .) +
+    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
+    ggplot2::ylab("Number of Occurences") +
+    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
+    ggplot2::geom_vline(data = veg.stats.all,
+                        ggplot2::aes(xintercept = Mean, color = "Mean"), linetype = "longdash", size = 1) +
+    ggplot2::geom_vline(data = veg.stats.all,
+                        ggplot2::aes(xintercept = Median, color = "Median"), size = 1) +
+    ggplot2::scale_color_manual(name = "Stats", values = c(Median = "black", Mean = "red"))
 
 ###################  
   
@@ -308,12 +310,12 @@ LifeformsPerSpringPlot <- function(park, field.season) {
                      Median = round(median(LifeFormCount), 2))
     
   veg.barplot.latest <- ggplot2::ggplot(veg.sums.latest,
-                                     aes(x = LifeFormCount, y = Occurences)) +
-    geom_bar(stat = "identity") +
-    facet_grid(Park ~ .) +
-    xlab("Number of Different Vegetation Life Form Categories") +
-    ylab("Number of Occurences (Latest Field Season with Data") +
-    scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"))
+                                        ggplot2::aes(x = LifeFormCount, y = Occurences)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::facet_grid(Park ~ .) +
+    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
+    ggplot2::ylab("Number of Occurences (Latest Field Season with Data") +
+    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"))
 
 ################### 
     
@@ -346,43 +348,42 @@ LifeformsPerSpringPlot <- function(park, field.season) {
     dplyr::filter(!is.na(Visit))
   
   veg.barplot.year <- ggplot2::ggplot(veg.sums.year,
-                                     aes(x = LifeFormCount,
-                                         y = Occurences,
-                                         fill = Visit,
-                                         text = paste0("Lifeform Count: ", LifeFormCount, "<br>",
-                                                       "Occurences: ", Occurences, "<br>",
-                                                       "Field Season: ", FieldSeason))) +
-    geom_bar(stat = "identity",
-             position = position_dodge(preserve = "single")) +
-    facet_grid(Visit ~ Park) +
-    xlab("Number of Different Vegetation Life Form Categories") +
-    ylab("Number of Occurences") +
-    scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
-    geom_vline(data = veg.stats.year,
-               aes(xintercept = Mean,
-                   color = "Mean"),
-               linetype = "longdash",
-               size = 1) +
-    geom_vline(data = veg.stats.year,
-               aes(xintercept = Median,
-                   color = "Median"),
-               size = 1) +
+                                      ggplot2::aes(x = LifeFormCount,
+                                                   y = Occurences,
+                                                   fill = Visit,
+                                                   text = paste0("Lifeform Count: ", LifeFormCount, "<br>",
+                                                                 "Occurences: ", Occurences, "<br>",
+                                                                 "Field Season: ", FieldSeason))) +
+    ggplot2::geom_bar(stat = "identity",
+                      position = ggplot2::position_dodge(preserve = "single")) +
+    ggplot2::facet_grid(Visit ~ Park) +
+    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
+    ggplot2::ylab("Number of Occurences") +
+    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
+    ggplot2::geom_vline(data = veg.stats.year,
+                        ggplot2::aes(xintercept = Mean,
+                                     color = "Mean"),
+                                     linetype = "longdash",
+                                     size = 1) +
+    ggplot2::geom_vline(data = veg.stats.year,
+                        ggplot2::aes(xintercept = Median,
+                                     color = "Median"),
+                                     size = 1) +
     # scale_fill_manual(name = "Revisit Cycle",
     #                   values = c(First = "cornflowerblue",
     #                              Second = "indianred")) +
-    scale_color_manual(# name = "Stats",
-                       values = c(Median = "black",
-                                  Mean = "red")) +
-    labs(fill = "Revisit Cycle",
-         color = "Stats") +
-    theme(legend.position = "bottom") +
-    guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed"))))
+    ggplot2::scale_color_manual(# name = "Stats",
+                                values = c(Median = "black",
+                                           Mean = "red")) +
+    ggplot2::labs(fill = "Revisit Cycle",
+                  color = "Stats") +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(linetype = c("solid", "dashed"))))
   
   ggplotly(veg.barplot.year)
   
   return(veg.barplot.year)
 }
-
 
 #' Bar plot showing the most common life form categories at springs by park
 #'
@@ -412,17 +413,17 @@ MostCommonLifeformsPlot <- function(park, field.season) {
                   LifeFormCategory = LifeForm)
   
   veg.types.barplot <- ggplot2::ggplot(veg.types,
-                                       aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations,
-                                           text = paste("Lifeform Category: ", LifeFormCategory,
-                                                        "<br>Observations:", Observations))) +
+                                       ggplot2::aes(tidytext::reorder_within(LifeFormCategory, Observations, Park), Observations,
+                                                    text = paste("Lifeform Category: ", LifeFormCategory,
+                                                                 "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    geom_col() +
-    facet_grid(Park ~ ., scales = "free", space = "free") +
-    coord_flip() +
-    theme(panel.grid.major.y = element_blank()) +
-    ylab("Number of Observations at Springs") +
-    xlab("Vegetation Life Form Category") +
-    scale_y_continuous(expand = expansion(mult = c(0, .1)))
+    ggplot2::geom_col() +
+    ggplot2::facet_grid(Park ~ ., scales = "free", space = "free") +
+    ggplot2::coord_flip() +
+    ggplot2::theme(panel.grid.major.y = ggplot2::element_blank()) +
+    ggplot2::ylab("Number of Observations at Springs") +
+    ggplot2::xlab("Vegetation Life Form Category") +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1)))
   
   veg.types.barplot
   
@@ -436,25 +437,25 @@ MostCommonLifeformsPlot <- function(park, field.season) {
                   LifeFormCategory = LifeForm)
   
   veg.types.lake.barplot <- ggplot2::ggplot(veg.types.lake,
-                                       aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
-                                           y = Observations,
-                                           fill = FieldSeason,
-                                           text = paste("Lifeform Category: ", LifeFormCategory,
-                                                        "<br>Observations:", Observations))) +
+                                            ggplot2::aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
+                                                         y = Observations,
+                                                         fill = FieldSeason,
+                                                         text = paste("Lifeform Category: ", LifeFormCategory,
+                                                                      "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    geom_bar(stat = "identity", position = position_dodge()) +
-    coord_flip() +
-    theme(panel.grid.major.y = element_blank(),
+    ggplot2::geom_bar(stat = "identity", position = position_dodge()) +
+    ggplot2::coord_flip() +
+    ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
           axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
           axis.text.y = ggplot2::element_text(size = 20), #
           axis.title.x = ggplot2::element_text(size = 24), #
           axis.title.y = ggplot2::element_text(size = 24),
           legend.text = ggplot2::element_text (size = 20),
-          legend.title = element_text(size = 20),
+          legend.title = ggplot2::element_text(size = 20),
           legend.position = "bottom") +
-    ylab("Number of Observations at Springs") +
-    xlab("Vegetation Life Form Category") +
-    scale_y_continuous(expand = expansion(mult = c(0, .1)))
+    ggplot2::ylab("Number of Observations at Springs") +
+    ggplot2::xlab("Vegetation Life Form Category") +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1)))
   
   veg.types.lake.barplot
   
@@ -471,21 +472,21 @@ MostCommonLifeformsPlot <- function(park, field.season) {
     dplyr::ungroup()
   
   veg.types.med.barplot <- ggplot2::ggplot(veg.types.med,
-                                            aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
-                                                y = Observations,
-                                                text = paste("Lifeform Category: ", LifeFormCategory,
-                                                             "<br>Observations:", Observations))) +
+                                           ggplot2::aes(x = tidytext::reorder_within(LifeFormCategory, Observations, Park),
+                                                        y = Observations,
+                                                        text = paste("Lifeform Category: ", LifeFormCategory,
+                                                                     "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    geom_bar(stat = "identity", position = position_dodge()) +
+    ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge()) +
     coord_flip() +
-    theme(panel.grid.major.y = element_blank(),
+    ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
           axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5, size = 20), #
           axis.text.y = ggplot2::element_text(size = 20), #
           axis.title.x = ggplot2::element_text(size = 24), #
           axis.title.y = ggplot2::element_text(size = 24)) +
-    ylab("Number of Observations at Springs") +
-    xlab("Vegetation Life Form Category") +
-    scale_y_continuous(expand = expansion(mult = c(0, .1)))
+    ggplot2::ylab("Number of Observations at Springs") +
+    ggplot2::xlab("Vegetation Life Form Category") +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1)))
   
   veg.types.med.barplot
   
@@ -506,30 +507,30 @@ MostCommonLifeformsPlot <- function(park, field.season) {
                             TRUE ~ !is.na(FieldSeason)))
   
   veg.types.year.barplot <- ggplot2::ggplot(veg.types.year,
-                                            aes(x = tidytext::reorder_within(x = LifeFormCategory,
-                                                                             by = Observations,
-                                                                             within = list(Park)),
-                                                y = Observations,
-                                                fill = FieldSeason,
-                                                text = paste("Lifeform Category: ", LifeFormCategory,
-                                                             "<br>Observations:", Observations))) +
+                                            ggplot2::aes(x = tidytext::reorder_within(x = LifeFormCategory,
+                                                                                      by = Observations,
+                                                                                      within = list(Park)),
+                                                         y = Observations,
+                                                         fill = FieldSeason,
+                                                         text = paste("Lifeform Category:", LifeFormCategory,
+                                                                      "<br>Observations:", Observations))) +
     tidytext::scale_x_reordered() +
-    ggplot2::geom_bar(stat = "identity", position = position_dodge(preserve = "single")) +
-    coord_flip() +
-    theme(panel.grid.major.y = element_blank(),
+    ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(preserve = "single")) +
+    ggplot2::coord_flip() +
+    ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
           axis.text.x = ggplot2::element_text(vjust = 0.5, hjust = 0.5),
           legend.position = "bottom") +
-    ylab("Number of Observations at Springs") +
-    xlab("Vegetation Life Form Category") +
+    ggplot2::ylab("Number of Observations at Springs") +
+    ggplot2::xlab("Vegetation Life Form Category") +
     ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, .1))) +
-    ggplot2::geom_text(aes(label = paste0(Observations, " (", FieldSeason, ")")),
+    ggplot2::geom_text(ggplot2::aes(label = paste0(Observations, " (", FieldSeason, ")")),
                        position = ggplot2::position_dodge(width = 1),
                        vjust = 0.4,
                        hjust = -0.2,
                        size = 4,
                        show.legend = FALSE) +
-    facet_grid(Park~.,
-               scales = "free")
+    ggplot2::facet_grid(Park~.,
+                        scales = "free")
   
   veg.types.year.barplot
   

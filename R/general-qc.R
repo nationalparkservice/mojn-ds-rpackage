@@ -35,10 +35,10 @@ qcCompleteness <- function(park, site, field.season) {
                   MonitoringStatus == "Sampled") %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, MonitoringStatus) %>%
     dplyr::group_by(Park, FieldSeason) %>%
-    dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) - 2016) %% 3 == 0  ~ "Y",
-                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) - 2017) %% 3 == 0  ~ "Y",
-                                               Park %in% c("DEVA") & (as.numeric(FieldSeason) - 2018) %% 3 == 0 ~ "Y",
-                                               Park %in% c("CAMO") & (((as.numeric(FieldSeason) - 2016) %% 3 == 0) | FieldSeason == "2017") ~ "Y",
+    dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026))  ~ "Y",
+                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) %in% c(2017, 2020, 2023, 2026))  ~ "Y",
+                                               Park %in% c("DEVA") & (as.numeric(FieldSeason) %in% c(2018, 2021, 2025)) ~ "Y",
+                                               Park %in% c("CAMO") & ((as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026)) | FieldSeason == "2017") ~ "Y",
                                                TRUE ~ "N")) %>%
     dplyr::mutate(Annual = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Y",
                                             TRUE ~ "N")) %>%
@@ -114,7 +114,7 @@ qcCompletenessPlot <- function(park, site, field.season) {
 }
 
 
-#' Return list of site visits that have any data categorized as "Raw" or "Provisional"
+#' Return list of site visits that have visit data categorized as "Raw" or "Provisional"
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -132,86 +132,86 @@ qcCompletenessPlot <- function(park, site, field.season) {
 qcDPLCheck <- function(park, site, field.season) {
       
   visit <- ReadAndFilterData(park = park, data.name = "Visit")
-  flowcondition <- ReadAndFilterData(park = park, data.name = "DischargeFlowCondition")
-  estimated <- ReadAndFilterData(park = park, data.name = "DischargeEstimated")
-  volumetric <- ReadAndFilterData(park = park, data.name = "DischargeVolumetric")
-  disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
-  flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
-  invasives <- ReadAndFilterData(park = park, data.name = "Invasives")
-  riparian <- ReadAndFilterData(park = park, data.name = "Riparian")
-  wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
-  temp <- ReadAndFilterData(park = park, data.name = "WaterQualityTemperature")
-  ph <- ReadAndFilterData(park = park, data.name = "WaterQualitypH")
-  spcond <-ReadAndFilterData(park = park, data.name = "WaterQualitySpCond")
-  do <- ReadAndFilterData(park = park, data.name = "WaterQualityDO")
+  # flowcondition <- ReadAndFilterData(park = park, data.name = "DischargeFlowCondition")
+  # estimated <- ReadAndFilterData(park = park, data.name = "DischargeEstimated")
+  # volumetric <- ReadAndFilterData(park = park, data.name = "DischargeVolumetric")
+  # disturbance <- ReadAndFilterData(park = park, data.name = "Disturbance")
+  # flowmod <- ReadAndFilterData(park = park, data.name = "DisturbanceFlowModification")
+  # invasives <- ReadAndFilterData(park = park, data.name = "Invasives")
+  # riparian <- ReadAndFilterData(park = park, data.name = "Riparian")
+  # wildlife <- ReadAndFilterData(park = park, data.name = "Wildlife")
+  # temp <- ReadAndFilterData(park = park, data.name = "WaterQualityTemperature")
+  # ph <- ReadAndFilterData(park = park, data.name = "WaterQualitypH")
+  # spcond <-ReadAndFilterData(park = park, data.name = "WaterQualitySpCond")
+  # do <- ReadAndFilterData(park = park, data.name = "WaterQualityDO")
 
 visit.DPL <- visit %>%
   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, VisitType, DPL) %>%
   dplyr::rename(Visit = DPL)
-flowcondition.DPL <- flowcondition %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(FlowCondition = DPL) %>%
-  dplyr::distinct()
-estimated.DPL <- estimated %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(EstimatedDischarge = DPL) %>%
-  dplyr::distinct()
-volumetric.DPL <- volumetric %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(VolumetricDischarge = DPL) %>%
-  dplyr::distinct()
-disturbance.DPL <- disturbance %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Disturbance = DPL) %>%
-  dplyr::distinct()
-flowmod.DPL <- flowmod %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(FlowModification = DPL) %>%
-  dplyr::distinct()
-wildlife.DPL <- wildlife %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Wildlife = DPL) %>%
-  dplyr::distinct()
-riparian.DPL <- riparian %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Riparian = DPL) %>%
-  dplyr::distinct()
-invasives.DPL <- invasives %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Invasives = DPL) %>%
-  dplyr::distinct()
-temp.DPL <- temp %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(Temperature = DPL) %>%
-  dplyr::distinct()
-ph.DPL <- ph %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(pH = DPL) %>%
-  dplyr::distinct()
-spcond.DPL <- spcond %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(SpCond = DPL) %>%
-  dplyr::distinct()
-do.DPL <- do %>%
-  dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
-  dplyr::rename(DisOxygen = DPL) %>%
-  dplyr::distinct()
+# flowcondition.DPL <- flowcondition %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(FlowCondition = DPL) %>%
+#   dplyr::distinct()
+# estimated.DPL <- estimated %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(EstimatedDischarge = DPL) %>%
+#   dplyr::distinct()
+# volumetric.DPL <- volumetric %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(VolumetricDischarge = DPL) %>%
+#   dplyr::distinct()
+# disturbance.DPL <- disturbance %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(Disturbance = DPL) %>%
+#   dplyr::distinct()
+# flowmod.DPL <- flowmod %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(FlowModification = DPL) %>%
+#   dplyr::distinct()
+# wildlife.DPL <- wildlife %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(Wildlife = DPL) %>%
+#   dplyr::distinct()
+# riparian.DPL <- riparian %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(Riparian = DPL) %>%
+#   dplyr::distinct()
+# invasives.DPL <- invasives %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(Invasives = DPL) %>%
+#   dplyr::distinct()
+# temp.DPL <- temp %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(Temperature = DPL) %>%
+#   dplyr::distinct()
+# ph.DPL <- ph %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(pH = DPL) %>%
+#   dplyr::distinct()
+# spcond.DPL <- spcond %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(SpCond = DPL) %>%
+#   dplyr::distinct()
+# do.DPL <- do %>%
+#   dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DPL) %>%
+#   dplyr::rename(DisOxygen = DPL) %>%
+#   dplyr::distinct()
 
-dpl <- visit.DPL %>%
-  dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
-  unique() %>%
-  dplyr::filter_all(dplyr::any_vars(. %in% c("Raw", "Provisional"))) %>%
+dpl <- visit.DPL |>
+  # dplyr::left_join(flowcondition.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(estimated.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(volumetric.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(disturbance.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(flowmod.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(wildlife.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(riparian.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(invasives.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(temp.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(ph.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(spcond.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  # dplyr::left_join(do.DPL, by = c("Park", "SiteCode", "SiteName", "VisitDate", "FieldSeason", "VisitType"), multiple = "all", relationship = "many-to-many") %>%
+  unique()  |>
+  dplyr::filter_all(dplyr::any_vars(. %in% c("Raw", "Provisional")))  |>
   dplyr::arrange(FieldSeason, Park, SiteCode)
  
   return(dpl) 

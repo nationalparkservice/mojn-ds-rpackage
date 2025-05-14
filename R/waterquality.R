@@ -20,7 +20,7 @@ WqMedian <- function(park, site, field.season) {
   do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityDO")
     
   temp.med <- temp %>%
-    dplyr::filter(VisitType != "Dummy") %>%
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(TemperatureMedian_C = median(WaterTemperature_C),
                      TemperatureCount = sum(!is.na(WaterTemperature_C))) %>%
@@ -28,7 +28,7 @@ WqMedian <- function(park, site, field.season) {
     dplyr::arrange(SiteCode)
 
   spcond.med <- spcond %>%
-    dplyr::filter(VisitType != "Dummy") %>%
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(SpCondMedian_microS_per_cm = median(SpecificConductance_microS_per_cm),
                      SpCondCount = sum(!is.na(SpecificConductance_microS_per_cm))) %>%
@@ -36,7 +36,7 @@ WqMedian <- function(park, site, field.season) {
     dplyr::arrange(SiteCode)
 
   ph.med <- ph %>%
-    dplyr::filter(VisitType != "Dummy") %>%
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(pHMedian = median(pH),
                      pHCount = sum(!is.na(pH))) %>%
@@ -44,7 +44,7 @@ WqMedian <- function(park, site, field.season) {
     dplyr::arrange(SiteCode)
 
   do.med <- do %>%
-    dplyr::filter(VisitType != "Dummy") %>%
+    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) %>%
     dplyr::group_by(Park, FieldSeason, SiteCode, SiteName, VisitDate, VisitType, SampleFrame, Panel, DataQualityFlag, DataQualityFlagNote) %>%
     dplyr::summarise(DOMedian_Percent = median(DissolvedOxygen_percent),
                      DOPercentCount = sum(!is.na(DissolvedOxygen_percent)),
@@ -62,7 +62,6 @@ WqMedian <- function(park, site, field.season) {
 
   return(wq.med)
 }
-
 
 #' Perform sanity check and compile list of potentially incorrect or outlier water quality values.
 #'
@@ -185,7 +184,6 @@ qcWqFlags <- function(park, site, field.season) {
   return(wq.flags)
 }
 
-
 #' Intermediate step used to clean water quality data for stats and plotting functions. Limit data to primary visits of annual and 3Yr springs, and exclude data with "W" and "C" flags.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -249,7 +247,6 @@ qcWqLong <- function(park, site, field.season) {
   return(wq.cleaned)
 }
 
-
 #' Calculate quartile values for each water quality parameter for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -289,7 +286,6 @@ WqStats <- function(park, site, field.season) {
   return(wq.stats)
 }
 
-
 #' Generate box plots for water temperature for each park and 3-year cycle. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -308,10 +304,10 @@ WqStats <- function(park, site, field.season) {
 WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "Temperature") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"))) %>%
     GetSampleSizes(Park, FieldSeason)
     
   wq.plot.temp <- FormatPlot(
@@ -337,7 +333,6 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
   }
 }
 
-
 #' Generate box plots for specific conductance for each park and year in units of uS/cm. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -357,10 +352,10 @@ WqPlotTemp <- function(park, site, field.season, include.title = FALSE) {
 WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "SpCond") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"))) %>%
     GetSampleSizes(Park, FieldSeason) #
   
   wq.plot.spcond <- FormatPlot(
@@ -386,7 +381,6 @@ WqPlotSpCond <- function(park, site, field.season, include.title = FALSE) {
     return(wq.plot.spcond + ggplot2::facet_grid(~Park, scales = "free"))
   }
 }
-
 
 #' Generate box plots for specific conductance for each park and year in units of mS/cm. Includes annual and 3Yr springs only.
 #'
@@ -424,7 +418,6 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
   }
 }
 
-
 #' Generate box plots for pH for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -443,10 +436,10 @@ WqPlotSpCondmS <- function(park, site, field.season, include.title = FALSE) {
 WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "pH") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.ph <- FormatPlot(
@@ -470,7 +463,6 @@ WqPlotPH <- function(park, site, field.season, include.title = FALSE) {
   }  
 }
 
-
 #' Generate box plots for concentration dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -491,10 +483,10 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO",
                   Units == "mg/L") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"))) %>%
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.mgl <- FormatPlot(
@@ -518,7 +510,6 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
   }
 }
 
-
 #' Generate box plots for percent dissolved oxygen for each park and year. Includes annual and 3Yr springs only.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -536,10 +527,10 @@ WqPlotDOmgL <- function(park, site, field.season, include.title = FALSE) {
 WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
   wq.plot <- qcWqLong(park = park, site = site, field.season = field.season) %>%
     dplyr::filter(Parameter == "DO" & Units == "%") %>%
-    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2025"),
-                                    Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
-                                    Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2024"),
-                                    TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2024"))) %>%
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
+                                   Park %in% c("JOTR", "PARA") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2021", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"))) %>%
     GetSampleSizes(Park, FieldSeason)
   
   wq.plot.do.pct <- FormatPlot(
@@ -563,7 +554,6 @@ WqPlotDOPct <- function(park, site, field.season, include.title = FALSE) {
     return(wq.plot.do.pct + ggplot2::facet_grid(~Park, scales = "free"))
   }
 }
-
 
 #' Generate grid of box plots for core water quality parameters for each park and year. Includes annual and 3Yr springs only.
 #'
@@ -625,7 +615,6 @@ qcLocalDOCheck <- function(park, site, field.season) {
   return(do.check)
 }
 
-
 #' Check specific conductance calibrations for the use of low conductivity standards at high conductivity springs.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -663,7 +652,6 @@ qcSpCondStandardCheck <- function(park, site, field.season) {
   
   return(sc.joined)
 }
-
 
 #' Check that instruments were calibrated within 1 day of site visit
 #'
@@ -727,7 +715,6 @@ qcCalibrationTimes <- function(park, site, field.season) {
   
   return(cal_data)
 }
-
 
 #' Check for missing calibration unique IDs
 #'
@@ -808,7 +795,6 @@ qcUniqueIDMissing <- function(park, site, field.season) {
   return(joined)
 }
 
-
 #' Check for suspicious pH calibrations
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -840,7 +826,6 @@ qcPHCalCheck <- function(park, site, field.season) {
   return(phCheck)
 }
 
-
 #' Check for suspicious specific conductance calibrations
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -866,7 +851,6 @@ qcSpCondCalCheck <- function(park, site, field.season) {
   
   return(scCheck)
 }
-
 
 #' Check for suspicious dissolved oxygen calibrations
 #'
@@ -895,7 +879,6 @@ qcDOCalCheck <- function(park, site, field.season) {
   
   return(doCheck)
 }
-
 
 #' Map of water temperature at springs with surface water
 #'
@@ -1017,7 +1000,6 @@ WqMapTemp <- function(park, site, field.season) {
   
   return(wqmaptemp)
 }
-
 
 #' Map of specific conductance at springs with surface water
 #'
@@ -1141,7 +1123,6 @@ WqMapSpCond <- function(park, site, field.season) {
   
 }
 
-
 #' Map of pH at springs with surface water
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
@@ -1263,7 +1244,6 @@ WqMapPH <- function(park, site, field.season) {
 
   return(wqmapph)
 }
-
 
 #' Map of dissolved oxygen concentration at springs with surface water
 #'

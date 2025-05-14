@@ -322,18 +322,32 @@ ReadSqlDatabase <- function(...) {
   return(data)
 }
 
-#' Read data from the Desert Springs AGOL feature layer.
+#' Read data from the Desert Springs AGOL feature layers.
 #' 
 #' @inheritParams FetchAGOLLayers
 #' 
 #' @return A list of tibbles
 #'
-ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
-                                   lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
-                                   sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
-                                   calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"), agol_username = "mojn_data", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username))) {
-  agol_layers <- FetchAGOLLayers(data_path[1], data_path[2], data_path[3], data_path[4], agol_username, agol_password)
-  data <- WrangleAGOLData(agol_layers)
+ReadAGOL <- function() {
+
+  data <- WrangleAGOLData()
+  
+  return(data)
+}
+
+#' Read data from published data package in DataStore.
+#'
+#' @param reference The seven-digit number associated with the published data package (e.g., 1234567)
+#'
+#' @returns A list of tibbles
+#' @export
+#'
+ReadDataStore <- function(reference) {
+  if (is.na(as.numeric(reference)) | nchar(reference) != 7) {
+    stop(paste("Reference", reference, "is invalid. Reference should be seven numbers."))
+  }
+  
+  data <- "PLACEHOLDER"
   
   return(data)
 }
@@ -341,11 +355,11 @@ ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8E
 #' Load raw data into package environment
 #' @description Run this function before you do anything else.
 #'
-#' @param data_path A path or URL to the data. Accepted inputs:
-#' * 4 URLs to the AGOL feature services containing the data (main_db, lookup_db, sites_db, and calibration_db)
-#' * a folder containing the data in csv format
-#' * a .zip file containing the data in csv format
-#' * `"database"` (connect to the deprecated SQL server database)
+#' @param data_path A path to the data. Accepted inputs:
+#' * `"AGOL"` Connect to the AGOL database. Default setting
+#' * `"database"` Connect to the deprecated SQL server database
+#' * Connect to a published data package in DataStore. Enter the reference number (e.g., 1234567)
+#' * Folder or .zip file containing the data in CSV format. Enter the file path to the CSVs
 #' @param use_default_sql Use default SQL database? Ignored if `data_path != "database"`.
 #' @param sql_drv Driver to use to connect to database. Ignored if `data_path != "database"`.
 #' @param ... Additional arguments to OpenDatabaseConnection (ignored if `data_path != "database"`)
@@ -361,29 +375,33 @@ ReadAGOL <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8E
 #' LoadDesertSprings("path/to/zipped/csvs.zip")  # Read from zip file of CSV's
 #' }
 #'
-LoadDesertSprings <- function(data_path = c(main_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer", 
-                                            lookup_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Lookup_Database/FeatureServer", 
-                                            sites_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
-                                            calibration_db = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer"),
-                                            use_default_sql = FALSE, sql_drv = odbc::odbc(), agol_username = "mojn_data", agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username)), ...) {
+LoadDesertSprings <- function(data_path = "AGOL",
+                              use_default_sql = FALSE,
+                              sql_drv = odbc::odbc(),
+                              agol_username = "mojn_data",
+                              agol_password = rstudioapi::askForPassword(paste("Please enter the password for AGOL account", agol_username)), ...) {
   
   # Figure out the format of the data
-  agol_regex <- "^https:\\/\\/services1\\.arcgis\\.com\\/[^\\\\]+\\/arcgis\\/rest\\/services\\/[^\\\\]+\\/FeatureServer\\/?$"
-  is_agol <- grepl(agol_regex, data_path[1])
+  is_agol <- grepl("AGOL", data_path[1], ignore.case = TRUE)
   is_db <- grepl("^database$", data_path[1], ignore.case = TRUE)
-  if (!is_agol & !is_db) {
+  is_irma <- !is.na(as.numeric(data_path[1])) & nchar(data_path[1]) == 7
+
+  if (!is_agol & !is_db & !is_irma) {
     # Standardize data path
     data_path <- normalizePath(data_path[1], mustWork = TRUE)
   }
+  
   is_zip <- grepl("\\.zip$", data_path[1], ignore.case = TRUE) && file.exists(data_path[1])
   is_folder <- dir.exists(data_path[1])
   
-  if (is_agol) {  # Read from AGOL feature layer
-           data <- ReadAGOL(data_path, agol_username, agol_password)
+  if (is_agol) {  # Read from AGOL database
+    data <- ReadAGOL()
   } else if (is_db) {  # Read from SQL Server database
     data <- ReadSqlDatabase()
-  } else if (is_zip | is_folder) {  # Read from folder of CSV's (may be zipped)
+  } else if (is_zip | is_folder) {  # Read from folder of CSVs (may be zipped)
     data <- ReadCSV(data_path[1])
+  } else if (is_irma) {  # Read from DataStore
+    data <- ReadDataStore(data_path[1])
   } else {
     stop(paste("Data path", data_path[1], "is invalid. See `?LoadDesertSprings` for more information."))
   }

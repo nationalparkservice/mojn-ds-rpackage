@@ -20,7 +20,7 @@ qcWildlifeObservedNoTypes <- function(park, site, field.season) {
     dplyr::filter(IsWildlifeObserved == "Yes",
                   WildlifeType %in% c("No Data", NA)) %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
+    dplyr::select(-c(VisitType, SampleFrame, Panel))
   
   return(observed.notype)
 }
@@ -54,7 +54,7 @@ qcWildlifeObservedNoEvidence <- function(park, site, field.season) {
                   Vocalization != "Yes",
                   OtherEvidence != "Yes") %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
+    dplyr::select(-c(VisitType, SampleFrame, Panel))
   
   return(type.noevidence)
 }
@@ -110,7 +110,7 @@ UngulatesEvidence <- function(park, site, field.season) {
   ungulates <- wildlife %>%
     dplyr::filter(WildlifeType == "Ungulate") %>%
     dplyr::arrange(SiteCode, FieldSeason) %>%
-    dplyr::select(-c(VisitType, DPL, SampleFrame, Panel))
+    dplyr::select(-c(VisitType, SampleFrame, Panel))
   
   return(ungulates)
 }
