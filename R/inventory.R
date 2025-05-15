@@ -6,8 +6,8 @@ name2 <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/DSVisitRawDa
 
 mon <- SpringDischarge(park = park, site = site, field.season = field.season)
 inv <- readr::read_csv(name, show_col_types = FALSE)
-sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
-visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
+visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
 wy22 <- readr::read_csv(name2, show_col_types = FALSE)
 
 coords <- sites %>%
@@ -395,7 +395,7 @@ FullFlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
   name <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/qSumB_SpringInventoryEvents_20220216.csv"
   name2 <- "C:/Users/jbailard/Documents/R/desertsprings/inventorydata/DSVisitRawData.csv"
   inv <- readr::read_csv(name, show_col_types = FALSE)
-  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   wq <- WqMedian(park = park, site = site, field.season = field.season)
   
   coords <- sites %>%
@@ -462,7 +462,7 @@ FullFlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
 
 SpCondElevPlot <- function(park, site, field.season) {
   inv <- readr::read_csv(name, show_col_types = FALSE)
-  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   wq <- WqMedian(park = park, site = site, field.season = field.season)
   
   coords <- sites %>%

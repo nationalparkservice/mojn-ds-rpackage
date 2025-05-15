@@ -89,7 +89,7 @@ qcSensorSummary <- function(park, deployment.field.season) {
 #' }
 qcSensorHeatmap <- function(park) {
   attempts <- ReadAndFilterData(park = park, data.name = "SensorRetrievalAttempts")
-  visit <- ReadAndFilterData(park = park, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, data.name = "Visits")
   
   sampleframe <- visit %>%
     dplyr::select(SiteCode, SampleFrame)
@@ -137,7 +137,7 @@ qcSensorHeatmap <- function(park) {
 #'     qcSensorsNotDeployed(park = c("DEVA", "JOTR"), deployment.field.season = c("2017", "2018", "2021"))
 #' }
 qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visits")
   deployments <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsAllDeployments")
 
   annual_springs <- visit %>%
@@ -185,7 +185,7 @@ qcSensorsNotDeployed <- function(park, site, deployment.field.season) {
 #'     
 #' }
 qcSensorsNotRecovered <- function(park, site, deployment.field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "Visits")
   attempts <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorRetrievalAttempts")
   deployments <- ReadAndFilterData(park = park, site = site, field.season = deployment.field.season, data.name = "SensorsAllDeployments")
   deployed.only <- ReadAndFilterData(park = park, field.season = deployment.field.season, data.name = "SensorsCurrentlyDeployed")
@@ -354,7 +354,7 @@ qcUnknownSensorIDs <- function(park, site, deployment.field.season) {
 }
 
 
-# visit <- desertsprings:::ReadAndFilterData(data.name = "Visit")
+# visit <- desertsprings:::ReadAndFilterData(data.name = "Visits")
 # attempts <- desertsprings:::ReadAndFilterData(data.name = "SensorRetrievalAttempts")
 # deployments <- desertsprings:::ReadAndFilterData(data.name = "SensorsAllDeployments")
 # deployed.only <- desertsprings:::ReadAndFilterData(data.name = "SensorsCurrentlyDeployed")

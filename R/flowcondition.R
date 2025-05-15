@@ -72,7 +72,7 @@ QcFlowCheck <- function(park, site, field.season) {
 QcFlowTidy <- function(park, site, field.season) {
   fc.cat.data <- QcFlowCat(park, site, field.season)
   
-  flow.visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  flow.visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
   
   fc.tidy <- fc.cat.data %>%
     dplyr::left_join(dplyr::select(flow.visits, SampleFrame, c("Park", "FieldSeason", "SiteCode", "VisitDate")), by = c("Park", "FieldSeason", "SiteCode", "VisitDate"), multiple = "all") %>%

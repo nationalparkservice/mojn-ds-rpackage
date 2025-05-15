@@ -170,6 +170,14 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
+    GRTS = readr::cols(
+      GRTSOrder = readr::col_integer(),
+      Lat_WGS84 = readr::col_double(),
+      Lon_WGS84 = readr::col_double(),
+      X_UTM_NAD83_11N = readr::col_double(),
+      Y_UTM_NAD83_11N = readr::col_double(),
+      .default = readr::col_character()
+    ),
     InvasivePlants = readr::cols(
       VisitDate = readr::col_date(),
       .default = readr::col_character()
@@ -192,15 +200,14 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
-    Site = readr::cols(
-      GRTSOrder = readr::col_integer(),
+    Sites = readr::cols(
       Lat_WGS84 = readr::col_double(),
       Lon_WGS84 = readr::col_double(),
       X_UTM_NAD83_11N = readr::col_double(),
       Y_UTM_NAD83_11N = readr::col_double(),
       .default = readr::col_character()
     ),
-    Visit = readr::cols(
+    Visits = readr::cols(
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
@@ -564,7 +571,7 @@ GetRawData <- function(park, site, field.season) {
 #' @export
 #'
 GetSiteName <- function(site.code) {
-  site <- ReadAndFilterData(site = site.code, data.name = "Site")
+  site <- ReadAndFilterData(site = site.code, data.name = "Sites")
   site %<>% dplyr::select("SiteCode", "SiteName") %>%
     unique() %>%
     dplyr::filter(SiteCode == site.code)

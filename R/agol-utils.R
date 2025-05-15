@@ -351,12 +351,14 @@ WrangleAGOLData <- function() {
     dplyr::select(SensorNumber, SerialNumber, SiteCode = SiteCode.x, SiteName = SiteName.x, 
                   VisitDate, FieldSeason, Park = Park.x, VisitType, Notes = SensorDeployNote.x, SensorDeployed = SensorDeployed.x)
   
-  # ----- Site -----
-  data$Site <- agol_layers$sites %>%
+  # ----- Sites -----
+  data$Sites <- agol_layers$sites |>
+    dplyr::left_join(dplyr::select(agol_layers$MOJN_Lookup_DS_Panel, name, Panel = label), by = c("PanelGroup" = "name")) |>
     dplyr::select(Park,
-                  Subunit,
                   SiteCode,
                   SiteName = sitename,
+                  SampleFrame,
+                  Panel,
                   SiteDescription,
                   EcologicalDescription,
                   LogisticalDescription,
@@ -364,11 +366,6 @@ WrangleAGOLData <- function() {
                   HikeDescription,
                   HikeDistance_m,
                   HikeTime_min,
-                  GRTSDraw,
-                  GRTSOrder, 
-                  SiteStatus,
-                  SampleFrame,
-                  Panel = PanelGroup,
                   SiteProtectedStatus,
                   Lat_WGS84,
                   Lon_WGS84,
@@ -380,8 +377,28 @@ WrangleAGOLData <- function() {
                            DriveDescription = "-none-",
                            HikeDescription = "-none-"))
   
+  # ----- GRTS -----
+  data$GRTS <- agol_layers$GRTS %>%
+    dplyr::select(Park,
+                  SiteCode,
+                  SiteName = sitename,
+                  SampleFrame,
+                  Panel = PanelGroup,
+                  GRTSDraw,
+                  GRTSOrder,
+                  SiteStatus,
+                  Lat_WGS84,
+                  Lon_WGS84,
+                  X_UTM_NAD83_11N, 
+                  Y_UTM_NAD83_11N) |>
+    tidyr::replace_na(list(SiteDescription = "-none-",
+                           EcologicalDescription = "-none-",
+                           LogisticalDescription = "-none-",
+                           DriveDescription = "-none-",
+                           HikeDescription = "-none-"))
+  
   # ----- Visit -----
-  data$Visit <- visit %>%
+  data$Visits <- visit %>%
     dplyr::select(Park,
                   SiteCode,
                   SiteName,
@@ -613,7 +630,8 @@ WrangleAGOLData <- function() {
 #' @export 
 #'
 FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_SpringVisit/FeatureServer",
-                            sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
+                            sites_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_Sites/FeatureServer",
+                            grts_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_DS_GRTSDraw/FeatureServer",
                             calibration_path = "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/MOJN_Calibration_Database/FeatureServer",
                             agol_username = "mojn_data",
                             agol_password = keyring::key_get(service = "AGOL", username = "mojn_data")) {
@@ -630,13 +648,16 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
   agol_layers <- list()
   
   # Fetch sites table
-  agol_layers$sites <- fetchAllRecords(sites_path, 0, token = agol_token$token) |>
+  agol_layers$sites <- fetchAllRecords(sites_path, 1, token = agol_token$token) |>
     dplyr::mutate(EcologicalDescription = as.character(EcologicalDescription),
                   LogisticalDescription = as.character(LogisticalDescription),
                   DriveDescription = as.character(DriveDescription),
                   HikeDescription = as.character(HikeDescription),
                   HikeDistance_m = as.numeric(HikeDistance_m),
                   HikeTime_min = as.numeric(HikeTime_min))
+  
+  # Fetch GRTS table
+  agol_layers$GRTS <- fetchAllRecords(grts_path, 0, token = agol_token$token)
   
   # Fetch lookup CSVs from AGOL
   agol_layers$MOJN_Lookup_DS_DataQualityFlag <- fetchagol:::fetchHostedCSV(item_id = "c2345c5ab1a64699951a8ec654db549a", token = agol_token, root = "nps.maps.arcgis.com")

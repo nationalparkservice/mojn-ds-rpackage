@@ -16,8 +16,8 @@
 #' }
 qcCompleteness <- function(park, site, field.season) {
     
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
 
   
   df1 <- site %>%
@@ -131,7 +131,7 @@ qcCompletenessPlot <- function(park, site, field.season) {
 #' }
 qcDPLCheck <- function(park, site, field.season) {
       
-  visit <- ReadAndFilterData(park = park, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, data.name = "Visits")
   # flowcondition <- ReadAndFilterData(park = park, data.name = "DischargeFlowCondition")
   # estimated <- ReadAndFilterData(park = park, data.name = "DischargeEstimated")
   # volumetric <- ReadAndFilterData(park = park, data.name = "DischargeVolumetric")
@@ -233,7 +233,7 @@ dpl <- visit.DPL |>
 #'     qcVisitTypeCheck(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitTypeCheck <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
   
   check <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitType) %>%
@@ -263,7 +263,7 @@ qcVisitTypeCheck <- function(park, site, field.season) {
 #'     qcPanelCheck(park = "MOJA", field.season = c("2016", "2022", "2023"))
 #' }
 qcPanelCheck <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
   
   check <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SampleFrame, Panel, VisitType) %>%
@@ -290,7 +290,7 @@ qcPanelCheck <- function(park, site, field.season) {
 #'     qcSpringTypeDiscrepancies(park = "DEVA", field.season = c("2018", "2021"))
 #' }
 qcSpringTypeDiscrepancies <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
   
   discrepancies <- visit %>%
     dplyr::filter(VisitType == "Primary", MonitoringStatus == "Sampled") %>%
@@ -323,7 +323,7 @@ qcSpringTypeDiscrepancies <- function(park, site, field.season) {
 #'     qcVisitsBySite(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitsBySite <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits") 
   
   visit.dates <- visit %>%
     dplyr::filter(VisitType == "Primary",
@@ -366,7 +366,7 @@ qcVisitsBySite <- function(park, site, field.season) {
 #'     qcVisitsByDate(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitsByDate <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
 
   visit.dates <- visit %>%
     dplyr::filter(VisitType == "Primary",
@@ -412,7 +412,7 @@ qcVisitsByDate <- function(park, site, field.season) {
 #'     qcVisitDateTimelines(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitDateTimelines <- function(park, site, field.season) {
-  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- desertsprings:::ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits") 
 
   grouping_vars <- c("Park", "FieldSeason", "SiteCode", "SampleFrame") # Set grouping vars here so that we can add the facet column if needed
   median_grouping_vars <- c("Park", "SiteName", "SiteCode", "SampleFrame")
@@ -508,8 +508,8 @@ qcVisitDateTimelines <- function(park, site, field.season) {
 #'     qcNotSampled(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcNotSampled <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   df1 <- site %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
@@ -574,7 +574,7 @@ qcNotSampled <- function(park, site, field.season) {
 #'     qcRepeatVisits(park = c("DEVA", "JOTR"), field.season = c("2017", "2018", "2021"))
 #' }
 qcRepeatVisits <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visit") 
+  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits") 
   
   repeats <- visit %>%
     dplyr::group_by(SiteCode, FieldSeason) %>%
@@ -667,7 +667,7 @@ qcPhotoDuplicates <- function(park, site, field.season) {
 #'     LocationMap(park = c("DEVA", "MOJA"))
 #' }
 LocationMap <- function(park, site, field.season) {
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%

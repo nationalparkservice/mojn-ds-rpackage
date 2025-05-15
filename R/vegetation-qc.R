@@ -196,7 +196,7 @@ qcInvasiveDuplicates <- function(park, site, field.season) {
 #' }
 LifeformCounts <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Vegetation")
-  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Sites")
   
   site <- site |>
     dplyr::select(SiteCode, SampleFrame)
@@ -262,7 +262,7 @@ PlotLifeformCounts <- function(park,field.season) {
 #' @examples
 LifeformsBySite <- function(park, site, field.season) {
   veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Vegetation")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   veg <- veg |>
     dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"))
@@ -291,7 +291,7 @@ LifeformsBySite <- function(park, site, field.season) {
 #' @examples
 LifeformsByYear <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Vegetation")
-  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Sites")
   
   veg <- veg |>
     dplyr::filter(Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"))
@@ -442,7 +442,7 @@ InvasivePlants <- function(park, site, field.season) {
 #' }
 InvasivePlantsMap <- function(park, site, field.season) {
   invasives <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "InvasivePlants")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

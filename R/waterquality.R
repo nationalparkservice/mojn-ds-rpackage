@@ -897,7 +897,7 @@ qcDOCalCheck <- function(park, site, field.season) {
 #' }
 WqMapTemp <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1018,7 +1018,7 @@ WqMapTemp <- function(park, site, field.season) {
 #' }
 WqMapSpCond <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
   
@@ -1140,7 +1140,7 @@ WqMapSpCond <- function(park, site, field.season) {
 #' }
 WqMapPH <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -1262,7 +1262,7 @@ WqMapPH <- function(park, site, field.season) {
 #' }
 WqMapDO <- function(park, site, field.season) {
   data <- qcWqLong(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

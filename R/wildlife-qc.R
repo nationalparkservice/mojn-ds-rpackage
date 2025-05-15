@@ -133,7 +133,7 @@ UngulatesEvidence <- function(park, site, field.season) {
 #' }
 UngulatesMap <- function(park, site, field.season) {
   wildlife <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Wildlife")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

@@ -338,7 +338,7 @@ qcContinuousLength <- function(park, site, field.season) {
 FlowCategoriesContinuous <- function(park, site, field.season) {
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
 
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site") %>%
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
                   Panel %in% c("A", "B", "C", "D")) %>% 
     dplyr::mutate(Panel = dplyr::case_when(Panel == "A" ~ "Panel Annual",
@@ -394,7 +394,7 @@ FlowCategoriesContinuous <- function(park, site, field.season) {
 FlowCategoriesDiscontinuous <- function(park, site, field.season) {
   joined <- SpringDischarge(park = park, site = site, field.season = field.season)
 
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site") %>%
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
                   Panel %in% c("A", "B", "C", "D")) %>% 
     dplyr::mutate(Panel = dplyr::case_when(Panel == "A" ~ "Panel Annual",
@@ -715,7 +715,7 @@ FlowCategoriesThreeYearHeatMap <- function(park, site, field.season) {
 #' }
 FlowCategoriesMap <- function(interactive, park, site, field.season) {
   discharge <- SpringDischarge(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)

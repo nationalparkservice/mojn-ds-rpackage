@@ -237,7 +237,7 @@ qcFlowModTypes <- function(park, site, field.season) {
 FlowModCount <- function(park, site, field.season) {
   formatted <- qcFlowModFormatted(park = park, site = site, field.season = field.season)
 
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site") %>%
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites") %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
                   Panel %in% c("A", "B", "C", "D")) %>%
     dplyr::select(Park, SiteCode, SiteName)
@@ -450,7 +450,7 @@ HumanUsePlot <- function(park, site, field.season) {
 #' }
 HumanUseMap <- function(park, site, field.season) {
   formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
@@ -625,7 +625,7 @@ LivestockPlot <- function(park, site, field.season) {
 #' }
 LivestockMap <- function(interactive, park, site, field.season) {
   formatted <- qcDisturbanceFormatted(park = park, site = site, field.season = field.season)
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Site")
+  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   
   coords <- site %>%
     dplyr::select(SiteCode, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N)
