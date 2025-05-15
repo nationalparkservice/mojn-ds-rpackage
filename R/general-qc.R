@@ -668,11 +668,16 @@ qcPhotoDuplicates <- function(park, site, field.season) {
 #' }
 LocationMap <- function(park, site, field.season) {
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
+  GRTS <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "GRTS")
   
-  coords <- site %>%
+  draw <- GRTS |>
+    dplyr::select(SiteCode, GRTSOrder, SiteStatus)
+  
+  coords <- site |>
+    dplyr::left_join(draw, by = "SiteCode") |>
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
-    dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" & Panel == "A" ~ "Annual",
-                                                       SampleFrame == "3Yr" & Panel %in% c("A", "B", "C", "D") ~ "3Yr",
+    dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Annual",
+                                                       SampleFrame == "3Yr" & Panel %in% c("Panel B", "Panel C", "Panel D") ~ "3Yr",
                                                        TRUE ~ "Other")) %>%
     dplyr::mutate(SampleFrameRadius = dplyr::case_when(SampleFrameSimple == "Annual" ~ 5,
                                                        SampleFrameSimple == "3Yr" ~ 5,
