@@ -192,10 +192,6 @@ GetColSpec <- function() {
       VisitDate = readr::col_date(),
       .default = readr::col_character()
     ),
-    SensorsAllDeployments = readr::cols(
-      VisitDate = readr::col_date(),
-      .default = readr::col_character()
-    ),
     Site = readr::cols(
       GRTSOrder = readr::col_integer(),
       Lat_WGS84 = readr::col_double(),

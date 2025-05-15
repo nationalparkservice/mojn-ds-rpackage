@@ -181,41 +181,12 @@ qcInvasiveDuplicates <- function(park, site, field.season) {
 }
 
 
-#' Table with summary of life form presence and rank
-#'
-#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
-#' @param field.season Optional. Field season name to filter on, e.g. "2019".
-#' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
-#'
-#' @return Tibble
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#'     LifeformsPresence()
-#'     LifeformsPresence(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
-#' }
-LifeformsPresence <- function(park, site, field.season) {
-  veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Vegetation")
-  
-  veg.summary <- veg %>%
-    dplyr::filter(VisitType == "Primary",
-                  !is.na(LifeForm)) %>%
-    dplyr::select(Park, SiteCode, FieldSeason, LifeForm, Rank) %>%
-    dplyr::count(Park, FieldSeason, LifeForm) %>%
-    dplyr::rename(Observations = n)
-  
-  return(veg.summary)
-  
-}
-
-
-#' Bar plot showing the distribution of the number of life form categories at springs by park
+#' Count of total lifeform categories observed at each spring visit
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @return ggplot bar plot
+#' @return tibble
 #' @export
 #'
 #' @examples
@@ -223,171 +194,63 @@ LifeformsPresence <- function(park, site, field.season) {
 #'     LifeformsPerSpringPlot()
 #'     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
-LifeformsPerSpringPlot <- function(park, field.season) {
+LifeformCounts <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Vegetation")
   site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Site")
   
-  veg <- veg |>
-    dplyr::filter(Park != "CAMO")
   site <- site |>
     dplyr::select(SiteCode, SampleFrame)
   
   veg.sums <- veg |>
     dplyr::inner_join(site, by = c("SiteCode", "SampleFrame"), multiple = "all") |>
     dplyr::filter(VisitType == "Primary",
-                  SampleFrame %in% c("Annual", "3Yr")) |>
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) |>
     dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) |>
     dplyr::rename(LifeFormCount = n) |>
-    dplyr::ungroup()
+    dplyr::ungroup() |>
+    dplyr::arrange(SiteCode, FieldSeason)
   
-###################    
-  
-  veg.sums.lake <- veg %>%
-    dplyr::filter(VisitType == "Primary",
-                  Park == "LAKE") %>%
-    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::rename(LifeFormCount = n) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(Park, FieldSeason, LifeFormCount) %>%
-    dplyr::summarize(Occurences = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(Park, LifeFormCount) %>%
-    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))  
-
-###################  
-    
-  veg.sums.all <- veg %>%
-    dplyr::inner_join(site, by = c("SiteCode", "SampleFrame"), multiple = "all") %>%
-    dplyr::filter(VisitType == "Primary",
-                  SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::rename(LifeFormCount = n) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(Park, LifeFormCount) %>%
-    dplyr::summarize(Occurences = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(Park, LifeFormCount) %>%
-    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
-  
-  veg.stats.all <- veg.sums %>%
-    dplyr::group_by(Park) %>%
-    dplyr::summarize(Mean = round(mean(LifeFormCount), 2),
-                     Median = round(median(LifeFormCount), 2))
-    
-  veg.barplot.all <- ggplot2::ggplot(veg.sums.all,
-                                     ggplot2::aes(x = LifeFormCount, y = Occurences,
-                                                  text = paste("Lifeform Count: ", LifeFormCount,
-                                                               "<br>Occurences:", Occurences))) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::facet_grid(Park ~ .) +
-    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
-    ggplot2::ylab("Number of Occurences") +
-    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
-    ggplot2::geom_vline(data = veg.stats.all,
-                        ggplot2::aes(xintercept = Mean, color = "Mean"), linetype = "longdash", linewidth = 1) +
-    ggplot2::geom_vline(data = veg.stats.all,
-                        ggplot2::aes(xintercept = Median, color = "Median"), size = 1) +
-    ggplot2::scale_color_manual(name = "Stats", values = c(Median = "black", Mean = "red"))
-
-###################  
-  
-  veg.sums.latest <- veg %>%
-    dplyr::filter(VisitType == "Primary") %>%
-    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::rename(LifeFormCount = n) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(Park, SiteCode, SiteName) %>%
-    dplyr::filter(VisitDate == max(VisitDate)) %>%
-    dplyr::ungroup() %>%
-    unique() %>%
-    dplyr::group_by(Park, LifeFormCount) %>%
-    dplyr::summarize(Occurences = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(Park, LifeFormCount) %>%
-    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount))
-  
-  veg.stats.latest <- veg.sums %>%
-    dplyr::group_by(Park) %>%
-    dplyr::summarize(Mean = round(mean(LifeFormCount), 2),
-                     Median = round(median(LifeFormCount), 2))
-    
-  veg.barplot.latest <- ggplot2::ggplot(veg.sums.latest,
-                                        ggplot2::aes(x = LifeFormCount, y = Occurences)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::facet_grid(Park ~ .) +
-    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
-    ggplot2::ylab("Number of Occurences (Latest Field Season with Data") +
-    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"))
-
-################### 
-    
-  veg.sums.year <- veg %>%
-    dplyr::inner_join(site, by = c("SiteCode", "SampleFrame"), multiple = "all") %>%
-    dplyr::filter(VisitType == "Primary",
-                  SampleFrame %in% c("Annual", "3Yr")) %>%
-    dplyr::count(Park, SiteCode, SiteName, VisitDate, FieldSeason) %>%
-    dplyr::rename(LifeFormCount = n) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(Park, FieldSeason, LifeFormCount) %>%
-    dplyr::summarize(Occurences = dplyr::n()) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(Park, FieldSeason, LifeFormCount) %>%
-    dplyr::mutate(LifeFormCount = as.factor(LifeFormCount)) %>%
-    dplyr::mutate(Visit = dplyr::case_when((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018") ~ "First",
-                                    (Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021") ~ "Second",
-                                    (Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2025") ~ "Third",
-                                    TRUE ~ NA_character_)) %>%
-    dplyr::filter(!is.na(Visit))
-  
-  veg.stats.year <- veg.sums %>%
-    dplyr::group_by(Park, FieldSeason) %>%
-    dplyr::summarize(Mean = round(mean(LifeFormCount), 2),
-                     Median = round(median(LifeFormCount), 2)) %>%
-    dplyr::mutate(Visit = dplyr::case_when((Park %in% c("LAKE", "MOJA") & FieldSeason == "2016") | (Park %in% c("PARA", "JOTR", "CAMO") & FieldSeason == "2017") | (Park %in% c("DEVA") & FieldSeason == "2018") ~ "First",
-                                    (Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2019") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2020") | (Park %in% c("DEVA") & FieldSeason == "2021") ~ "Second",
-                                    (Park %in% c("LAKE", "MOJA", "CAMO") & FieldSeason == "2022") | (Park %in% c("PARA", "JOTR") & FieldSeason == "2023") | (Park %in% c("DEVA") & FieldSeason == "2025") ~ "Third",
-                                    TRUE ~ NA_character_)) %>%
-    dplyr::filter(!is.na(Visit))
-  
-  veg.barplot.year <- ggplot2::ggplot(veg.sums.year,
-                                      ggplot2::aes(x = LifeFormCount,
-                                                   y = Occurences,
-                                                   fill = Visit,
-                                                   text = paste0("Lifeform Count: ", LifeFormCount, "<br>",
-                                                                 "Occurences: ", Occurences, "<br>",
-                                                                 "Field Season: ", FieldSeason))) +
-    ggplot2::geom_bar(stat = "identity",
-                      position = ggplot2::position_dodge(preserve = "single")) +
-    ggplot2::facet_grid(Visit ~ Park) +
-    ggplot2::xlab("Number of Different Vegetation Life Form Categories") +
-    ggplot2::ylab("Number of Occurences") +
-    ggplot2::scale_x_discrete(breaks = c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")) +
-    ggplot2::geom_vline(data = veg.stats.year,
-                        ggplot2::aes(xintercept = Mean,
-                                     color = "Mean"),
-                                     linetype = "longdash",
-                                     size = 1) +
-    ggplot2::geom_vline(data = veg.stats.year,
-                        ggplot2::aes(xintercept = Median,
-                                     color = "Median"),
-                                     size = 1) +
-    # scale_fill_manual(name = "Revisit Cycle",
-    #                   values = c(First = "cornflowerblue",
-    #                              Second = "indianred")) +
-    ggplot2::scale_color_manual(# name = "Stats",
-                                values = c(Median = "black",
-                                           Mean = "red")) +
-    ggplot2::labs(fill = "Revisit Cycle",
-                  color = "Stats") +
-    ggplot2::theme(legend.position = "bottom") +
-    ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(linetype = c("solid", "dashed"))))
-  
-  ggplotly(veg.barplot.year)
-  
-  return(veg.barplot.year)
+  return(veg.sums)  
 }
 
-#' Number of observations of vegetation life form categories at each site across all field seasons
+#' Boxplot of the median and distribution of the count of total lifeform categories observed at each park during each field season
+#'
+#' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
+#' @param field.season Optional. Field season name to filter on, e.g. "2019".
+#'
+#' @return ggplot object
+#' @export
+#'
+#' @examples
+PlotLifeformCounts <- function(park,field.season) {
+  veg.sums.plot <- LifeformCounts(park = park, field.season = field.season) |>
+    GetSampleSizes(Park, FieldSeason)|>
+    dplyr::filter(Park != "CAMO") |>
+    dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
+                                   Park %in% c("JOTR") ~ FieldSeason %in% c("2017", "2020", "2023"),
+                                   Park %in% c("PARA") ~ FieldSeason %in% c("2017", "2023"),
+                                   Park %in% c("DEVA") ~ FieldSeason %in% c("2018", "2025"),
+                                   TRUE ~ FieldSeason %in% c("2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026")))
+    
+  
+  veg.boxplot <- FormatPlot(data = veg.sums.plot,
+                            x.col = FieldSeason,
+                            y.col = LifeFormCount,
+                            facet.col = Park,
+                            sample.size.col = SampleSizeLabel,
+                            sample.size.loc = "xaxis") +
+    ggplot2::geom_boxplot() +
+    ggplot2::geom_dotplot(binaxis = "y", stackdir = "center", alpha = 0.08) +
+    ggplot2::stat_summary(fun = mean, geom = "point", shape = 4, size = 3, color = "red") +
+    ggplot2::scale_y_continuous(limits = c(0,NA), breaks = seq(0,11,2)) +
+    ggplot2::xlab("Field Season") +
+    ggplot2::ylab("Count of life form categories")
+  
+  return(veg.boxplot)
+}
+
+
+#' Number of observations of vegetation life form categories at each annual and three-year spring across all field seasons
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -416,7 +279,8 @@ LifeformsBySite <- function(park, site, field.season) {
   return(lifeforms_bysite)  
 }
 
-#' Number of observations of vegetation life form categories at each park during each field season
+
+#' Number of observations of vegetation life form categories for annual and three-year springs at each park during each field season
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
@@ -439,12 +303,13 @@ LifeformsByYear <- function(park, field.season) {
                   !is.na(LifeForm)) |>
     dplyr::count(Park, FieldSeason, LifeForm) |>
     dplyr::rename(Observations = n,
-                  LifeFormCategory = LifeForm)
+                  LifeFormCategory = LifeForm) |>
+    dplyr::arrange(Park, FieldSeason, LifeFormCategory)
 
   return(lifeforms_byyear)
 }
 
-#' Plot of the number of springs in each park where a life form category has been observed across all field seasons
+#' Bar plot of the number of annual and three-year springs in each park where a life form category has been observed across all field seasons
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
@@ -455,7 +320,7 @@ LifeformsByYear <- function(park, field.season) {
 #' @examples
 PlotLifeformsByPark <- function(park, field.season) {
   
-  lifeforms <- LifeFormPresenceBySite(park = park, field.season = field.season) |>
+  lifeforms <- LifeformsBySite(park = park, field.season = field.season) |>
     dplyr::group_by(Park, LifeFormCategory) |>
     dplyr::summarize(Observations = dplyr::n()) |>
     dplyr::ungroup() |>
@@ -489,7 +354,7 @@ PlotLifeformsByPark <- function(park, field.season) {
   return(lifeforms_barplot)
 }
 
-#' Plot of the percentage of springs where a life form category has been observed at each park during each field season
+#' Line plot of the percentage of annual and three-year springs where a life form category has been observed at each park during each field season
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
@@ -500,7 +365,7 @@ PlotLifeformsByPark <- function(park, field.season) {
 #' @examples
 PlotLifeformsByYear <- function(park, field.season) {
   
-  lifeforms <- LifeFormPresenceByYear(park = park, field.season = field.season) |>
+  lifeforms <- LifeformsByYear(park = park, field.season = field.season) |>
     dplyr::filter(Park != "CAMO") |>
     dplyr::filter(dplyr::case_when(Park %in% c("LAKE", "MOJA") ~ FieldSeason %in% c("2016", "2019", "2022", "2026"),
                                    Park %in% c("JOTR") ~ FieldSeason %in% c("2017", "2020", "2023"),
