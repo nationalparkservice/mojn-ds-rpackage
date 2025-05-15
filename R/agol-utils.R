@@ -219,10 +219,10 @@ WrangleAGOLData <- function() {
   data$DischargeFlowCondition <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, FieldSeason, VisitDate, VisitType, FlowCondition, SpringbrookType, SpringbrookLengthFlag, SpringbrookLength_m, SpringbrookWidth_m, DiscontinuousSpringbrookLengthFlag, DiscontinuousSpringbrookLength_m, Notes, SpringbrookNotes = DischargeNotes) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
-    dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
-                                            TRUE ~ Notes),
-                  SpringbrookNotes <- dplyr::case_when(is.na(SpringbrookNotes) ~ "-none-",
-                                                       TRUE ~ SpringbrookNotes))
+    dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
+                                           TRUE ~ Notes)) |>
+    dplyr::mutate(SpringbrookNotes = dplyr::case_when(is.na(SpringbrookNotes) ~ "-none-",
+                                                      TRUE ~ SpringbrookNotes))
   
   # ----- DischargeVolumetric -----
   vol <- agol_layers$fill_time %>%
@@ -238,7 +238,7 @@ WrangleAGOLData <- function() {
   data$Disturbance <- visit %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, FieldSeason, VisitDate, VisitType, Roads, HumanUse, PlantManagement, HikingTrails, Livestock, OtherAnthropogenic, Fire, Flooding, Wildlife, OtherNatural, Overall, FlowModificationStatus, Notes = DisturbanceNotes) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
-    dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
+    dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
                                             TRUE ~ Notes))
   
   # ----- DisturbanceFlowModification -----
@@ -261,7 +261,7 @@ WrangleAGOLData <- function() {
     dplyr::left_join(agol_layers$MOJN_Ref_DS_ParkTaxonProtectedStatus, by = c("USDAPlantsCode" = "Taxon", "Park" = "parkname")) %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, FieldSeason, VisitDate, VisitType, InvasivesObserved, InRiparianVegBuffer, USDAPlantsCode, ScientificName, ProtectedStatus = ProtectedStatusCode, Notes = InvasiveNotes) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
-    dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
+    dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
                                             TRUE ~ Notes))
   
   # ----- Vegetation -----
@@ -283,7 +283,7 @@ WrangleAGOLData <- function() {
     dplyr::left_join(riparian, by = c("visitglobalid", "LifeForm")) %>%
     dplyr::select(Park, SiteCode, SiteName, SampleFrame, Panel, FieldSeason, VisitDate, VisitType, IsVegetationObserved, MistletoePresent, LifeForm, Rank, DominantSpecies, Notes) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
-    dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
+    dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
                                             TRUE ~ Notes))
     
   # ----- SensorRetrievalAttempts -----
@@ -396,7 +396,7 @@ WrangleAGOLData <- function() {
                   Notes,
                   DPL) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
-    dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
+    dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
                                             TRUE ~ Notes))
   
   # ----- VisitActivity -----
@@ -474,9 +474,9 @@ WrangleAGOLData <- function() {
   data$WaterQualityDO <- dplyr::bind_rows(wqDO_filterRepeats, WaterQualityDO) |>
     dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
     dplyr::mutate(DataQualityFlag = dplyr::case_when(is.na(DataQualityFlag) ~ "ND",
-                                                     TRUE ~ DataQualityFlag),
-                  DataQualityFlagNote <- dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
-                                                          TRUE ~ DataQualityFlag))
+                                                     TRUE ~ DataQualityFlag)) |>
+    dplyr::mutate(DataQualityFlagNote = dplyr::case_when(is.na(DataQualityFlagNote)| DataQualityFlagNote == "-" ~ "-none-",
+                                                          TRUE ~ DataQualityFlagNote))
   
   # ----- WaterQualitypH -----
  WaterQualitypH <- visit %>%
@@ -497,8 +497,8 @@ WrangleAGOLData <- function() {
  data$WaterQualitypH <- dplyr::bind_rows(wqpH_filterRepeats, WaterQualitypH) |>
    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
    dplyr::mutate(DataQualityFlag = dplyr::case_when(is.na(DataQualityFlag) ~ "ND",
-                                                    TRUE ~ DataQualityFlag),
-                 DataQualityFlagNote <- dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
+                                                    TRUE ~ DataQualityFlag)) |>
+   dplyr::mutate(DataQualityFlagNote = dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
                                                          TRUE ~ DataQualityFlag))
   
   # ----- WaterQualitySpCond -----
@@ -521,9 +521,9 @@ WrangleAGOLData <- function() {
  data$WaterQualitySpCond <- dplyr::bind_rows(WaterQualitySpCond, wqSpCond_filterRepeats) |>
    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
    dplyr::mutate(DataQualityFlag = dplyr::case_when(is.na(DataQualityFlag) ~ "ND",
-                                                    TRUE ~ DataQualityFlag),
-                 DataQualityFlagNote <- dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
-                                                         TRUE ~ DataQualityFlag))
+                                                    TRUE ~ DataQualityFlag)) |>
+   dplyr::mutate(DataQualityFlagNote = dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
+                                                        TRUE ~ DataQualityFlag))
   
   # ----- WaterQualityTemperature -----
   WaterQualityTemperature <- visit %>%
@@ -544,9 +544,9 @@ WrangleAGOLData <- function() {
  data$WaterQualityTemperature <- dplyr::bind_rows(WaterQualityTemperature, wqTemp_filterRepeats) |>
    dplyr::filter(!(VisitType %in% c("Training", "Dummy"))) |>
    dplyr::mutate(DataQualityFlag = dplyr::case_when(is.na(DataQualityFlag) ~ "ND",
-                                                    TRUE ~ DataQualityFlag),
-                 DataQualityFlagNote <- dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
-                                                         TRUE ~ DataQualityFlag))
+                                                    TRUE ~ DataQualityFlag)) |>
+   dplyr::mutate(DataQualityFlagNote = dplyr::case_when(is.na(DataQualityFlagNote) ~ "-none-",
+                                                        TRUE ~ DataQualityFlag))
   
   # ----- Wildlife -----
   data$Wildlife <- agol_layers$wildlife |>
@@ -593,7 +593,7 @@ WrangleAGOLData <- function() {
                   Vocalization = yn[Vocalization],
                   OtherEvidence = yn[OtherEvidence]) |>
    dplyr::filter(!is.na(WildlifeType)) |>
-   dplyr::mutate(Notes <- dplyr::case_when(is.na(Notes) ~ "-none-",
+   dplyr::mutate(Notes = dplyr::case_when(is.na(Notes) ~ "-none-",
                                           TRUE ~ Notes))
 
   return(data)
