@@ -16,19 +16,19 @@
 #' }
 qcCompleteness <- function(park, site, field.season) {
     
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
+  visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
 
   
-  df1 <- site %>%
+  df1 <- sites %>%
     dplyr::filter(SampleFrame %in% c("Annual", "3Yr"),
-                  Panel %in% c("A", "B", "C", "D")) %>%
+                  Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D")) %>%
     dplyr::select(Park,
                   SiteCode,
                   SiteName,
                   SampleFrame)
   
-  df2 <- visit %>%
+  df2 <- visits %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
                   Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
                   VisitType == "Primary",
@@ -36,7 +36,7 @@ qcCompleteness <- function(park, site, field.season) {
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, SampleFrame, Panel, MonitoringStatus) %>%
     dplyr::group_by(Park, FieldSeason) %>%
     dplyr::mutate(Triennial = dplyr::case_when(Park %in% c("LAKE", "MOJA") & (as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026))  ~ "Y",
-                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) %in% c(2017, 2020, 2023, 2026))  ~ "Y",
+                                               Park %in% c("JOTR", "PARA") & (as.numeric(FieldSeason) %in% c(2017, 2020, 2023, 2027))  ~ "Y",
                                                Park %in% c("DEVA") & (as.numeric(FieldSeason) %in% c(2018, 2021, 2025)) ~ "Y",
                                                Park %in% c("CAMO") & ((as.numeric(FieldSeason) %in% c(2016, 2019, 2022, 2026)) | FieldSeason == "2017") ~ "Y",
                                                TRUE ~ "N")) %>%
@@ -50,7 +50,7 @@ qcCompleteness <- function(park, site, field.season) {
   expected <- df1 %>%
     dplyr::left_join(df2, by = c("Park", "SampleFrame"), multiple = "all", relationship = "many-to-many")
   
-  samplestatus <- visit %>%
+  samplestatus <- visits %>%
     dplyr::filter(SampleFrame %in% c("Annual","3Yr"),
                   Panel %in% c("Panel Annual", "Panel B", "Panel C", "Panel D"),
                   VisitType == "Primary",
@@ -233,15 +233,15 @@ dpl <- visit.DPL |>
 #'     qcVisitTypeCheck(park = "DEVA", field.season = c("2018", "2020", "2021"))
 #' }
 qcVisitTypeCheck <- function(park, site, field.season) {
-  visit <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
+  visits <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Visits")
   
-  check <- visit %>%
+  check <- visits %>%
     dplyr::select(Park, SiteCode, SiteName, FieldSeason, VisitType) %>%
     dplyr::group_by_all() %>%
     dplyr::count() %>%
     dplyr::ungroup() %>%
     tidyr::pivot_wider(names_from = VisitType, values_from = n, values_fill = 0) %>%
-    dplyr::filter(Primary != 1 | Supplemental != 0 | Replicate != 0 | Dummy != 0) %>%
+    dplyr::filter(Primary != 1 | dplyr::if_any(c(Supplemental, Replicate), ~.!= 0)) %>%
     dplyr::arrange(SiteCode, FieldSeason)
   
   return(check)
@@ -667,13 +667,13 @@ qcPhotoDuplicates <- function(park, site, field.season) {
 #'     LocationMap(park = c("DEVA", "MOJA"))
 #' }
 LocationMap <- function(park, site, field.season) {
-  site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
+  sites <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
   GRTS <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "GRTS")
   
   draw <- GRTS |>
     dplyr::select(SiteCode, GRTSOrder, SiteStatus)
   
-  coords <- site |>
+  coords <- sites |>
     dplyr::left_join(draw, by = "SiteCode") |>
     dplyr::select(Park, SiteCode, SiteName, GRTSOrder, SiteStatus, SampleFrame, Panel, Lat_WGS84, Lon_WGS84, X_UTM_NAD83_11N, Y_UTM_NAD83_11N) %>%
     dplyr::mutate(SampleFrameSimple = dplyr::case_when(SampleFrame == "Annual" & Panel == "Panel Annual" ~ "Annual",

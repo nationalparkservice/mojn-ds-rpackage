@@ -191,8 +191,8 @@ qcInvasiveDuplicates <- function(park, site, field.season) {
 #'
 #' @examples
 #' \dontrun{
-#'     LifeformsPerSpringPlot()
-#'     LifeformsPerSpringPlot(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#'     LifeformCounts()
+#'     LifeformCounts(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
 #' }
 LifeformCounts <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Vegetation")
@@ -222,6 +222,10 @@ LifeformCounts <- function(park, field.season) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     PlotLifeformCounts()
+#'     PlotLifeformCounts(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
 PlotLifeformCounts <- function(park,field.season) {
   veg.sums.plot <- LifeformCounts(park = park, field.season = field.season) |>
     GetSampleSizes(Park, FieldSeason)|>
@@ -256,10 +260,14 @@ PlotLifeformCounts <- function(park,field.season) {
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @returns
+#' @returns Tibble
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     LifeformsBySite()
+#'     LifeformsBySite(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
 LifeformsBySite <- function(park, site, field.season) {
   veg <- ReadAndFilterData(park = park, site = site, field.season = field.season,  data.name = "Vegetation")
   site <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "Sites")
@@ -285,10 +293,14 @@ LifeformsBySite <- function(park, site, field.season) {
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param field.season Optional. Field season name to filter on, e.g. "2019".
 #'
-#' @returns
+#' @returns Tibble
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     LifeformsByYear()
+#'     LifeformsByYear(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
 LifeformsByYear <- function(park, field.season) {
   veg <- ReadAndFilterData(park = park, field.season = field.season,  data.name = "Vegetation")
   site <- ReadAndFilterData(park = park, field.season = field.season, data.name = "Sites")
@@ -318,6 +330,10 @@ LifeformsByYear <- function(park, field.season) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     PlotLifeformsByPark()
+#'     PlotLifeformsByPark(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
 PlotLifeformsByPark <- function(park, field.season) {
   
   lifeforms <- LifeformsBySite(park = park, field.season = field.season) |>
@@ -363,6 +379,10 @@ PlotLifeformsByPark <- function(park, field.season) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'     PlotLifeformsByYear()
+#'     PlotLifeformsByYear(park = c("MOJA", "PARA"), field.season = c("2017", "2019", "2020"))
+#' }
 PlotLifeformsByYear <- function(park, field.season) {
   
   lifeforms <- LifeformsByYear(park = park, field.season = field.season) |>

@@ -397,7 +397,7 @@ WrangleAGOLData <- function() {
                            DriveDescription = "-none-",
                            HikeDescription = "-none-"))
   
-  # ----- Visit -----
+  # ----- Visits -----
   data$Visits <- visit %>%
     dplyr::select(Park,
                   SiteCode,
