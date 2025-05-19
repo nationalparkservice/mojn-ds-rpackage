@@ -602,12 +602,10 @@ qcLocalDOCheck <- function(park, site, field.season) {
   do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
   
   do.check <- do %>%
-    dplyr::filter(99.5 > PostCalibrationReading_percent | 100.5 < PostCalibrationReading_percent) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, DOInstrument, PreCalibrationReading_percent, PostCalibrationReading_percent) %>%
-    dplyr::rename(PreCalDO_percent = PreCalibrationReading_percent,
-                  PostCalDO_percent = PostCalibrationReading_percent) %>%
-    dplyr::mutate(PreCalDO_percent = round(PreCalDO_percent, 1),
-                  PostCalDO_percent = round(PostCalDO_percent, 1)) %>%
+    dplyr::filter(99.5 > PostCal_percent | 100.5 < PostCal_percent) %>%
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, DOInstrument, PreCal_percent, PostCal_percent) %>%
+    dplyr::mutate(PreCal_percent = round(PreCal_percent, 1),
+                  PostCal_percent = round(PostCal_percent, 1)) %>%
     unique() %>%
     dplyr::arrange(SiteCode, FieldSeason)
   
@@ -635,25 +633,24 @@ qcSpCondStandardCheck <- function(park, site, field.season) {
   med <- WqMedian(park, site, field.season)
   
   sc.sel <- sc %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpCondInstrument, StandardValue_microS_per_cm)
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, SpCondInstrument, Standard_uS_per_cm)
   
   med.sc <- med %>%
     dplyr::select(Park, SiteCode, VisitDate, FieldSeason, SpCondMedian_microS_per_cm) %>%
-    dplyr::rename(SpCondMedian = SpCondMedian_microS_per_cm) %>%
-    dplyr::filter(!is.na(SpCondMedian))
+    dplyr::rename(SpCond_uS_per_cm = SpCondMedian_microS_per_cm) %>%
+    dplyr::filter(!is.na(SpCond_uS_per_cm))
   
   sc.joined <- med.sc %>%
     dplyr::left_join(sc.sel, by = c("Park", "SiteCode", "VisitDate", "FieldSeason"), multiple = "all") %>%
     dplyr::relocate(SiteName, .after = SiteCode) %>%
     dplyr::relocate(SpCondInstrument, .after = FieldSeason) %>%
-    dplyr::rename(SpCondStandard = StandardValue_microS_per_cm) %>%
-    dplyr::filter((SpCondMedian > 5000 & SpCondStandard < 5000) | (SpCondMedian > 25000 & SpCondStandard < 25000)) %>%
-    dplyr::arrange(SiteCode, FieldSeason)
+    dplyr::filter((SpCond_uS_per_cm > 5000 & Standard_uS_per_cm < 5000) | (SpCond_uS_per_cm > 25000 & Standard_uS_per_cm < 25000)) %>%
+    dplyr::arrange(VisitDate)
   
   return(sc.joined)
 }
 
-#' Check that instruments were calibrated within 1 day of site visit
+#' Check that instruments were calibrated within 1 day of site visit.  BROKEN SINCE AGOL UTILS UPDATE.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -716,7 +713,7 @@ qcCalibrationTimes <- function(park, site, field.season) {
   return(cal_data)
 }
 
-#' Check for missing calibration unique IDs
+#' Check for missing calibration unique IDs. BROKEN SINCE AGOL UTILS UPDATE.
 #'
 #' @param park Optional. Four-letter park code to filter on, e.g. "MOJA".
 #' @param site Optional. Site code to filter on, e.g. "LAKE_P_HOR0042".
@@ -741,16 +738,16 @@ qcUniqueIDMissing <- function(park, site, field.season) {
   do_data <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "WaterQualityDO")
   
   ph_cal <- ph %>%
-    dplyr::select(SiteCode, VisitDate, CalibrationDate, StandardValue_pH) %>%
-    dplyr::rename(Standard = "StandardValue_pH") %>%
+    dplyr::select(SiteCode, VisitDate, CalibrationDate, Standard_pH) %>%
+    dplyr::rename(Standard = "Standard_pH") %>%
     dplyr::group_by(SiteCode, VisitDate, CalibrationDate) %>%
     dplyr::summarize(Standard = paste(Standard, collapse = ", ")) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(Parameter = "pH")
   
   sc_cal <- sc %>%
-    dplyr::select(SiteCode, VisitDate, CalibrationDate, StandardValue_microS_per_cm) %>%
-    dplyr::rename(Standard = "StandardValue_microS_per_cm") %>%
+    dplyr::select(SiteCode, VisitDate, CalibrationDate, Standard_uS_per_cm) %>%
+    dplyr::rename(Standard = "Standard_uS_per_cm") %>%
     dplyr::mutate(Parameter = "SpCond",
                   Standard = as.character(Standard))
   
@@ -814,12 +811,12 @@ qcPHCalCheck <- function(park, site, field.season) {
   ph <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationpH")
   
   phCheck <- ph %>%
-    dplyr::mutate(Diff = abs(PostCalibrationReading_pH - PreCalibrationReading_pH)) %>%
-    dplyr::filter(!((3.98 <= TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH <= 4.10) | (6.95 <= TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH <= 7.15) |  (9.80 <= TemperatureCorrectedStd_pH & TemperatureCorrectedStd_pH <= 10.35) | is.na(TemperatureCorrectedStd_pH)) |
-                  !((3.90 <= PreCalibrationReading_pH & PreCalibrationReading_pH <= 4.20) | (6.85 <= PreCalibrationReading_pH & PostCalibrationReading_pH <= 7.25) |  (9.70 <= PreCalibrationReading_pH & PreCalibrationReading_pH <= 10.50) | is.na(PreCalibrationReading_pH)) |
-                  !(0.00 < PreCalibrationTemperature_C & PreCalibrationTemperature_C <= 40.00 & !is.na(PreCalibrationTemperature_C) | is.na(PreCalibrationTemperature_C)) | 
-                  !((3.98 <= PostCalibrationReading_pH & PostCalibrationReading_pH <= 4.10) | (6.95 < PostCalibrationReading_pH & PostCalibrationReading_pH <= 7.15) |  (9.80 <= PostCalibrationReading_pH & PostCalibrationReading_pH <= 10.35)| is.na(PostCalibrationReading_pH)) |
-                  !(0.00 < PostCalibrationTemperature_C & PostCalibrationTemperature_C <= 40.00 & !is.na(PostCalibrationTemperature_C) | is.na(PostCalibrationTemperature_C)) |
+    dplyr::mutate(Diff = abs(PostCal_pH - PreCal_pH)) %>%
+    dplyr::filter(!((3.98 <= TempCorrStandard_pH & TempCorrStandard_pH <= 4.10) | (6.95 <= TempCorrStandard_pH & TempCorrStandard_pH <= 7.15) |  (9.80 <= TempCorrStandard_pH & TempCorrStandard_pH <= 10.35) | is.na(TempCorrStandard_pH)) |
+                  !((3.90 <= PreCal_pH & PreCal_pH <= 4.20) | (6.85 <= PreCal_pH & PreCal_pH <= 7.25) |  (9.70 <= PreCal_pH & PreCal_pH <= 10.50) | is.na(PreCal_pH)) |
+                  !(0.00 < PreCalTemp_C & PreCalTemp_C <= 40.00 & !is.na(PreCalTemp_C) | is.na(PreCalTemp_C)) | 
+                  !((3.98 <= PostCal_pH & PostCal_pH <= 4.10) | (6.95 < PostCal_pH & PostCal_pH <= 7.15) |  (9.80 <= PostCal_pH & PostCal_pH <= 10.35)| is.na(PostCal_pH)) |
+                  !(0.00 < PostCalTemp_C & PostCalTemp_C <= 40.00 & !is.na(PostCalTemp_C) | is.na(PostCalTemp_C)) |
                   !(Diff < 0.50 | is.na(Diff))) %>%
     dplyr::select(-Diff)
     
@@ -845,9 +842,10 @@ qcSpCondCalCheck <- function(park, site, field.season) {
   sc <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationSpCond")
   
   scCheck <- sc %>%
-    dplyr::filter(!(StandardValue_microS_per_cm == 1000 | StandardValue_microS_per_cm == 1413 | StandardValue_microS_per_cm == 5000 | StandardValue_microS_per_cm == 10000 | StandardValue_microS_per_cm == 50000) |
-                  (PreCalibrationReading_microS_per_cm <= 900 & !is.na(PreCalibrationReading_microS_per_cm)) |
-                  !(PostCalibrationReading_microS_per_cm == 1000 | PostCalibrationReading_microS_per_cm == 1413 | PostCalibrationReading_microS_per_cm == 5000 | PostCalibrationReading_microS_per_cm == 10000 | PostCalibrationReading_microS_per_cm == 50000))
+    dplyr::filter(!(Standard_uS_per_cm == 1000 | Standard_uS_per_cm == 1413 | Standard_uS_per_cm == 5000 | Standard_uS_per_cm == 10000 | Standard_uS_per_cm == 50000) |
+                  (PreCal_uS_per_cm <= 900 & !is.na(PreCal_uS_per_cm)) |
+                  !(PostCal_uS_per_cm == 1000 | PostCal_uS_per_cm == 1413 | PostCal_uS_per_cm == 5000 | PostCal_uS_per_cm == 10000 | PostCal_uS_per_cm == 50000)) |>
+    dplyr::arrange(VisitDate)
   
   return(scCheck)
 }
@@ -871,11 +869,11 @@ qcDOCalCheck <- function(park, site, field.season) {
   do <- ReadAndFilterData(park = park, site = site, field.season = field.season, data.name = "CalibrationDO")
   
   doCheck <- do %>%
-    dplyr::filter(!((550 <= BarometricPressure_mmHg & BarometricPressure_mmHg <= 770) | is.na(BarometricPressure_mmHg)) |
-                  !((50 <= PreCalibrationReading_percent & PreCalibrationReading_percent <= 120) | is.na(PreCalibrationReading_percent)) |
-                  !((0.00 < PreCalibrationTemperature_C & PreCalibrationTemperature_C <= 40.00) | is.na(PreCalibrationTemperature_C)) |   
-                  !((70 <= PostCalibrationReading_percent & PostCalibrationReading_percent <= 105) | is.na(PostCalibrationReading_percent)) |
-                  !((0.00 < PostCalibrationTemperature_C & PostCalibrationTemperature_C <= 40.00) | is.na(PostCalibrationTemperature_C)))
+    dplyr::filter(!((550 <= BaroPressure_mmHg & BaroPressure_mmHg <= 770) | is.na(BaroPressure_mmHg)) |
+                  !((50 <= PreCal_percent & PreCal_percent <= 120) | is.na(PreCal_percent)) |
+                  !((0.00 < PreCalTemp_C & PreCalTemp_C <= 40.00) | is.na(PreCalTemp_C)) |   
+                  !((70 <= PostCal_percent & PostCal_percent <= 105) | is.na(PostCal_percent)) |
+                  !((0.00 < PostCalTemp_C & PostCalTemp_C <= 40.00) | is.na(PostCalTemp_C)))
   
   return(doCheck)
 }

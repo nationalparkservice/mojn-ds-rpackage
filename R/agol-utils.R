@@ -97,48 +97,110 @@ WrangleAGOLData <- function() {
                   DPL = DataProcessingLevel)
   
   # ----- CalibrationDO -----
-  data$CalibrationDO <- visit %>%
-    dplyr::filter(grepl("DO",ParametersCollected)) %>%
-    dplyr::inner_join(agol_layers$CalibrationDO, by = "DOUniqueID") %>%
-    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
-    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("DOInstrumentID" = "name")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
-                  CalibrationTime, DOInstrument = label, BarometricPressure_mmHg, PreCalibrationReading_percent, 
-                  PreCalibrationTemperature_C, PostCalibrationReading_percent, PostCalibrationTemperature_C,
-                  Notes = Notes.y)
-  
+
+  data$CalibrationDO <- agol_layers$CalibrationDO |>
+    dplyr::select(CalibrationDate, CalibrationTime, BaroPressure_mmHg = BarometricPressure_mmHg, PreCal_percent = PreCalibrationReading_percent, PreCalTemp_C = PreCalibrationTemperature_C, PostCal_percent = PostCalibrationReading_percent, PostCalTemp_C = PostCalibrationTemperature_C, DOInstrumentID, DOUniqueID, Notes) |>
+    dplyr::left_join(visit |> dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DOInstrument, DOInstrumentID = DOInstrumentCode, DOUniqueID), by = c("DOInstrumentID", "DOUniqueID")) |>
+    dplyr::left_join(visit |> dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, DOInstrument, DOInstrumentID = DOInstrumentCode, DOUniqueID), by = c("DOInstrumentID", "CalibrationDate" = "VisitDate"), relationship = "many-to-many") |>
+    dplyr::mutate(Park = dplyr::case_when(!is.na(Park.x) ~ Park.x,
+                                          !is.na(Park.y) ~ Park.y,
+                                          TRUE ~ NA_character_),
+                  SiteCode = dplyr::case_when(!is.na(SiteCode.x) ~ SiteCode.x,
+                                              !is.na(SiteCode.y) ~ SiteCode.y,
+                                              TRUE ~ NA_character_),
+                  SiteName = dplyr::case_when(!is.na(SiteName.x) ~ SiteName.x,
+                                              !is.na(SiteName.y) ~ SiteName.y,
+                                              TRUE ~ NA_character_),
+                  FieldSeason = dplyr::case_when(!is.na(FieldSeason.x) ~ FieldSeason.x,
+                                                 !is.na(FieldSeason.y) ~ FieldSeason.y,
+                                                 TRUE ~ NA),
+                  VisitType = dplyr::case_when(!is.na(VisitType.x) ~ VisitType.x,
+                                               !is.na(VisitType.y) ~ VisitType.y,
+                                               TRUE ~ NA_character_),
+                  DOInstrument = dplyr::case_when(!is.na(DOInstrument.x) ~ DOInstrument.x,
+                                                      !is.na(DOInstrument.y) ~ DOInstrument.y,
+                                                      TRUE ~ NA_character_),
+                  DOUniqueID = DOUniqueID.x) |>
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, CalibrationDate, CalibrationTime, FieldSeason, VisitType, DOInstrument, DOInstrumentID, DOUniqueID, BaroPressure_mmHg, PreCal_percent, PreCalTemp_C, PostCal_percent, PostCalTemp_C, Notes) |>
+    dplyr::left_join(visit |> dplyr::select(SiteCode, FieldSeason, VisitDate, VisitType), by = c("SiteCode", "FieldSeason", "VisitType"), relationship = "many-to-many") |>
+    dplyr::mutate(VisitDate = VisitDate.y) |>
+    dplyr::select(-c("VisitDate.x", "VisitDate.y")) |>
+    dplyr::relocate(VisitDate, .after = "SiteName") |>
+    dplyr::filter(!is.na(SiteCode)) |>
+    unique()
+
   # ----- CalibrationpH -----
-  data$CalibrationpH <- visit %>%
-    dplyr::filter(grepl("pH",ParametersCollected)) %>%
-    dplyr::select(visitglobalid, pHUniqueID_7, pHUniqueID_10, pHUniqueID_4) %>%
-    tidyr::pivot_longer(cols=dplyr::starts_with("pHUniqueID_"),
-                        values_to = "pHUniqueID", names_to = NULL) %>%
-    dplyr::left_join(visit, by = "visitglobalid") %>%
-    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::inner_join(agol_layers$CalibrationpH, by = "pHUniqueID") %>%
-    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
-    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("pHInstrumentID" = "name")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
-                  CalibrationTime, pHInstrument = label, StandardValue_pH, TemperatureCorrectedStd_pH,
-                  PreCalibrationReading_pH, PreCalibrationTemperature_C, PostCalibrationReading_pH, 
-                  PostCalibrationTemperature_C, Notes = Notes.y, pHUniqueID)
-  
+
+  visit_ph <- visit |>
+    dplyr::filter(grepl("pH",ParametersCollected)) |>
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, pHInstrument, pHInstrumentID = pHInstrumentCode, pHUniqueID_4, pHUniqueID_7, pHUniqueID_10) |>
+    tidyr::pivot_longer(cols = tidyselect::starts_with("pHUniqueID"),
+                                                       names_to = "Standard",
+                                                       values_to = "pHUniqueID") |>
+    dplyr::select(-Standard)
+    
+  data$CalibrationpH <- agol_layers$CalibrationpH |>
+    dplyr::select(CalibrationDate, CalibrationTime, Standard_pH = StandardValue_pH, TempCorrStandard_pH = TemperatureCorrectedStd_pH, PreCal_pH = PreCalibrationReading_pH, PreCalTemp_C = PreCalibrationTemperature_C, PostCal_pH = PostCalibrationReading_pH, PostCalTemp_C = PostCalibrationTemperature_C, pHInstrumentID, pHUniqueID, Notes) |>
+    dplyr::left_join(visit_ph, by = c("pHInstrumentID", "pHUniqueID")) |>
+    dplyr::left_join(visit_ph, by = c("pHInstrumentID", "CalibrationDate" = "VisitDate"), relationship = "many-to-many") |>
+    dplyr::mutate(Park = dplyr::case_when(!is.na(Park.x) ~ Park.x,
+                                          !is.na(Park.y) ~ Park.y,
+                                          TRUE ~ NA_character_),
+                  SiteCode = dplyr::case_when(!is.na(SiteCode.x) ~ SiteCode.x,
+                                              !is.na(SiteCode.y) ~ SiteCode.y,
+                                              TRUE ~ NA_character_),
+                  SiteName = dplyr::case_when(!is.na(SiteName.x) ~ SiteName.x,
+                                              !is.na(SiteName.y) ~ SiteName.y,
+                                              TRUE ~ NA_character_),
+                  FieldSeason = dplyr::case_when(!is.na(FieldSeason.x) ~ FieldSeason.x,
+                                                 !is.na(FieldSeason.y) ~ FieldSeason.y,
+                                                 TRUE ~ NA),
+                  VisitType = dplyr::case_when(!is.na(VisitType.x) ~ VisitType.x,
+                                               !is.na(VisitType.y) ~ VisitType.y,
+                                               TRUE ~ NA_character_),
+                  pHInstrument = dplyr::case_when(!is.na(pHInstrument.x) ~ pHInstrument.x,
+                                                      !is.na(pHInstrument.y) ~ pHInstrument.y,
+                                                      TRUE ~ NA_character_),
+                  pHUniqueID = pHUniqueID.x) |>
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, CalibrationDate, CalibrationTime, FieldSeason, VisitType, pHInstrument, pHInstrumentID, pHUniqueID, Standard_pH, TempCorrStandard_pH, PreCal_pH, PreCalTemp_C, PostCal_pH, PostCalTemp_C, Notes) |>
+    dplyr::left_join(visit |> dplyr::select(SiteCode, FieldSeason, VisitDate, VisitType), by = c("SiteCode", "FieldSeason", "VisitType"), relationship = "many-to-many") |>
+    dplyr::mutate(VisitDate = VisitDate.y) |>
+    dplyr::select(-c("VisitDate.x", "VisitDate.y")) |>
+    dplyr::relocate(VisitDate, .after = "SiteName") |>
+    dplyr::filter(!is.na(SiteCode)) |>
+    unique()
+
   # ----- CalibrationSpCond -----
-  data$CalibrationSpCond <- visit %>%
-    dplyr::filter(grepl("SpCond",ParametersCollected)) %>%
-    dplyr::inner_join(agol_layers$CalibrationSpCond, by = "SpCondUniqueID") %>%
-    dplyr::mutate(StartTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationTime = format(as.POSIXct(DateTime), format = "%H:%M:%S")) %>%
-    dplyr::mutate(CalibrationDate = lubridate::as_date(CalibrationDate.y)) %>%
-    dplyr::left_join(agol_layers$MOJN_Ref_Shared_WaterQualityInstrument, by = c("SpCondInstrumentID" = "name")) %>%
-    dplyr::select(Park, SiteCode, SiteName, VisitDate, StartTime, FieldSeason, VisitType, CalibrationDate, 
-                  CalibrationTime, SpCondInstrument = label, StandardValue_microS_per_cm, 
-                  PreCalibrationReading_microS_per_cm = PreCalibrationReading_microS_pe,
-                  PostCalibrationReading_microS_per_cm = PostCalibrationReading_microS_p, Notes = Notes.y)
+  data$CalibrationSpCond <- agol_layers$CalibrationSpCond |>
+    dplyr::select(CalibrationDate, CalibrationTime, Standard_uS_per_cm = StandardValue_microS_per_cm, PreCal_uS_per_cm = PreCalibrationReading_microS_pe, PostCal_uS_per_cm = PostCalibrationReading_microS_p, SpCondInstrumentID, SpCondUniqueID, Notes) |>
+    dplyr::left_join(visit |> dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, SpCondInstrument, SpCondInstrumentID = SpCondInstrumentCode, SpCondUniqueID), by = c("SpCondInstrumentID", "SpCondUniqueID")) |>
+    dplyr::left_join(visit |> dplyr::select(Park, SiteCode, SiteName, VisitDate, FieldSeason, VisitType, SpCondInstrument, SpCondInstrumentID = SpCondInstrumentCode, SpCondUniqueID), by = c("SpCondInstrumentID", "CalibrationDate" = "VisitDate"), relationship = "many-to-many") |>
+    dplyr::mutate(Park = dplyr::case_when(!is.na(Park.x) ~ Park.x,
+                                          !is.na(Park.y) ~ Park.y,
+                                          TRUE ~ NA_character_),
+                  SiteCode = dplyr::case_when(!is.na(SiteCode.x) ~ SiteCode.x,
+                                              !is.na(SiteCode.y) ~ SiteCode.y,
+                                          TRUE ~ NA_character_),
+                  SiteName = dplyr::case_when(!is.na(SiteName.x) ~ SiteName.x,
+                                              !is.na(SiteName.y) ~ SiteName.y,
+                                              TRUE ~ NA_character_),
+                  FieldSeason = dplyr::case_when(!is.na(FieldSeason.x) ~ FieldSeason.x,
+                                              !is.na(FieldSeason.y) ~ FieldSeason.y,
+                                              TRUE ~ NA),
+                  VisitType = dplyr::case_when(!is.na(VisitType.x) ~ VisitType.x,
+                                              !is.na(VisitType.y) ~ VisitType.y,
+                                              TRUE ~ NA_character_),
+                  SpCondInstrument = dplyr::case_when(!is.na(SpCondInstrument.x) ~ SpCondInstrument.x,
+                                               !is.na(SpCondInstrument.y) ~ SpCondInstrument.y,
+                                               TRUE ~ NA_character_),
+                  SpCondUniqueID = SpCondUniqueID.x) |>
+    dplyr::select(Park, SiteCode, SiteName, VisitDate, CalibrationDate, CalibrationTime, FieldSeason, VisitType, SpCondInstrument, SpCondInstrumentID, SpCondUniqueID, Standard_uS_per_cm, PreCal_uS_per_cm, PostCal_uS_per_cm, Notes) |>
+    dplyr::left_join(visit |> dplyr::select(SiteCode, FieldSeason, VisitDate, VisitType), by = c("SiteCode", "FieldSeason", "VisitType"), relationship = "many-to-many") |>
+    dplyr::mutate(VisitDate = VisitDate.y) |>
+    dplyr::select(-c("VisitDate.x", "VisitDate.y")) |>
+    dplyr::relocate(VisitDate, .after = "SiteName") |>
+    dplyr::filter(!is.na(SiteCode)) |>
+    unique()
   
   # ----- Photos -----
   rep_photos_int <- agol_layers$repeats_int %>%
@@ -704,9 +766,12 @@ FetchAGOLLayers <- function(data_path = "https://services1.arcgis.com/fBc8EJBxQR
   agol_layers$MOJN_Ref_Shared_WaterQualityInstrument <- fetchagol:::fetchHostedCSV(item_id = "8036e3174ef44dd2924056d0bbb20af6", token = agol_token, root = "nps.maps.arcgis.com")
   
   #Fetch each layer in the Calibration feature service
-  agol_layers$CalibrationSpCond <- fetchAllRecords(calibration_path, 3, token = agol_token$token)
-  agol_layers$CalibrationpH <- fetchAllRecords(calibration_path, 4, token = agol_token$token)
-  agol_layers$CalibrationDO <- fetchAllRecords(calibration_path, 5, token = agol_token$token)
+  agol_layers$CalibrationSpCond <- fetchAllRecords(calibration_path, 3, token = agol_token$token) |>
+    dplyr::mutate(CalibrationDate = as.Date(CalibrationDate))
+  agol_layers$CalibrationpH <- fetchAllRecords(calibration_path, 4, token = agol_token$token) |>
+    dplyr::mutate(CalibrationDate = as.Date(CalibrationDate))
+  agol_layers$CalibrationDO <- fetchAllRecords(calibration_path, 5, token = agol_token$token) |>
+    dplyr::mutate(CalibrationDate = as.Date(CalibrationDate))
     
   # Fetch each layer in the DS feature service
   
